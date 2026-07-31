@@ -327,3 +327,43 @@ describe("introspection", () => {
     expect(res.json().log).toBeDefined();
   });
 });
+
+describe("design skills", () => {
+  it("lists skills and serves each as markdown", async () => {
+    const index = await app.inject({ method: "GET", url: "/v1/skills", headers: auth });
+    expect(index.statusCode).toBe(200);
+    const names = (index.json() as { skills: { name: string }[] }).skills.map((s) => s.name);
+    expect(names).toEqual(["composition", "copywriting", "critique", "brief"]);
+
+    for (const name of names) {
+      const res = await app.inject({ method: "GET", url: `/v1/skills/${name}`, headers: auth });
+      expect(res.statusCode, name).toBe(200);
+      expect(res.body.startsWith("# "), `${name} should be markdown`).toBe(true);
+    }
+  });
+
+  it("teaches judgement, never palettes or measurements", async () => {
+    /*
+     * The load-bearing constraint. Published skill libraries ship curated hex
+     * palettes and type scales; serving those to every agent would make every
+     * flyer converge — the exact failure the Studio Sampler exists to prevent,
+     * and the look the banned list is trying to kill. Colour and type belong to
+     * the lineage, so no skill may prescribe them.
+     */
+    for (const name of ["composition", "copywriting", "critique", "brief"]) {
+      const body = (await app.inject({ method: "GET", url: `/v1/skills/${name}`, headers: auth })).body;
+      expect(body, `${name} must not prescribe hex colours`).not.toMatch(/#[0-9a-fA-F]{6}/);
+      expect(body, `${name} must not prescribe a type scale`).not.toMatch(/\b1\.(125|25|333|414|5|618)\b/);
+      expect(body, `${name} must not name a font family`).not.toMatch(
+        /\b(Inter|Helvetica|Roboto|Georgia|Playfair|Montserrat)\b/,
+      );
+    }
+  });
+
+  it("reports what is available when a skill is unknown", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/skills/color-palette", headers: auth });
+    expect(res.statusCode).toBe(404);
+    expect((res.json() as { error: { details: { available: string[] } } }).error.details.available)
+      .toContain("composition");
+  });
+});

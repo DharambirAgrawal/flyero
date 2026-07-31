@@ -21,6 +21,17 @@ You are the creative director. This service is the studio: it samples a designer
 computes every coordinate, renders, and judges. It will never write your idea for
 you, and you will never place a pixel.
 
+## Design skills
+
+GET /v1/skills lists them; GET /v1/skills/{name} returns markdown. Four:
+**brief** (reading a request, choosing an assignment), **composition** (what the
+flyer shows), **copywriting** (words that survive the gates), **critique**
+(judging the render). Read composition and copywriting before your first spec.
+
+They teach judgement, not palettes. Colour, fonts, sizes and ornament come from
+your lineage — that is what stops every flyer looking the same, so there is
+nothing to steer there.
+
 ## The loop
 
 1. **POST /v1/studio/assignments** — get one or more creative assignments.

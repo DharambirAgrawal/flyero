@@ -9,6 +9,7 @@ import { VETO_COUNT } from "../creative/compatibility.js";
 import { availableFamilies } from "../core/render/fonts.js";
 import { createAsset, getAsset, createDerivedAsset } from "../store/assets.js";
 import { fetchCandidate, imageProvider } from "../core/images/search.js";
+import { SKILL_INDEX, getSkill } from "./skills.js";
 import { flyerKey, exists, getBuffer, getText } from "../store/objects.js";
 import {
   countActiveJobs,
@@ -119,6 +120,33 @@ export function buildServer(): FastifyInstance {
 
   // ── Assets ───────────────────────────────────────────────────────────────
   /** Teach agents what image prep exists — must be registered before :assetId. */
+  /**
+   * Design skills for agents.
+   *
+   * Deliberately teach *judgement*, not palettes or measurements. Published
+   * skill libraries ship curated hex colours and type scales; handing those to
+   * every agent would make every flyer converge, which is the exact failure the
+   * Studio Sampler exists to prevent. Colour, type, geometry and ornament stay
+   * the engine's; these cover what the agent actually decides.
+   */
+  app.get("/v1/skills", async () => ({
+    skills: SKILL_INDEX,
+    note:
+      "These cover what you decide: what the flyer shows, what it says, and whether it worked. " +
+      "Colour, fonts, sizes, positions and ornament are computed from your lineage — steering them is " +
+      "how every flyer ends up looking the same.",
+  }));
+
+  app.get<{ Params: { name: string } }>("/v1/skills/:name", async (request, reply) => {
+    const skill = getSkill(request.params.name);
+    if (!skill) {
+      return fail(reply, 404, "not_found", `No skill "${request.params.name}"`, {
+        available: SKILL_INDEX.map((s) => s.name),
+      });
+    }
+    return reply.type("text/markdown; charset=utf-8").send(skill.body);
+  });
+
   app.get("/v1/assets/transforms", async () => TRANSFORM_CATALOGUE);
 
   /**
