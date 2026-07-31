@@ -298,6 +298,44 @@ solver could *place* type in calm regions rather than rescuing it afterwards.
 Scrims are still all-or-nothing rather than sized to the text they protect.
 Decoration placement does not yet avoid busy areas.
 
+### 2026-08-01 — the sameness is structural, and half of it is the agent's fault
+
+Five posters side by side (`.scratch/tmp/all.png`) share one skeleton:
+
+    eyebrow (small caps, top) -> headline -> evidence (middle)
+    -> detail row of three facts -> CTA + underline -> brand (bottom)
+
+Only the image, font and colour change. Two causes, and the first is not the
+engine's:
+
+**1. The agent authored the same spec every time.** Same six elements, same
+roles, same order, on every brief. The library has 30+ components and one
+composition was used repeatedly. The skills now tell an agent to vary this, but
+nothing *checks* it.
+
+**2. The composition grammar itself is fixed.** Every topology maps roles to
+slots in the same narrative order — eyebrow, message, evidence, support, cta,
+brand, top to bottom. Recipes move slots around; they never reorder the story or
+change which roles exist. There is currently no way to express:
+
+- no eyebrow at all
+- the headline at the *foot* of the page
+- banded structure: a colour band top and bottom holding contact details
+- two or three stacked sections, each icon + heading + body
+- giant type filling the page with no image whatsoever
+- a bordered frame wrapping the whole composition
+- a centred symmetric stack
+
+The reference posters vary in **structure** — element count from 3 to 12,
+different roles present, different reading orders — not in styling. Our variety
+is styling on a fixed skeleton, which is why ten graphic languages still read as
+one poster.
+
+**The fix is not another topology.** Ten more recipes with the same role order
+produce the same skeleton in ten new positions. What is needed is *composition
+grammars*: alternative role-to-slot mappings, optional roles, and structures
+(bands, frames, sections) that are not "one column of six things".
+
 ## Working order
 
 1. **Coverage floor.** Measure ink/object coverage of the canvas; make it a
