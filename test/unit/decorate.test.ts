@@ -8,6 +8,7 @@ import { DECOR_BUDGET, MAX_BOLD_MOVES, OVER_ALLOWED, boldnessSpent } from "../..
 import { keepOutsFrom } from "../../src/core/decor/decorations.js";
 import { decorId } from "../../src/core/decor/ids.js";
 import { overlapArea } from "../../src/core/decor/ink.js";
+import { relativeLuminance } from "../../src/creative/color.js";
 import type { LayoutResult } from "../../src/core/layout/solver.js";
 import type { DesignSpec } from "../../src/core/compose/spec.js";
 
@@ -159,12 +160,23 @@ describe("decoration layer — determinism", () => {
 });
 
 describe("decoration layer — the ground participates in ink", () => {
-  it("marks boxes on a dark ground and records the fill they sit on", () => {
+  it("records the measured ground, and derives onDark from it", () => {
+    /*
+     * This used to assert `ground` was only ever set alongside `onDark`, back
+     * when it existed solely to describe dark photographic plates. That was too
+     * narrow: *muted* ink also has to hold contrast against what is underneath,
+     * and on a light-but-not-page-coloured ground it was resolving against
+     * `palette.bg` and coming out an unreadable grey. `ground` is now recorded
+     * whenever it differs from the page, and `onDark` simply follows the
+     * measured luminance.
+     */
     for (const { id, layout } of CASES) {
       for (const box of Object.values(layout.boxes)) {
-        // `ground` is only ever set alongside `onDark`; a box carrying a ground
-        // colour but no onDark flag would mean ink was chosen against the page.
-        if (box.ground) expect(box.onDark, `${id}`).toBe(true);
+        if (!box.ground) continue;
+        expect(box.ground, `${id}`).toMatch(/^#[0-9a-fA-F]{6}$|^rgba?\(/);
+        const lum = relativeLuminance(box.ground);
+        // onDark must agree with the tone it was derived from.
+        if (box.onDark) expect(lum, `${id}: onDark on a light ground`).toBeLessThan(0.62);
       }
     }
   });

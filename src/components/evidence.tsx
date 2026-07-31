@@ -1095,6 +1095,16 @@ const photoHero: ComponentModule = {
      * directional gradient only guarantees contrast at the edge it starts from.
      */
     scrim: z.enum(["none", "bottom", "top", "full"]).default("bottom"),
+    /**
+     * An explicit band to darken, in canvas units, chosen by the solver from
+     * the measured tone field. Preferred over the coarse enum when present: a
+     * full wash dims a photograph that mostly did not need it, and the images
+     * that survive are the ones kept bright everywhere the type is not.
+     */
+    scrimBand: z
+      .object({ y: z.number(), h: z.number() })
+      .nullable()
+      .default(null),
     caption: z.string().max(48).nullable().default(null),
   }),
   intrinsicHeight: (p, _t, width) => {
@@ -1102,8 +1112,9 @@ const photoHero: ComponentModule = {
     return aspect === "portrait" ? width * 1.25 : aspect === "landscape" ? width * 0.66 : width;
   },
   render: ({ id, box, theme, props, assets }) => {
-    const { scrim, caption } = props as {
+    const { scrim, caption, scrimBand } = props as {
       scrim: "none" | "bottom" | "top" | "full";
+      scrimBand: { y: number; h: number } | null;
       caption: string | null;
     };
     const asset = assets[0];
@@ -1118,8 +1129,12 @@ const photoHero: ComponentModule = {
      * photograph join the palette instead of fighting it.
      */
     const scrimInk = mix(theme.palette.bg, "#000000", 0.35);
-    const scrimH = scrim === "full" ? box.h : box.h * 0.48;
-    const scrimY = scrim === "top" || scrim === "full" ? box.y : box.y + box.h - scrimH;
+    const scrimH = scrimBand ? scrimBand.h : scrim === "full" ? box.h : box.h * 0.48;
+    const scrimY = scrimBand
+      ? scrimBand.y
+      : scrim === "top" || scrim === "full"
+        ? box.y
+        : box.y + box.h - scrimH;
     if (!asset) {
       // A quiet brand-toned field, so a missing asset degrades honestly instead
       // of drawing fake photography.
@@ -1162,7 +1177,7 @@ const photoHero: ComponentModule = {
               x2="0"
               y2={scrim === "top" ? "0" : "1"}
             >
-              {scrim === "full" ? (
+              {scrim === "full" || scrimBand ? (
                 <>
                   {/* Even wash: a bright photograph needs a floor of darkness
                       everywhere, not only at one edge. */}

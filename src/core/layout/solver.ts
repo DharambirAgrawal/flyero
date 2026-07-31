@@ -1,5 +1,5 @@
 import { Rng } from "../../lib/rng.js";
-import { mix } from "../../creative/color.js";
+import { mix, relativeLuminance } from "../../creative/color.js";
 import { getComponent } from "../../components/registry.js";
 import type { Box, Theme } from "../../components/types.js";
 import { fitText } from "../render/fonts.js";
@@ -526,18 +526,22 @@ export function solveLayout(
     const box = boxes[el.id];
     if (!box) continue;
     const sample = tone.sample(box);
-    const large = (box.fontSize ?? 0) >= 32;
-    if (tone.legibleFor(box, theme.palette.fg, large)) continue;
-    // The brand foreground will not read here. Record the measured ground so
-    // `inkFor` can hold contrast against the truth instead of guessing at a
-    // generic dark plate, and flip to light ink when the ground is dark.
+    const baseLum = relativeLuminance(ground.base);
+
+    /**
+     * Record the measured ground whenever it differs from the page, not only
+     * when the *foreground* fails on it.
+     *
+     * The earlier version returned early if `fg` was legible — but `fg` is not
+     * the only ink on a flyer. Muted ink resolves against `palette.bg`, so on a
+     * photograph it stayed a mid grey and the date, the CTA and the signature
+     * came out unreadable while the headline was fine. Ink is only correct if
+     * every consumer can see the same truth.
+     */
+    const differs = Math.abs(sample.luminance - baseLum) > 0.08 || sample.variance > 0.02;
+    if (!differs) continue;
     box.ground = sample.fill;
     box.onDark = sample.luminance < 0.5;
-    if (!box.onDark) {
-      // A pale busy ground: light ink cannot save it, so the box keeps dark ink
-      // and the scrim pass below is what has to rescue it.
-      box.ground = undefined;
-    }
   }
 
   // ── 8.6. Type over imagery: ink and scrim ────────────────────────────────
@@ -590,15 +594,61 @@ export function solveLayout(
        */
       const coversPage =
         plateBox.w >= spec.canvas.w * 0.92 && plateBox.h >= spec.canvas.h * 0.92;
-      const spansPage = textAbove > 0 && textBelow > 0;
-      plateBox.propsOverride = {
-        ...(plateBox.propsOverride ?? {}),
-        scrim: coversPage && (spansPage || textAbove + textBelow >= 2)
-          ? "full"
-          : textBelow >= textAbove
-            ? "bottom"
-            : "top",
-      };
+
+      /**
+       * Darken only the band the type actually needs.
+       *
+       * A full wash was the first honest fix for "white text on a bright
+       * canopy", but it dims the whole photograph including the parts nothing
+       * sits on — which is why the results read muddy. With the tone field we
+       * can ask which text is genuinely failing and cover just that.
+       */
+      const failing = spec.elements
+        .filter((e) => e.role !== "structure" && e.role !== "evidence")
+        .map((e) => boxes[e.id])
+        .filter((b): b is Box => Boolean(b))
+        .filter((b) => overlapArea(b, plateBox) > 0)
+        .filter((b) => !tone.legibleFor(b, theme.palette.fg, (b.fontSize ?? 0) >= 32));
+
+      if (coversPage && failing.length > 0) {
+        const top = Math.min(...failing.map((b) => b.y));
+        const bottom = Math.max(...failing.map((b) => b.y + b.h));
+        const pad = spec.canvas.h * 0.04;
+        const band = {
+          y: Math.max(plateBox.y, top - pad),
+          h: Math.min(plateBox.h, bottom - top + pad * 2),
+        };
+        plateBox.propsOverride = {
+          ...(plateBox.propsOverride ?? {}),
+          scrim: "full",
+          scrimBand: band,
+        };
+        /**
+         * Paint the scrim back into the field.
+         *
+         * The scrim is *decided* from the tone field, but until it is also
+         * *recorded* there the field still describes the un-scrimmed page — so
+         * the gate went on reporting a headline as illegible after the solver
+         * had already fixed it. A model consulted but never updated tells you
+         * about a canvas that no longer exists.
+         */
+        tone.paintFlat(
+          { x: plateBox.x, y: band.y, w: plateBox.w, h: band.h },
+          mix(theme.palette.bg, "#000000", 0.35),
+          0.68,
+        );
+        // Ink is re-derived for the boxes the scrim just rescued.
+        for (const b of failing) {
+          const after = tone.sample(b);
+          b.ground = after.fill;
+          b.onDark = after.luminance < 0.5;
+        }
+      } else {
+        plateBox.propsOverride = {
+          ...(plateBox.propsOverride ?? {}),
+          scrim: textBelow >= textAbove ? "bottom" : "top",
+        };
+      }
     }
   }
 
@@ -618,9 +668,15 @@ export function solveLayout(
   }
 
   // ── 9.5. Ornament, now that every box is final ────────────────────────────
-  const decorations = planDecorations(spec, theme, graphics, ground, boxes, {
-    gestureApplied: appliedGesture !== null,
-  });
+  const decorations = planDecorations(
+    spec,
+    theme,
+    graphics,
+    ground,
+    boxes,
+    { gestureApplied: appliedGesture !== null },
+    tone,
+  );
 
   return {
     seed: spec.seed,

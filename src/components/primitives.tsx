@@ -30,8 +30,12 @@ export function inkFor(
 
 /** Muted ink, same rule. */
 export function mutedInkFor(theme: Theme, box: { onDark?: boolean; ground?: string }): string {
-  if (!box.onDark) return ensureContrast(theme.palette.muted, theme.palette.bg, true);
-  return withAlpha(inkFor(theme, box), 0.82);
+  if (box.onDark) return withAlpha(inkFor(theme, box), 0.86);
+  // Held against whatever the solver measured underneath, not against the page
+  // colour. A muted grey that reads on white paper disappears on a photograph,
+  // which is how the date and the CTA came out illegible while the headline
+  // looked fine.
+  return ensureContrast(theme.palette.muted, box.ground ?? theme.palette.bg, true);
 }
 
 export function Group({

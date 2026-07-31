@@ -348,6 +348,8 @@ export function planDecorations(
   boxes: Record<string, Box>,
   /** Loud moves the composition has already committed to — see MAX_BOLD_MOVES. */
   committed: { gestureApplied: boolean } = { gestureApplied: false },
+  /** The measured canvas, so ornament can avoid landing on busy ground. */
+  tone?: { sample: (r: Rect) => { luminance: number; variance: number; fill: string } },
 ): Decoration[] {
   // Boldness already spent by the ground, the gesture and the type treatment.
   // Whatever is left is ornament's share, and it may be nothing at all.
@@ -395,6 +397,10 @@ export function planDecorations(
     for (let attempt = 0; attempt < DECOR_BUDGET.ATTEMPTS_PER_SLOT; attempt++) {
       const rect = placeFor(slot, rng, canvas, boxes);
       if (violatesKeepOut(rect, weight, layer, keepOuts)) continue;
+      // A solid mark dropped on a photograph or a treeline reads as debris
+      // rather than as ornament — it has no ground to sit against. Washes are
+      // exempt: a faint tint over a busy area is simply invisible, not wrong.
+      if (tone && weight !== "wash" && tone.sample(rect).variance > 0.055) continue;
 
       const estimated = rect.w * rect.h * INK_FACTOR[slot.form];
       if (inkArea + estimated > canvasArea * DECOR_BUDGET.MAX_INK_COVERAGE) break;

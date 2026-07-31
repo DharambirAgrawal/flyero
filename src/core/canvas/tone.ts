@@ -28,6 +28,26 @@ export type ToneSample = {
   fill: string;
 };
 
+/**
+ * The neutral whose relative luminance is `l`.
+ *
+ * A cell's `fill` and its `luminance` must describe the same thing. They did
+ * not: `paintPhoto` stored the measured luminance but set `fill` to an
+ * arbitrary tint, so ink chosen against the fill was chosen against a colour
+ * that was never on the page — a photograph measuring 0.19 reported a fill of
+ * white, and the muted ink came back as a mid grey that vanished on it. Worse,
+ * the contrast gate printed a ratio derived from that same phantom fill, so its
+ * message said 4.74:1 about something illegible.
+ */
+export function greyForLuminance(l: number): string {
+  const t = Math.min(1, Math.max(0, l));
+  const c = t <= 0.0031308 ? t * 12.92 : 1.055 * Math.pow(t, 1 / 2.4) - 0.055;
+  const hex = Math.round(Math.min(255, Math.max(0, c * 255)))
+    .toString(16)
+    .padStart(2, "0");
+  return `#${hex}${hex}${hex}`;
+}
+
 /** Above this spread, a region is treated as busy and fine type will not hold. */
 export const BUSY_VARIANCE = 0.055;
 
@@ -92,7 +112,7 @@ export class ToneField {
    * That distinction is the whole point: a canopy averaging 0.45 has a band at
    * 0.72 where white type disappears.
    */
-  paintPhoto(rect: Rect, toneMap: number[] | undefined, tint: string): void {
+  paintPhoto(rect: Rect, toneMap: number[] | undefined, _tint?: string): void {
     if (!toneMap || toneMap.length !== 64) {
       // Unknown brightness: mid grey and maximally busy, so consumers treat it
       // as hostile to fine type. The safe answer, not an optimistic one.
@@ -100,7 +120,7 @@ export class ToneField {
         const cell = this.cells[i]!;
         cell.lum = 0.5;
         cell.varr = 1;
-        cell.fill = tint;
+        cell.fill = greyForLuminance(0.5);
       }
       return;
     }
@@ -117,7 +137,9 @@ export class ToneField {
       // Photographs are busy by construction; local spread against neighbours
       // would be finer, but this is a coarse model and must not pretend.
       cell.varr = 0.12;
-      cell.fill = tint;
+      // The fill must agree with the luminance, or every consumer that reasons
+      // from colour reasons about a surface that is not there.
+      cell.fill = greyForLuminance(cell.lum);
     }
   }
 
