@@ -1,0 +1,19 @@
+.env
+
+idea.pdf
+/idea.pdf
+
+node_modules/
+.DS_Store
+
+# Generated at runtime: job store, renders, process logs
+data/
+
+# Downloaded by `npm run fonts` — reproducible, not source
+assets/fonts/
+
+# Local scratch: smoke output, contact sheets, debug renders
+.scratch/
+
+# Local agent config
+.claude/

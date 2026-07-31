@@ -1,0 +1,329 @@
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import type { FastifyInstance } from "fastify";
+import { buildServer } from "../../src/api/server.js";
+import { drain } from "../../src/api/runner.js";
+import { fixtureLineages, fixtureSpec } from "../fixtures.js";
+import { renderSpec } from "../../src/core/render/index.js";
+import { exportFlyer } from "../../src/core/export/index.js";
+import { createJob, saveRevision, updateJob } from "../../src/store/jobs.js";
+import { solveLayout } from "../../src/core/layout/solver.js";
+import { themeFromSpec } from "../../src/core/render/theme.js";
+import { runGates } from "../../src/core/gates/index.js";
+
+/**
+ * Acceptance test 5 from REQUIREMENTS.md: the full create → poll → revise →
+ * export cycle over the REST surface, with no MCP involved.
+ *
+ * The suite runs without an API key, so generation itself fails fast and cheaply
+ * — which lets us assert the honest-failure path too. The live model run is a
+ * separate script.
+ */
+
+const KEY = "test_key_1";
+const auth = { authorization: `Bearer ${KEY}` };
+
+/** A 1×1 PNG, so asset upload can be exercised without a fixture file. */
+const TINY_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+let app: FastifyInstance;
+
+beforeAll(async () => {
+  app = buildServer();
+  await app.ready();
+});
+
+afterAll(async () => {
+  await app.close();
+});
+
+describe("auth", () => {
+  it("rejects a request with no bearer key", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/health" });
+    expect(res.statusCode).toBe(401);
+    expect(res.json().error.code).toBe("unauthorized");
+  });
+
+  it("rejects an unknown key", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: "/v1/health",
+      headers: { authorization: "Bearer nope" },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("has no unauthenticated path, including health", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/health", headers: auth });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.components).toBeGreaterThanOrEqual(25);
+    expect(body.designerProfiles).toBeGreaterThan(400_000);
+    expect(body.fontFamilies).toBeGreaterThan(5);
+  });
+});
+
+describe("assets", () => {
+  it("accepts an upload and returns dimensions", async () => {
+    const form = new FormData();
+    // `kind` must precede the file: request.file() resolves at the file part,
+    // so fields after it have not been parsed yet.
+    form.append("kind", "screenshot");
+    form.append("file", new Blob([new Uint8Array(TINY_PNG)], { type: "image/png" }), "dot.png");
+
+    const encoded = new Response(form);
+    const payload = Buffer.from(await encoded.arrayBuffer());
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/assets",
+      headers: { ...auth, "content-type": encoded.headers.get("content-type")! },
+      payload,
+    });
+
+    expect(res.statusCode).toBe(201);
+    const body = res.json();
+    expect(body.assetId).toMatch(/^ast_/);
+    expect(body.dimensions).toEqual([1, 1]);
+    expect(body.kind).toBe("screenshot");
+    expect(body.analysis).toBeDefined();
+  });
+
+  it("404s an unknown asset", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/assets/ast_nope", headers: auth });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("lists transform presets and transforms an upload into a derived asset", async () => {
+    const catalogue = await app.inject({ method: "GET", url: "/v1/assets/transforms", headers: auth });
+    expect(catalogue.statusCode).toBe(200);
+    expect(catalogue.json().presets["screenshot-frame"]).toBeTruthy();
+
+    // A slightly larger PNG so crop/blur have something to work with.
+    const png = await (await import("sharp")).default({
+      create: { width: 48, height: 48, channels: 3, background: "#eeeeee" },
+    })
+      .png()
+      .toBuffer();
+
+    const form = new FormData();
+    form.append("kind", "screenshot");
+    form.append("file", new Blob([new Uint8Array(png)], { type: "image/png" }), "shot.png");
+    const encoded = new Response(form);
+    const upload = await app.inject({
+      method: "POST",
+      url: "/v1/assets",
+      headers: { ...auth, "content-type": encoded.headers.get("content-type")! },
+      payload: Buffer.from(await encoded.arrayBuffer()),
+    });
+    expect(upload.statusCode).toBe(201);
+    const parentId = upload.json().assetId as string;
+
+    const transformed = await app.inject({
+      method: "POST",
+      url: `/v1/assets/${parentId}/transform`,
+      headers: auth,
+      payload: { preset: "screenshot-frame", reanalyze: false },
+    });
+    expect(transformed.statusCode).toBe(201);
+    const body = transformed.json();
+    expect(body.assetId).toMatch(/^ast_/);
+    expect(body.parentId).toBe(parentId);
+    expect(body.assetId).not.toBe(parentId);
+    expect(body.opsApplied.length).toBeGreaterThan(0);
+
+    const file = await app.inject({
+      method: "GET",
+      url: `/v1/assets/${body.assetId}/file`,
+      headers: auth,
+    });
+    expect(file.statusCode).toBe(200);
+    expect(file.headers["content-type"]).toMatch(/image\/png/);
+    expect(file.rawPayload.length).toBeGreaterThan(20);
+
+    const meta = await app.inject({
+      method: "GET",
+      url: `/v1/assets/${body.assetId}`,
+      headers: auth,
+    });
+    expect(meta.json().parentId).toBe(parentId);
+    expect(meta.json().transforms).toBeTruthy();
+  });
+});
+
+describe("flyer lifecycle", () => {
+  it("validates the request body", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/flyers",
+      headers: auth,
+      payload: { prompt: "" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("invalid_request");
+  });
+
+  it("rejects an unknown assetId before queueing any work", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/flyers",
+      headers: auth,
+      payload: { prompt: "A flyer for a coffee subscription", assetIds: ["ast_missing"] },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("returns 202 with a job id, then reports honest failure without a model key", async () => {
+    const created = await app.inject({
+      method: "POST",
+      url: "/v1/flyers",
+      headers: auth,
+      payload: { prompt: "Flyer for Vayami, an AI resume tool. Waitlist at vayami.ai/waitlist." },
+    });
+    expect(created.statusCode).toBe(202);
+    const { jobId } = created.json();
+    expect(jobId).toMatch(/^fly_/);
+
+    await drain();
+
+    const polled = await app.inject({ method: "GET", url: `/v1/flyers/${jobId}`, headers: auth });
+    const body = polled.json();
+    // Without a key the pipeline cannot run — and it says so rather than
+    // pretending to have produced something.
+    expect(body.status).toBe("failed");
+    expect(body.error).toMatch(/ANTHROPIC_API_KEY/);
+  });
+
+  it("404s an unknown job", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/flyers/fly_nope", headers: auth });
+    expect(res.statusCode).toBe(404);
+  });
+});
+
+describe("export surface", () => {
+  // Seeded directly from a fixture so export can be tested without generation.
+  const jobId = "fly_EXPORTFIXTURE";
+
+  beforeAll(async () => {
+    const spec = fixtureSpec(fixtureLineages("export", 1)[0]!);
+    const { svg, layout } = renderSpec(spec);
+    createJob({
+      id: jobId,
+      apiKey: KEY,
+      prompt: "fixture",
+      risk: "studio",
+      jobSeed: "fixture",
+      assetIds: [],
+      brand: null,
+      callbackUrl: null,
+      batchId: null,
+    });
+    const gates = await runGates(
+      { spec, layout: solveLayout(spec, themeFromSpec(spec)), requestedAssetIds: [] },
+      { jobId, apiKey: KEY, stage: "gates" },
+    );
+    exportFlyer({ jobId, revision: 0, spec, svg });
+    saveRevision({ jobId, revision: 0, spec, layout, gates, instruction: null });
+    updateJob(jobId, { status: "done", idea: spec.idea, gates: JSON.stringify(gates) });
+  });
+
+  it("serves PNG", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/export?format=png`,
+      headers: auth,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toBe("image/png");
+    expect(res.rawPayload.length).toBeGreaterThan(1000);
+  });
+
+  it("serves SVG with live text", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/export?format=svg`,
+      headers: auth,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toContain("image/svg+xml");
+    expect(res.body).toContain("<text");
+  });
+
+  it("returns 501 for PDF, as documented", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/export?format=pdf`,
+      headers: auth,
+    });
+    expect(res.statusCode).toBe(501);
+    expect(res.json().error.code).toBe("not_implemented");
+  });
+
+  it("rejects an unknown format", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/export?format=gif`,
+      headers: auth,
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("serves the spec as JSON", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/spec`,
+      headers: auth,
+    });
+    expect(res.statusCode).toBe(200);
+    const spec = res.json();
+    expect(spec.specVersion).toBe("1.0");
+    expect(spec.elements.length).toBeGreaterThanOrEqual(4);
+    // The spec carries no geometry — that is the layout solver's output.
+    expect(JSON.stringify(spec)).not.toMatch(/"x":\s*\d/);
+  });
+});
+
+describe("batches", () => {
+  it("creates N independent jobs, each with its own seed", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/batches",
+      headers: auth,
+      payload: { prompt: "Flyer for a bike repair shop", runs: 3 },
+    });
+    expect(res.statusCode).toBe(202);
+    const { batchId, jobIds } = res.json();
+    expect(jobIds).toHaveLength(3);
+
+    await drain();
+
+    const view = await app.inject({ method: "GET", url: `/v1/batches/${batchId}`, headers: auth });
+    const body = view.json();
+    expect(body.runs).toBe(3);
+    expect(body.results).toHaveLength(3);
+    expect(body.complete).toBe(3);
+  });
+});
+
+describe("introspection", () => {
+  it("always writes a process log, even for a failed job", async () => {
+    const created = await app.inject({
+      method: "POST",
+      url: "/v1/flyers",
+      headers: auth,
+      payload: { prompt: "Flyer for a bookshop" },
+    });
+    const { jobId } = created.json();
+    await drain();
+
+    const res = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/process`,
+      headers: auth,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().log).toBeDefined();
+  });
+});
