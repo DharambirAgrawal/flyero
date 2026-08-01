@@ -62,6 +62,34 @@ export const TOPOLOGIES: readonly TopologyValue[] = [
     adventurousness: 1,
   },
   {
+    id: "banded-masthead",
+    readingPath: "top-to-bottom",
+    brief:
+      "A solid band across the head and another across the foot, holding the label and the practical facts; the middle belongs entirely to the subject and one large line of type.",
+    adventurousness: 2,
+  },
+  {
+    id: "type-poster",
+    readingPath: "top-to-bottom",
+    brief:
+      "The words are the poster. The headline fills most of the page and any image is a supporting note, not the subject.",
+    adventurousness: 3,
+  },
+  {
+    id: "section-stack",
+    readingPath: "top-to-bottom",
+    brief:
+      "Three stacked bands of equal weight, each a step or a point — the explainer, not the announcement.",
+    adventurousness: 2,
+  },
+  {
+    id: "framed-centre",
+    readingPath: "top-to-bottom",
+    brief:
+      "A border frames the whole page and everything centres inside it — the invitation, the notice, the certificate.",
+    adventurousness: 1,
+  },
+  {
     id: "asymmetric-two-column",
     readingPath: "left-to-right",
     brief: "Two columns of clearly unequal width; the narrow one carries support, the wide one carries weight.",

@@ -29,7 +29,18 @@ export type TopologyId =
   | "off-center-hero"
   | "framed-evidence"
   | "vertical-narrative"
-  | "asymmetric-two-column";
+  | "asymmetric-two-column"
+  /**
+   * The four below exist because the first ten all told the story in the same
+   * order — eyebrow, message, evidence, support, cta, brand, top to bottom.
+   * They moved rectangles; they never changed *which roles appear* or *where
+   * the story starts*, which is why ten graphic languages still read as one
+   * poster. These change the grammar, not the coordinates.
+   */
+  | "banded-masthead"
+  | "type-poster"
+  | "section-stack"
+  | "framed-centre";
 
 export type TypographyId =
   | "compressed-monumental"

@@ -102,6 +102,19 @@ const PHOTOGRAPHIC = new Set([
   "photo-grid",
   "torn-photo",
 ]);
+/**
+ * Components whose edge is a silhouette rather than a rectangle. Only these may
+ * be allowed to cross a headline: the eye completes letters behind a shape, but
+ * a straight edge through a word reads as a rendering fault.
+ */
+const SHAPED_COMPONENTS = new Set([
+  "masked-image",
+  "motif-collage",
+  "scene-illustration",
+  "oversized-letterform",
+  "photo-cluster",
+]);
+
 /** No element may hide more than this fraction of the element behind it. */
 const MAX_OCCLUSION = 0.35;
 
@@ -438,7 +451,22 @@ export function solveLayout(
          * Every relationship-backed pair was being separated, which is why
          * `layout.masks` came out empty on every flyer ever rendered.
          */
-        if (justifiedPairs.has(pairKey(headlineEl.id, el.id))) continue;
+        /*
+         * Only a *shaped* occluder may cross the type.
+         *
+         * Exempting every declared pair was too broad: a rectangular photograph
+         * cutting a word in half reads as a bug, not as weaving, whatever the
+         * relationship says. Weaving is legible when the thing in front has a
+         * silhouette — a cut-out, a masked shape, a drawn form — because the
+         * eye completes the letters behind it. A hard edge through a word
+         * simply looks broken, so those are still pushed clear.
+         */
+        if (
+          justifiedPairs.has(pairKey(headlineEl.id, el.id)) &&
+          SHAPED_COMPONENTS.has(el.component)
+        ) {
+          continue;
+        }
         const other = boxes[el.id];
         if (!other || other.zIndex <= box.zIndex) continue;
         const f = footprint(other);

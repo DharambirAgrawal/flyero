@@ -336,6 +336,44 @@ produce the same skeleton in ten new positions. What is needed is *composition
 grammars*: alternative role-to-slot mappings, optional roles, and structures
 (bands, frames, sections) that are not "one column of six things".
 
+### 2026-08-01 — composition grammars, first four
+
+The first ten topologies all told the story in the same order: eyebrow,
+message, evidence, support, cta, brand, top to bottom. They moved rectangles;
+they never changed *which roles appear* or *where the story starts*. That is why
+ten graphic languages still read as one poster.
+
+Four topologies that change the grammar rather than the coordinates:
+
+- `banded-masthead` — bands at head and foot hold the label and the facts; the
+  middle belongs to the subject and one large line. The story starts mid-page.
+- `type-poster` — the words *are* the poster. Headline ceiling 0.24 against
+  0.10-0.135 for every other recipe; the image is a footnote in the corner.
+- `section-stack` — three bands of equal weight. The explainer, not the
+  announcement: support carries the argument rather than captioning it.
+- `framed-centre` — a border wraps the page, everything centres. The invitation
+  and the notice.
+
+Verified by rendering them beside `vertical-narrative` and `off-center-hero`
+with identical content: the structures genuinely differ.
+
+**Open, and honestly not solved:** on some topologies the headline's last line
+still meets the photograph's top edge. Pass 7.5 (protect the last baseline) was
+first exempted for any declared relationship — too broad, since a rectangular
+photo cutting a word reads as a bug, not weaving — then narrowed to
+`SHAPED_COMPONENTS` only, on the principle that the eye completes letters behind
+a silhouette but not behind a straight edge. That narrowing did not change the
+render, so the remaining artefact has a different cause and I stopped guessing.
+Next session: dump the geometry rather than hypothesise, as with the connector.
+
+**Still to do from the audit, in its order:** canvas-aware placement (quietZones
+is built and unused), gate correctness (G2 has no masked critique image, G6 does
+not check provenance), a rendered-diversity harness, and the bounded outer
+restart. Plus two I agree are high value: art-direction systems binding
+compatible dimensions instead of independent sampling, and comparative winner
+selection — `scoreCandidate` currently rewards the safest passing candidate,
+which is itself a source of sameness.
+
 ## Working order
 
 1. **Coverage floor.** Measure ink/object coverage of the canvas; make it a

@@ -248,6 +248,92 @@ const RECIPES: Record<TopologyId, RecipeBody> = {
     notes: "A strict column of beats read top to bottom.",
   },
 
+
+  // A band across the head and another across the foot. The label and the
+  // practical facts live in the bands; the middle is the subject and one big
+  // line. The story does not start at the top-left — it starts in the middle.
+  "banded-masthead": {
+    slots: {
+      eyebrow: r(0.04, 0.015, 0.6, 0.03),
+      message: r(0.04, 0.4, 0.92, 0.24),
+      evidence: r(-0.06, 0.09, 1.12, 0.62),
+      support: r(0.04, 0.88, 0.62, 0.07),
+      cta: r(0.04, 0.79, 0.56, 0.08),
+      brand: r(0.7, 0.88, 0.3, 0.07),
+      structure: r(-0.06, 0, 1.12, 1),
+    },
+    bleed: ["evidence"],
+    photoGround: true,
+    align: {},
+    headlineCeiling: 0.15,
+    headlineMaxLines: 2,
+    notes: "Bands top and foot; the subject owns the middle.",
+  },
+
+  // The words are the poster. Any image is a note, not the subject — so the
+  // evidence slot is deliberately small and low.
+  "type-poster": {
+    slots: {
+      eyebrow: r(0, 0.02, 0.5, 0.03),
+      message: r(0, 0.1, 1, 0.52),
+      evidence: r(0.52, 0.66, 0.48, 0.2),
+      support: r(0, 0.66, 0.46, 0.16),
+      cta: r(0, 0.87, 0.6, 0.08),
+      brand: r(0.72, 0.955, 0.28, 0.045),
+      structure: r(0, 0, 1, 1),
+    },
+    bleed: [],
+    align: {},
+    // Deliberately far above the others: this topology exists to set type big.
+    headlineCeiling: 0.24,
+    headlineMaxLines: 4,
+    notes: "Type dominates; the image is a footnote.",
+  },
+
+  // Three bands of equal weight — the explainer rather than the announcement.
+  // Support is the *main* content here, not a caption.
+  "section-stack": {
+    slots: {
+      eyebrow: r(0, 0.015, 0.6, 0.03),
+      message: r(0, 0.07, 0.86, 0.14),
+      evidence: r(0, 0.24, 1, 0.24),
+      support: r(0, 0.53, 1, 0.28),
+      cta: r(0, 0.86, 0.64, 0.08),
+      brand: r(0.72, 0.955, 0.28, 0.045),
+      structure: r(0, 0, 1, 1),
+    },
+    bleed: [],
+    align: {},
+    headlineCeiling: 0.1,
+    headlineMaxLines: 2,
+    notes: "Equal stacked sections; the middle carries the argument.",
+  },
+
+  // A border wraps the page and everything centres inside it. The invitation,
+  // the notice, the certificate — symmetric, and quiet by construction.
+  "framed-centre": {
+    slots: {
+      eyebrow: r(0.15, 0.08, 0.7, 0.03),
+      message: r(0.08, 0.17, 0.84, 0.22),
+      evidence: r(0.18, 0.42, 0.64, 0.28),
+      support: r(0.1, 0.73, 0.8, 0.09),
+      cta: r(0.2, 0.85, 0.6, 0.07),
+      brand: r(0.3, 0.93, 0.4, 0.04),
+      structure: r(0.04, 0.04, 0.92, 0.92),
+    },
+    bleed: [],
+    align: {
+      eyebrow: "middle",
+      message: "middle",
+      support: "middle",
+      cta: "middle",
+      brand: "middle",
+    },
+    headlineCeiling: 0.12,
+    headlineMaxLines: 3,
+    notes: "A frame holds the page; everything centres inside it.",
+  },
+
   // A narrow left rail carries the quiet material; the wide right column runs
   // the whole argument.
   "asymmetric-two-column": {
