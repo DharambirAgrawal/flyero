@@ -161,6 +161,41 @@ export function burstPath(cx: number, cy: number, outerR: number, innerR: number
   return starPath(cx, cy, outerR, innerR, spikes, -Math.PI / 2);
 }
 
+/**
+ * Scalloped seal — a circle with small rounded bumps around its rim, the
+ * "quality stamp" shape stickers and crests use. Distinct from `burstPath`'s
+ * sharp spikes, which read as loud rather than official.
+ */
+export function scallopedCirclePath(cx: number, cy: number, r: number, bumps = 16): string {
+  const bumpDepth = r * 0.08;
+  const step = TAU / (bumps * 2);
+  const pts: Point[] = [];
+  for (let i = 0; i < bumps * 2; i++) {
+    const angle = i * step;
+    const radius = i % 2 === 0 ? r : r - bumpDepth;
+    pts.push({ x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius });
+  }
+  return polyline(pts, true);
+}
+
+/**
+ * A short rotated strip — washi tape stuck across a corner. `angleDeg` rotates
+ * the strip about its own centre before it is handed back as a plain path, so
+ * the caller never needs an SVG `transform`.
+ */
+export function tapeStripPath(cx: number, cy: number, w: number, h: number, angleDeg: number): string {
+  const rad = (angleDeg * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const corners = [
+    { x: -w / 2, y: -h / 2 },
+    { x: w / 2, y: -h / 2 },
+    { x: w / 2, y: h / 2 },
+    { x: -w / 2, y: h / 2 },
+  ].map((p) => ({ x: cx + p.x * cos - p.y * sin, y: cy + p.x * sin + p.y * cos }));
+  return polyline(corners, true);
+}
+
 /** Open circular arc, angles in radians, sweeping clockwise from `start`. */
 export function arcPath(cx: number, cy: number, r: number, start: number, end: number): string {
   const x0 = cx + Math.cos(start) * r;

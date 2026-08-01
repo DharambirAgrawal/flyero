@@ -1,7 +1,7 @@
 import type { MaterialId, TypographyId } from "./types.js";
 
 /**
- * 10 curated open-license pairings. The model never picks fonts freeform
+ * 17 curated open-license pairings. The model never picks fonts freeform
  * (REQUIREMENTS.md §6) — it inherits the pairing implied by its lineage.
  * Every family here must exist in FONTS_DIR (see scripts/install-fonts.ts).
  */
@@ -141,6 +141,24 @@ export const FONT_PAIRS: readonly FontPair[] = [
     weights: { display: 700, body: 400, label: 600 },
     materials: ["optical-diagnostic", "technical-paper"],
     typography: ["technical-mono-accents", "compressed-monumental", "woven-through-image"],
+  },
+  {
+    id: "permanentmarker-nunito",
+    display: "Permanent Marker",
+    body: "Nunito",
+    // Permanent Marker ships one weight; asking for another would silently fall back.
+    weights: { display: 400, body: 700, label: 800 },
+    materials: ["ink-on-cream", "printed-halftone"],
+    typography: ["stacked-contrast", "baseline-broken", "quiet-with-one-loud-word"],
+  },
+  {
+    id: "bungee-inter",
+    display: "Bungee",
+    body: "Inter",
+    // Bungee ships one weight; asking for another would silently fall back.
+    weights: { display: 400, body: 400, label: 600 },
+    materials: ["printed-halftone", "ink-on-cream"],
+    typography: ["compressed-monumental", "stacked-contrast", "baseline-broken"],
   },
 ] as const;
 

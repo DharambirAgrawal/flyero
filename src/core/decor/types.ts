@@ -87,7 +87,9 @@ export type DecorForm =
   | "torn-edge"
   | "ribbon"
   | "polygon"
-  | "motif";
+  | "motif"
+  | "tape"
+  | "badge";
 
 export type DecorLayer = "under" | "over";
 

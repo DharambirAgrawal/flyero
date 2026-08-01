@@ -24,9 +24,11 @@ import {
   polygonPath,
   ribbonPath,
   routeMidpoint,
+  scallopedCirclePath,
   sparklePath,
   squigglePath,
   stripeTile,
+  tapeStripPath,
   tornEdgePath,
   type MotifName,
 } from "../../components/shapes.js";
@@ -218,6 +220,19 @@ function nodesFor(
 
     case "ribbon":
       return [{ t: "path", d: ribbonPath(rect.x, cy - rect.h * 0.12, rect.w, rect.h * 0.24), fill: ink }];
+
+    case "tape":
+      return [
+        {
+          t: "path",
+          d: tapeStripPath(cx, cy, rect.w, rect.h * 0.32, rng.range(-16, 16)),
+          fill: ink,
+          op: 0.82,
+        },
+      ];
+
+    case "badge":
+      return [{ t: "path", d: scallopedCirclePath(cx, cy, r, rng.int(14, 18)), fill: ink }];
 
     case "squiggle":
       return [

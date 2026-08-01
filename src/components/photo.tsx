@@ -325,7 +325,9 @@ const photoGrid: ComponentModule = {
     gutter: z.number().min(0).max(40).default(12),
     /** Gives the first cell a double-width row — stops a 2×2 reading as a table. */
     feature: z.boolean().default(true),
-    radius: z.number().min(0).max(60).default(0),
+    // A hard 0 clip is the one thing every sibling evidence component avoids
+    // (each bakes in its own edge device); this default gives photo-grid one too.
+    radius: z.number().min(0).max(60).default(10),
   }),
   intrinsicHeight: (_p, _t, width) => width * 0.95,
   render: ({ id, box, theme, props, assets }) => {
@@ -377,6 +379,16 @@ const photoGrid: ComponentModule = {
           const clipId = `clip-${id}-${i}`;
           return (
             <g key={i}>
+              <rect
+                x={cell.x}
+                y={cell.y + 2}
+                width={cell.w}
+                height={cell.h}
+                rx={radius}
+                ry={radius}
+                fill="#000000"
+                opacity={0.12}
+              />
               <clipPath id={clipId}>
                 <rect x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx={radius} ry={radius} />
               </clipPath>

@@ -71,9 +71,9 @@ type Lineage = {
   topology: TopologyId;     // includes composition-grammar topologies
   typography: TypographyId; // 8 values
   material: MaterialId;     // 6 values
-  colorLogic: ColorLogicId; // 8 values
+  colorLogic: ColorLogicId; // 10 values
   gesture: GestureId;       // 10 values
-  graphics: GraphicsId;     // graphic language (defaulted on older stored specs)
+  graphics: GraphicsId;     // graphic language, 10 values (defaulted on older stored specs)
   risk: "safe" | "studio" | "experimental";
   readingPath: ReadingPath; // DERIVED from topology (not sampled independently)
   fontPair: string;         // curated pair id

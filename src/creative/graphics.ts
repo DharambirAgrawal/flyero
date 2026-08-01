@@ -85,6 +85,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
     grounds: ["flat", "split-horizontal"],
     slots: [
       { form: "torn-edge", layer: "under", zone: "edge", weight: "tint", scale: [0.7, 1] },
+      { form: "tape", layer: "over", zone: "corner", weight: "solid", scale: [0.14, 0.22] },
       { form: "blob", layer: "under", zone: "corner", weight: "wash", scale: [0.3, 0.5] },
     ],
     adventurousness: 2,
@@ -132,6 +133,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
     grounds: ["split-diagonal", "split-diagonal", "flat"],
     slots: [
       { form: "ribbon", layer: "under", zone: "edge", weight: "solid", scale: [0.4, 0.7] },
+      { form: "badge", layer: "over", zone: "corner", weight: "solid", scale: [0.1, 0.16] },
       { form: "sparkle", layer: "over", zone: "gap", weight: "solid", scale: [0.06, 0.12] },
       { form: "sparkle", layer: "over", zone: "corner", weight: "solid", scale: [0.05, 0.09] },
     ],

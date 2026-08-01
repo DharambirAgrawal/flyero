@@ -10,6 +10,7 @@ import { availableFamilies } from "../core/render/fonts.js";
 import { createAsset, getAsset, createDerivedAsset } from "../store/assets.js";
 import { fetchCandidate, imageProvider } from "../core/images/search.js";
 import { SKILL_INDEX, getSkill } from "./skills.js";
+import { registerMcpHttp } from "../mcp/http.js";
 import { flyerKey, exists, getBuffer, getText } from "../store/objects.js";
 import {
   countActiveJobs,
@@ -90,10 +91,34 @@ export function buildServer(): FastifyInstance {
 
   app.register(multipart, { limits: { fileSize: config.maxUploadBytes } });
 
-  // ── Auth — no bypass paths, including health ─────────────────────────────
+  /**
+   * The one unauthenticated route: a liveness probe.
+   *
+   * A platform health check cannot present a key, so without this Render marks
+   * the service unhealthy and restarts it forever. The original rule — no
+   * bypass paths, including health — was about not exposing *job data*; this
+   * returns a constant and reveals nothing about the deployment or its
+   * contents, so it does not weaken that. Registered before the auth hook so it
+   * is genuinely reachable.
+   */
+  app.get("/health", async () => ({ ok: true }));
+
+  // ── Auth — no bypass paths beyond the liveness probe above ───────────────
   app.addHook("onRequest", async (request: FastifyRequest, reply: FastifyReply) => {
+    if (request.url === "/health") return;
     const header = request.headers.authorization ?? "";
-    const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+    const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+    /**
+     * The MCP endpoint also accepts the key in the query string.
+     *
+     * A hosted connector is configured by pasting a URL; many clients cannot
+     * attach an Authorization header to it. The trade-off is real — a URL
+     * carrying a key leaks through history, logs and screen shares — so it is
+     * allowed *only* on /mcp, and the REST surface stays header-only.
+     */
+    const viaQuery =
+      request.url.startsWith("/mcp") ? (request.query as { key?: string })?.key ?? "" : "";
+    const token = bearer || viaQuery;
     if (!token || !config.apiKeys.includes(token)) {
       return fail(reply, 401, "unauthorized", "Provide a valid Bearer key from API_KEYS");
     }
@@ -129,6 +154,8 @@ export function buildServer(): FastifyInstance {
    * Studio Sampler exists to prevent. Colour, type, geometry and ornament stay
    * the engine's; these cover what the agent actually decides.
    */
+  registerMcpHttp(app);
+
   app.get("/v1/skills", async () => ({
     skills: SKILL_INDEX,
     note:

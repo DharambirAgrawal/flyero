@@ -1,0 +1,21 @@
+# Render blueprint. `render.yaml` in the repo root lets Render configure the
+# service from the code rather than from the dashboard.
+services:
+  - type: web
+    name: flyero
+    runtime: node
+    plan: starter          # free tier sleeps; fonts are re-downloaded on each cold build
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      # Generate a real key. The default in .env.example is public knowledge, and
+      # a public URL with a known key is an open service someone else can spend.
+      - key: API_KEYS
+        generateValue: true
+      # Needed for POST /v1/assets/search|import. Without it those two endpoints
+      # return 503 not_configured and everything else still works.
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production

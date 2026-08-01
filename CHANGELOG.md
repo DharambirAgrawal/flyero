@@ -6,6 +6,54 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-01 — Hard photo edges and a diluted "handmade" register
+
+User feedback on a real run (`output/nepal5/`): the grid layout's photos butted
+together with raw rectangular clips, and the overall output read as controlled
+rather than human-made next to reference Canva templates (rotated/taped photo
+stacks, torn paper, stickers/badges, loud marker type). Investigation found both
+were structural, not bad luck — fixed here:
+
+### Fixed
+- **`photo-grid` shipped with `radius: 0` and no shadow**, the one evidence
+  component with no edge device of its own (every sibling — `masked-image`,
+  `photo-hero`, `polaroid-stack`, `torn-photo` — bakes one in). Default radius
+  raised to 10 and each cell now casts the same soft drop-shadow `polaroid-stack`
+  uses, so grid cells stop reading as a raw clip.
+- **`crafted-collage` and `botanical-celebration` art directions had the right
+  materials/graphics but no pull toward the components that sell the look.**
+  `ArtDirection` gained an optional `preferredComponents` field; the Composer
+  prompt now names the preferred evidence component(s) ahead of the full
+  catalogue instead of leaving the art-direction brief as the only signal.
+- **The font set had no loud handmade register** — only 2 of 15 pairs were
+  script, and both competed with 5-6 cleaner alternatives for the same
+  material+typography combo. Added `permanentmarker-nunito` and `bungee-inter`
+  (new families fetched via `npm run fonts`), scoped to the collage-adjacent
+  materials.
+- **`paper-collage` and `sticker-sheet` graphic languages drew only generic,
+  mostly-faint marks** (a torn edge, a blob, a ribbon, two sparkles) — nothing
+  as confident as the tape/badge vocabulary in the reference. Added `tape` and
+  `badge` `DecorForm`s (`scallopedCirclePath`, `tapeStripPath` in
+  `src/components/shapes.ts`) and wired one `solid`-weight slot of each into
+  the two languages.
+
+### Decisions recorded
+- Left the asset-transform pipeline (`src/core/images/transform.ts`) opt-in
+  only, as designed — the edge-treatment fix belongs in component defaults,
+  not in forcing every asset through a transform before it can render.
+- Did not pad existing dimension counts (metaphors/topologies/gestures/etc.)
+  as a diversity fix — the real gap was coherence between an art direction's
+  intent and what actually rendered, not headcount. `AGENTS.md` law #2 ties
+  diversity work to fixing the sampler/creative data for a reason.
+- Fixed stale doc counts caught while establishing ground truth for this
+  change: `docs/ARCHITECTURE.md` §4 claimed ~460,000 designer profiles from
+  an unrestricted 6-dimension product and omitted the graphics dimension
+  entirely; the actual art-direction-gated 7-dimension `PROFILE_SPACE` is
+  ~47,000 (already correctly asserted in `test/unit/sampler.test.ts` — only
+  the prose was wrong). Topology count corrected 10 → 14, color-logic 8 → 10.
+
+---
+
 ## 2026-07-31 — Milestone-3 gap closure (structure, gates, selection)
 
 The sameness diagnosis was structural: independent dimension sampling, safest-passer

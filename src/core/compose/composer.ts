@@ -211,6 +211,10 @@ function composePrompt(input: ComposeInput): string {
     ? `\n\nTHIS IS A REVISION. Apply these specific fixes and change nothing else:\n${input.fixes.map((f) => `- ${f}`).join("\n")}`
     : "";
 
+  const preference = artDirection.preferredComponents?.length
+    ? `\nPreferred evidence component(s) for this art direction: ${artDirection.preferredComponents.join(", ")} — reach for one of these over a plainer alternative when an evidence slot fits it.`
+    : "";
+
   return `THE IDEA (this is what the flyer shows — everything serves it)
 ${idea.idea}
 
@@ -241,7 +245,7 @@ CREATIVE POSITION
 AVAILABLE ASSETS
 ${assetLines}
 
-COMPONENT CATALOGUE (ids you may use)
+COMPONENT CATALOGUE (ids you may use)${preference}
 ${catalogueFor(lineage.topology)}
 
 Compose the flyer.${fixes}`;

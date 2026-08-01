@@ -81,17 +81,18 @@ PNG (delivery), SVG (editable), `spec.json` + `idea` sentence. PDF is post-v1 (`
 | Dimension | Size (v1) | Examples |
 |---|---|---|
 | Metaphor family | 12 | transformation, signal-from-noise, before/after fold, annotation/editorial, cartography, magnification, assembly/compile, conversation, constellation, lens, threshold/door, growth |
-| Composition topology | 10 | diagonal progression, split editorial, radial field, oversized-anchor, layered depth stack, zigzag path, off-center hero, framed evidence, vertical narrative, asymmetric two-column |
+| Composition topology | 14 | diagonal progression, split editorial, radial field, oversized-anchor, layered depth stack, zigzag path, off-center hero, framed evidence, vertical narrative, asymmetric two-column, banded-masthead, type-poster, section-stack, framed-centre |
 | Typography behavior | 8 | compressed-monumental, editorial-annotated, woven-through-image, technical-mono-accents, quiet-with-one-loud-word, stacked-contrast, masked-by-subject, baseline-broken |
 | Material language | 6 | technical-paper, optical-diagnostic, printed-halftone, soft-industrial, ink-on-cream, chromatic-glass *(used sparingly)* |
-| Color logic | 8 generators | not fixed palettes — rules like "one saturated accent on actionable elements only, everything else near-neutral" |
+| Color logic | 10 generators | not fixed palettes — rules like "one saturated accent on actionable elements only, everything else near-neutral" |
 | Signature gesture family | 10 | element-escapes-canvas, path-becomes-CTA-underline, headline-behind-subject, one-rotated-element, intentional-crop-of-hero, oversized-letterform-as-structure, … |
+| Graphic language | 10 | editorial-restraint, swiss-grid, organic-blobs, retro-stripes, halftone-pop, paper-collage, dashed-cartography, botanical-frame, sticker-sheet, geometric-memphis |
 
-That is **12 × 10 × 8 × 6 × 8 × 10 ≈ 460,000 structurally distinct designer profiles** — before the Idea Engine adds its own variation *inside* the lineage. Collision probability across 10 independent *jobs* (each shipping one winner) is near zero **by math, not by memory**. Every individual dimension value is hand-curated and professional, so any combination is viable — this is why structured sampling beats temperature noise (DR-3).
+Sampling happens **inside an art direction** (`src/creative/artdirections.ts`, currently 10 directions): a coherent family of metaphor/topology/type/material/colour/gesture/graphics values filtered by brief archetype, so the sampler never combines seven individually reasonable dimensions into one contradictory "designer." Within that gating, the sampler covers **`PROFILE_SPACE` ≈ 47,000 structurally distinct designer profiles** (the exact figure is computed from the live dimension data and asserted in `test/unit/sampler.test.ts`, not hand-derived here) — before the Idea Engine adds its own variation *inside* the lineage. Collision probability across 10 independent *jobs* (each shipping one winner) is near zero **by math, not by memory**. Every individual dimension value is hand-curated and professional, so any combination reachable inside a direction is viable — this is why structured sampling beats temperature noise (DR-3).
 
 A compatibility matrix (small, hand-written) vetoes the few genuinely bad pairings (e.g., `radial-field` × `editorial-annotated`) and re-rolls that lineage.
 
-`risk` level (`safe`/`studio`/`experimental`) controls how far from the most conventional value each dimension may sample. Sampling happens **inside an art direction** (`src/creative/artdirections.ts`): a coherent family of metaphor/topology/type/material/colour/gesture/graphics values filtered by brief archetype. Independent dimension rolls that produce contradictory "designers" are out of v1.
+`risk` level (`safe`/`studio`/`experimental`) controls how far from the most conventional value each dimension may sample. Independent dimension rolls that produce contradictory "designers" are out of v1.
 
 **Within one job:** 3 lineages run **in parallel** through stages 3–8. Gatekeeper (stage 9) picks among passers comparatively. Independent sessions (DR-1) each get a fresh job seed — that is how ten same-prompt sessions diverge. Live precheck: `npm run diversity`.
 

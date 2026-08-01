@@ -5,7 +5,7 @@ export type TopologyValue = DimensionValue<TopologyId> & {
   readingPath: ReadingPath;
 };
 
-/** 10 composition topologies. Geometry for each lives in src/core/layout/recipes.ts. */
+/** 14 composition topologies. Geometry for each lives in src/core/layout/recipes.ts. */
 export const TOPOLOGIES: readonly TopologyValue[] = [
   {
     id: "diagonal-progression",

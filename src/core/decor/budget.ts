@@ -70,6 +70,8 @@ export const OVER_ALLOWED: ReadonlySet<DecorForm> = new Set<DecorForm>([
   "torn-edge",
   "motif",
   "squiggle",
+  "tape",
+  "badge",
 ]);
 
 /**
@@ -123,4 +125,6 @@ export const INK_FACTOR: Record<DecorForm, number> = {
   ribbon: 0.85,
   polygon: 0.7,
   motif: 0.45,
+  tape: 0.9,
+  badge: 0.55,
 };

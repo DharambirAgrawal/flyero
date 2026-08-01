@@ -32,6 +32,13 @@ export type ArtDirection = {
   colorLogic: readonly ColorLogicId[];
   gestures: readonly GestureId[];
   graphics: readonly GraphicsId[];
+  /**
+   * Evidence components that best express this direction's personality.
+   * The Composer sees these as a preference, not a requirement — unlike
+   * `requires` on a gesture, the catalogue still lists every valid
+   * component for the topology.
+   */
+  preferredComponents?: readonly string[];
 };
 
 export const ART_DIRECTIONS: readonly ArtDirection[] = [
@@ -90,6 +97,7 @@ export const ART_DIRECTIONS: readonly ArtDirection[] = [
     colorLogic: ["warm-neutral-cool-accent", "paper-and-ink", "colour-block-duo", "two-accent-before-after"],
     gestures: ["one-rotated-element", "element-escapes-canvas", "annotation-breaks-margin"],
     graphics: ["paper-collage", "sticker-sheet", "organic-blobs"],
+    preferredComponents: ["polaroid-stack", "torn-photo"],
   },
   {
     id: "retro-event",
@@ -118,6 +126,7 @@ export const ART_DIRECTIONS: readonly ArtDirection[] = [
     colorLogic: ["warm-neutral-cool-accent", "tinted-ground", "saturated-field"],
     gestures: ["one-rotated-element", "hero-overlaps-eyebrow", "intentional-crop-of-hero"],
     graphics: ["botanical-frame", "organic-blobs", "sticker-sheet"],
+    preferredComponents: ["polaroid-stack", "torn-photo"],
   },
   {
     id: "cartographic-story",

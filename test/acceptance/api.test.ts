@@ -393,3 +393,54 @@ describe("design skills", () => {
       .toContain("composition");
   });
 });
+
+describe("remote MCP", () => {
+  it("serves the same tools over HTTP that the stdio server does", async () => {
+    // A hosted connector cannot spawn a process, so stdio alone makes Flyero
+    // unusable as a connector. The tools are not redefined here — buildMcpServer
+    // is shared — so REST and MCP cannot drift apart.
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+    });
+    expect(res.statusCode).toBe(200);
+    const names = res.json().result.tools.map((t: { name: string }) => t.name);
+    expect(names).toContain("create_flyer");
+    expect(names).toContain("export_flyer");
+  });
+
+  it("accepts a key in the query string, but only on /mcp", async () => {
+    const ok = await app.inject({
+      method: "POST",
+      url: `/mcp?key=${KEY}`,
+      headers: { accept: "application/json, text/event-stream" },
+      payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+    });
+    expect(ok.statusCode).toBe(200);
+
+    // The REST surface stays header-only: a key in a URL leaks through history
+    // and logs, so the convenience is scoped to the one place it is needed.
+    const rest = await app.inject({ method: "GET", url: `/v1/skills?key=${KEY}` });
+    expect(rest.statusCode).toBe(401);
+  });
+
+  it("rejects an unknown key", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp?key=not-a-real-key",
+      headers: { accept: "application/json, text/event-stream" },
+      payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("exposes an unauthenticated liveness probe that reveals nothing", async () => {
+    // Without this a platform health check gets 401 and restarts the service
+    // forever. It must stay a constant — no version, no counts, no config.
+    const res = await app.inject({ method: "GET", url: "/health" });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ ok: true });
+  });
+});

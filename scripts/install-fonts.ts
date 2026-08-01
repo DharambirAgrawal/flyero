@@ -34,6 +34,11 @@ const FAMILIES: Record<string, number[]> = {
   Anton: [400],
   "Archivo Narrow": [400, 600, 700],
   "Roboto Slab": [400, 700, 900],
+  // Added to give the handmade/collage register real teeth: a marker scrawl
+  // and a poster-block face, the two things the font set had no answer for.
+  "Permanent Marker": [400],
+  Nunito: [400, 700, 800],
+  Bungee: [400],
 };
 
 /** Google Fonts serves plain TTF when the UA predates woff2. */
