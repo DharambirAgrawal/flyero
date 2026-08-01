@@ -363,6 +363,29 @@ describe("design skills", () => {
     }
   });
 
+  it("surfaces the archetype filter so agents do not brute-force the sampler", async () => {
+    // A real run burned 27 assignment draws hunting for a metaphor that suited a
+    // travel brief, because nothing told it the sampler can filter by campaign
+    // archetype. The control existed; the API just never mentioned it.
+    const bare = await app.inject({
+      method: "POST",
+      url: "/v1/studio/assignments",
+      headers: auth,
+      payload: { runs: 3 },
+    });
+    expect(bare.statusCode).toBe(200);
+    expect(bare.json().hint, "a bare assignment should name the filter").toMatch(/campaignArchetype/);
+
+    const filtered = await app.inject({
+      method: "POST",
+      url: "/v1/studio/assignments",
+      headers: auth,
+      payload: { runs: 3, campaignArchetype: "event-invitation" },
+    });
+    expect(filtered.json().archetype).toBe("event-invitation");
+    expect(filtered.json().hint, "no nagging once it is supplied").toBeUndefined();
+  });
+
   it("reports what is available when a skill is unknown", async () => {
     const res = await app.inject({ method: "GET", url: "/v1/skills/color-palette", headers: auth });
     expect(res.statusCode).toBe(404);

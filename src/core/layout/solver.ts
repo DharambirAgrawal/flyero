@@ -77,7 +77,13 @@ const PHOTO_COMPONENTS = new Set([
   "photo-hero",
   "asset-image",
   "masked-image",
-  "photo-cluster",
+  /*
+   * `photo-cluster` is deliberately NOT here. Ground-capable means "fills a
+   * bleed rect edge to edge", which is safe for a photograph because it simply
+   * crops. A cluster is a row of discrete circles: given a rect that runs off
+   * the canvas it centres the run in the *bleed*, so the outer cutouts are
+   * sliced by the page edge. Its parts have to stay inside the page.
+   */
   "polaroid-stack",
   "photo-grid",
   "torn-photo",

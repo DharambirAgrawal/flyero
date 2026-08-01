@@ -374,6 +374,22 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     return {
       jobSeed,
       risk,
+      /**
+       * Stated in the response because not stating it cost a real run 27 draws.
+       *
+       * An agent hunting for a metaphor that fits its brief has no way to know
+       * the sampler can filter by campaign archetype, so it redraws until luck
+       * supplies one. That is not the agent being careless — it is the API
+       * hiding the control that exists.
+       */
+      archetype: campaignArchetype ?? null,
+      hint: campaignArchetype
+        ? undefined
+        : "No campaignArchetype given, so metaphors were drawn from the whole set. " +
+          "Pass one of product-promotion | event-invitation | awareness-education | " +
+          "editorial-announcement | offer-promotion and the sampler will only return " +
+          "designers whose metaphor suits that kind of brief — redrawing until one fits " +
+          "is fighting the sampler, not using it.",
       campaignArchetype: campaignArchetype ?? null,
       assignments: lineages.map((l) => describeAssignment(l, brandColors)),
       next: "Write the idea, then POST /v1/flyers/compose with the lineage returned here.",

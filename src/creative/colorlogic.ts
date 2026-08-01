@@ -239,7 +239,13 @@ export const COLOR_LOGIC: readonly ColorLogicValue[] = [
        * Mid-dark, genuinely saturated: dark enough for white type to clear AA,
        * light enough that the hue still reads as a colour rather than as black.
        */
-      const bg = hsl(h, clamp((p?.s ?? 0.7) * 1.05, 0.44, 0.78), rng.range(0.24, 0.36));
+      /*
+       * Lightness 0.24-0.36 was too pale for the white ink this logic declares:
+       * measured worst case, white fell to 3.07:1 against its own ground and
+       * every element the solver set in white came out unreadable. A saturated
+       * field only works as a *dark* field.
+       */
+      const bg = hsl(h, clamp((p?.s ?? 0.7) * 1.05, 0.44, 0.78), rng.range(0.13, 0.22));
       const fg = "#ffffff";
       const s2 = p ? brandSecondary(brand, p) : null;
       // The accent has to sing against a saturated ground, so it is lifted well

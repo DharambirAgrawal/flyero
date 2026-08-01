@@ -237,6 +237,19 @@ answers would produce genuinely different flyers — a date you cannot invent, a
 web address, whether there is a logo. Everything else: choose sensibly, label it
 as an assumption, and let the user correct it.
 
+## Ask for the right kind of designer first
+
+POST /v1/studio/assignments takes a **campaignArchetype**:
+product-promotion, event-invitation, awareness-education,
+editorial-announcement, offer-promotion.
+
+Pass it. The sampler then only returns designers whose metaphor suits that kind
+of brief. Without it you are drawing from the whole set and hoping — one real
+run burned 27 draws hunting for a metaphor that fitted a travel brief, which is
+fighting the sampler rather than using it.
+
+Also note the field is **runs**, not "count".
+
 ## Choosing among the sampled designers
 
 You get several lineages per job. They differ by construction — metaphor,
