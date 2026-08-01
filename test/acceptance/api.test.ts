@@ -50,8 +50,8 @@ describe("auth", () => {
     /*
      * The transport demands the client accept BOTH application/json and
      * text/event-stream and 406s otherwise. Plenty of connectors send only
-     * application/json, or */*, or nothing — all spec-legal, none recoverable
-     * from the client side, and the user just sees "cannot connect". We answer
+     * application/json, or a wildcard, or nothing — all spec-legal, none
+     * recoverable client-side, and the user just sees "cannot connect". We answer
      * with JSON regardless, so the handshake requirement is ours to absorb.
      */
     for (const accept of ["application/json", "*/*", undefined]) {
@@ -497,8 +497,8 @@ describe("remote MCP", () => {
     /*
      * The transport demands the client accept BOTH application/json and
      * text/event-stream and 406s otherwise. Plenty of connectors send only
-     * application/json, or */*, or nothing — all spec-legal, none recoverable
-     * from the client side, and the user just sees "cannot connect". We answer
+     * application/json, or a wildcard, or nothing — all spec-legal, none
+     * recoverable client-side, and the user just sees "cannot connect". We answer
      * with JSON regardless, so the handshake requirement is ours to absorb.
      */
     for (const accept of ["application/json", "*/*", undefined]) {
