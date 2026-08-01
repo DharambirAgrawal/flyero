@@ -93,6 +93,14 @@ function describeJob(job: Json): string {
   return `Still generating (stage: ${job.stage ?? "?"}). Poll get_flyer in a moment.`;
 }
 
+
+/** Endpoints that return markdown rather than JSON (the guide and the skills). */
+async function apiText(path: string): Promise<string> {
+  const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
+  if (!res.ok) throw new Error(`${path} failed: ${res.status} ${await res.text()}`);
+  return res.text();
+}
+
 export function buildMcpServer(): McpServer {
   const server = new McpServer({ name: "flyero", version: "0.1.0" });
 
@@ -341,6 +349,262 @@ export function buildMcpServer(): McpServer {
             type: "text",
             text: `Batch ${batch.batchId} — ${view.complete}/${view.runs} finished:\n${lines.join("\n")}\n\nUse get_flyer with a jobId to see any of them.`,
           },
+        ],
+      };
+    },
+  );
+
+  // ── The agent-driven surface ──────────────────────────────────────────────
+  //
+  // Everything above generates a flyer *for* you: the pipeline calls a language
+  // model to write the brief, invent the idea and compose the page, which needs
+  // ANTHROPIC_API_KEY on the server.
+  //
+  // These tools invert that. The connected agent *is* the designer — it reads
+  // the skills, picks a designer profile, chooses the pictures, writes the
+  // words, and judges the render. The server contributes what an LLM must not:
+  // geometry, colour, typography, ornament and the gates. No model key is
+  // needed on the server, because the model is already at the other end of the
+  // connector.
+
+  server.registerTool(
+    "read_design_guide",
+    {
+      title: "Read the design guide",
+      description:
+        "How to compose a flyer with this system: the loop, the component catalogue, the Six Gates, and " +
+        "what you do and do not control. Read this before your first composition.",
+      inputSchema: {},
+    },
+    async () => ({ content: [{ type: "text", text: await apiText("/v1/guide") }] }),
+  );
+
+  server.registerTool(
+    "read_design_skill",
+    {
+      title: "Read a design skill",
+      description:
+        "Short guides on judgement: 'brief' (reading a request, choosing a designer), 'composition' (what " +
+        "the flyer shows), 'copywriting' (words that survive the gates), 'critique' (judging the render). " +
+        "Call with no name to list them. These teach judgement, not palettes — colour and type come from " +
+        "your assigned designer.",
+      inputSchema: {
+        name: z
+          .enum(["brief", "composition", "copywriting", "critique"])
+          .optional()
+          .describe("Omit to list all four."),
+      },
+    },
+    async ({ name }) => {
+      if (!name) {
+        const index = await api("/v1/skills");
+        return {
+          content: [
+            {
+              type: "text",
+              text: index.skills
+                .map((s: Json) => `**${s.name}** — ${s.title}\n${s.description}\nUse when: ${s.useWhen}`)
+                .join("\n\n"),
+            },
+          ],
+        };
+      }
+      return { content: [{ type: "text", text: await apiText(`/v1/skills/${name}`) }] };
+    },
+  );
+
+  server.registerTool(
+    "request_designers",
+    {
+      title: "Request designer assignments",
+      description:
+        "Ask the Studio Sampler for candidate designers. Each is a bundle — metaphor, layout topology, " +
+        "typography, material, colour logic, signature gesture, graphic language — and you cannot edit " +
+        "one. Pick the designer whose METAPHOR fits your message. Pass campaignArchetype so the sampler " +
+        "only returns metaphors suited to that kind of brief; redrawing until one fits is fighting it.",
+      inputSchema: {
+        runs: z.number().int().min(1).max(6).optional().describe("How many designers. Default 3."),
+        campaignArchetype: z
+          .enum([
+            "product-promotion",
+            "event-invitation",
+            "awareness-education",
+            "editorial-announcement",
+            "offer-promotion",
+          ])
+          .optional()
+          .describe("What kind of flyer this is. Strongly recommended."),
+        risk: z.enum(["safe", "studio", "experimental"]).optional(),
+        jobSeed: z.string().optional().describe("Reuse to get the same designers again."),
+      },
+    },
+    async (args) => ({
+      content: [
+        { type: "text", text: JSON.stringify(await api("/v1/studio/assignments", {
+          method: "POST",
+          body: JSON.stringify(args),
+        }), null, 2) },
+      ],
+    }),
+  );
+
+  server.registerTool(
+    "search_images",
+    {
+      title: "Search stock photography",
+      description:
+        "Find real photographs for the flyer. Returns candidates with previews; nothing is downloaded, so " +
+        "looking is cheap. A flyer about a place, a dish or an object with no picture of it cannot pass " +
+        "the cover test — search before you compose.",
+      inputSchema: {
+        query: z.string().describe("What to show, e.g. 'himalaya peak nepal'."),
+        perPage: z.number().int().min(1).max(40).optional(),
+        orientation: z.enum(["portrait", "landscape", "square"]).optional(),
+      },
+    },
+    async (args) => ({
+      content: [
+        { type: "text", text: JSON.stringify(await api("/v1/assets/search", {
+          method: "POST",
+          body: JSON.stringify(args),
+        }), null, 2) },
+      ],
+    }),
+  );
+
+  server.registerTool(
+    "import_image",
+    {
+      title: "Import a searched image",
+      description:
+        "Bring a chosen search result into the flyer's assets and get an assetId. Pass the candidate's " +
+        "downloadUrl, sourceUrl and author — the photographer's credit is stored with it.",
+      inputSchema: {
+        downloadUrl: z.string().describe("From a search result."),
+        sourceUrl: z.string().optional(),
+        author: z.string().optional(),
+        kind: z.enum(["logo", "screenshot", "reference"]).optional(),
+      },
+    },
+    async (args) => ({
+      content: [
+        { type: "text", text: JSON.stringify(await api("/v1/assets/import", {
+          method: "POST",
+          body: JSON.stringify(args),
+        }), null, 2) },
+      ],
+    }),
+  );
+
+  server.registerTool(
+    "compose_flyer",
+    {
+      title: "Compose a flyer yourself",
+      description:
+        "You write the flyer; the engine draws it. Send the designer lineage from request_designers, the " +
+        "copy, and 4-7 elements each naming a component, a role and why it is there. Returns the rendered " +
+        "flyer plus which gates passed. If the composition breaks a rule the reply names the exact rule — " +
+        "fix and send again. Never place coordinates, colours or fonts: those are computed.",
+      inputSchema: {
+        composition: z
+          .record(z.any())
+          .describe(
+            "The full composition object: lineage, productName, idea, story, copy, elements, " +
+              "relationships, gesturePurpose, assetIds, brandColors. Read the design guide for the shape.",
+          ),
+      },
+    },
+    async ({ composition }) => {
+      const out = await api("/v1/flyers/compose", {
+        method: "POST",
+        body: JSON.stringify(composition),
+      });
+      const preview = out.flyerId ? await previewContent(out.flyerId) : [];
+      return { content: [{ type: "text", text: JSON.stringify(out, null, 2) }, ...preview] };
+    },
+  );
+
+  server.registerTool(
+    "revise_composition",
+    {
+      title: "Revise a composed flyer",
+      description:
+        "Edit an existing composition — swap a component, rewrite copy, change props — and re-render. " +
+        "Spec edits only; you never move anything.",
+      inputSchema: {
+        flyerId: z.string(),
+        patch: z.record(z.any()).describe("The fields to change."),
+      },
+    },
+    async ({ flyerId, patch }) => {
+      const out = await api(`/v1/flyers/${flyerId}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      });
+      return {
+        content: [
+          { type: "text", text: JSON.stringify(out, null, 2) },
+          ...(await previewContent(flyerId)),
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
+    "review_flyer",
+    {
+      title: "Judge the rendered flyer",
+      description:
+        "LOOK at the flyer image first, then submit your verdict. Three gates cannot be settled by code — " +
+        "does the idea read (G1), is the product guessable with the words covered (G2), does the type " +
+        "participate rather than caption (G4) — so a flyer stays 'awaiting_review' until you answer. " +
+        "Reporting done on something you would not print is the one failure that cannot be recovered.",
+      inputSchema: {
+        flyerId: z.string(),
+        ideaReads: z.boolean().describe("Does the single idea land in one pass?"),
+        ideaAsSeen: z.string().describe("The idea in your own words, from the image alone."),
+        productGuessable: z.boolean().describe("Cover the logo and headline — still obvious?"),
+        productGuess: z.string().describe("What a stranger would say it is."),
+        headlineParticipates: z.boolean().describe("Is the type part of the composition?"),
+        copyReadsHuman: z.boolean(),
+        collisions: z.array(z.string()).describe("Anything clipped, overlapping or off-canvas."),
+        notes: z.string().optional(),
+      },
+    },
+    async ({ flyerId, ...verdict }) => ({
+      content: [
+        { type: "text", text: JSON.stringify(await api(`/v1/flyers/${flyerId}/review`, {
+          method: "POST",
+          body: JSON.stringify(verdict),
+        }), null, 2) },
+      ],
+    }),
+  );
+
+  server.registerTool(
+    "export_composed_flyer",
+    {
+      title: "Export a composed flyer",
+      description: "Get the finished flyer as PNG or SVG. The SVG keeps text as text, so it stays editable.",
+      inputSchema: {
+        flyerId: z.string(),
+        format: z.enum(["png", "svg"]).optional(),
+        outputPath: z.string().optional().describe("Where to write it, if the client has a filesystem."),
+      },
+    },
+    async ({ flyerId, format = "png", outputPath }) => {
+      const bytes = await apiBinary(`/v1/flyers/${flyerId}/export?format=${format}`);
+      if (outputPath) {
+        await mkdir(dirname(resolve(outputPath)), { recursive: true });
+        await writeFile(resolve(outputPath), bytes);
+        return { content: [{ type: "text", text: `Wrote ${outputPath} (${bytes.length} bytes)` }] };
+      }
+      if (format === "svg") {
+        return { content: [{ type: "text", text: bytes.toString("utf8") }] };
+      }
+      return {
+        content: [
+          { type: "image", data: bytes.toString("base64"), mimeType: "image/png" },
         ],
       };
     },

@@ -411,6 +411,38 @@ describe("remote MCP", () => {
     expect(names).toContain("export_flyer");
   });
 
+  it("exposes the agent-driven tools, which need no model key on the server", async () => {
+    /*
+     * The original tools generate a flyer *for* you and call a language model
+     * server-side. A connected agent is already a model — it needs the tools
+     * that let it be the designer, with the server contributing only what an
+     * LLM must not decide: geometry, colour, typography and the gates.
+     */
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+    });
+    const names: string[] = res.json().result.tools.map((t: { name: string }) => t.name);
+    for (const tool of [
+      "read_design_guide",
+      "read_design_skill",
+      "request_designers",
+      "search_images",
+      "import_image",
+      "compose_flyer",
+      "revise_composition",
+      "review_flyer",
+      "export_composed_flyer",
+    ]) {
+      expect(names, `${tool} missing`).toContain(tool);
+    }
+    // Registering a duplicate name throws inside the SDK and 500s the whole
+    // endpoint, which is how `revise_flyer` briefly took every tool down.
+    expect(new Set(names).size, "duplicate tool name").toBe(names.length);
+  });
+
   it("accepts a key in the query string, but only on /mcp", async () => {
     const ok = await app.inject({
       method: "POST",

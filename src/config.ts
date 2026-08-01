@@ -82,7 +82,15 @@ export const config = {
   ]),
 
   mcpTransport: str("MCP_TRANSPORT", "stdio"),
-  flyeroApiUrl: str("FLYERO_API_URL", "http://localhost:8080"),
+  /**
+   * Where the MCP adapter reaches the REST core.
+   *
+   * Derived from the port this process is actually listening on, not a fixed
+   * 8080. When MCP is mounted in-process (the hosted connector), it calls the
+   * API over loopback — and a host that assigns its own port, as Render does,
+   * would otherwise send every tool call to a port with nothing on it.
+   */
+  flyeroApiUrl: str("FLYERO_API_URL", `http://127.0.0.1:${num("PORT", 8080)}`),
   flyeroApiKey: str("FLYERO_API_KEY", "dev_key_change_me"),
   webhookSigningSecret: process.env.WEBHOOK_SIGNING_SECRET ?? "",
 } as const;
