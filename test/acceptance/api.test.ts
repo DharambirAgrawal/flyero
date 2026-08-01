@@ -265,6 +265,28 @@ describe("export surface", () => {
     updateJob(jobId, { status: "done", idea: spec.idea, gates: JSON.stringify(gates) });
   });
 
+  it("serves a preview small enough to survive a chat transport", async () => {
+    /*
+     * The full render base64s to roughly 3MB. Chat clients drop an inline image
+     * that size without a word — the agent reported "image returned" and the
+     * reader saw nothing, which looks like success from both ends. The MCP
+     * preview asks for scale=0.4; this is what makes that possible.
+     */
+    const full = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/export?format=png`,
+      headers: auth,
+    });
+    const preview = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${jobId}/export?format=png&scale=0.4`,
+      headers: auth,
+    });
+    expect(preview.statusCode).toBe(200);
+    expect(preview.rawPayload.length).toBeLessThan(full.rawPayload.length / 2);
+    expect(preview.rawPayload.length, "must fit a transport once base64'd").toBeLessThan(700_000);
+  });
+
   it("serves PNG", async () => {
     const res = await app.inject({
       method: "GET",

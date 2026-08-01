@@ -8,6 +8,7 @@ import { PROFILE_SPACE, newJobSeed } from "../core/studio/sampler.js";
 import { VETO_COUNT } from "../creative/compatibility.js";
 import { availableFamilies } from "../core/render/fonts.js";
 import { createAsset, getAsset, createDerivedAsset } from "../store/assets.js";
+import { rasterize } from "../core/render/index.js";
 import { fetchCandidate, imageProvider } from "../core/images/search.js";
 import { SKILL_INDEX, getSkill } from "./skills.js";
 import { registerMcpHttp } from "../mcp/http.js";
@@ -500,7 +501,10 @@ export function buildServer(): FastifyInstance {
     },
   );
 
-  app.get<{ Params: { jobId: string }; Querystring: { format?: string; revision?: string } }>(
+  app.get<{
+    Params: { jobId: string };
+    Querystring: { format?: string; revision?: string; scale?: string };
+  }>(
     "/v1/flyers/:jobId/export",
     async (request, reply) => {
       const job = getJob(request.params.jobId);
@@ -523,6 +527,20 @@ export function buildServer(): FastifyInstance {
           .type("image/svg+xml")
           .header("content-disposition", `attachment; filename="${job.id}.svg"`)
           .send(getText(path));
+      }
+      /**
+       * `scale` exists for previews that have to travel.
+       *
+       * A full render base64'd is ~3MB, which chat transports drop silently —
+       * the agent believes it delivered an image and the reader sees nothing.
+       * Downscaling is the difference between a preview arriving and not.
+       */
+      const scale = Number(request.query.scale);
+      if (Number.isFinite(scale) && scale > 0 && scale < 1) {
+        const svgPath = flyerKey(job.id, revision, "render.svg");
+        if (exists(svgPath)) {
+          return reply.type("image/png").send(rasterize(getText(svgPath), scale));
+        }
       }
       return reply
         .type("image/png")

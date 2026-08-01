@@ -73,12 +73,24 @@ async function pollJob(jobId: string, timeoutMs = config.jobTimeoutSeconds * 100
   return job;
 }
 
-/** The calling agent should be able to *see* the flyer, not just read about it. */
-async function previewContent(jobId: string) {
+/**
+ * The flyer, small enough to actually arrive.
+ *
+ * The agent must be able to *see* it — three of the six gates are judgements
+ * about the picture. But the full render base64'd to 3.2MB, and chat clients
+ * silently drop an inline image that size: the agent reported "image returned"
+ * and the person reading saw nothing. That is the worst kind of failure,
+ * because it looks like success from both ends. Downscaled to a few hundred KB;
+ * the full-resolution file is one export call away.
+ */
+async function previewContent(
+  jobId: string,
+): Promise<Array<{ type: "image"; data: string; mimeType: string }>> {
   try {
-    const png = await apiBinary(`/v1/flyers/${jobId}/export?format=png`);
+    const png = await apiBinary(`/v1/flyers/${jobId}/export?format=png&scale=0.4`);
     return [{ type: "image" as const, data: png.toString("base64"), mimeType: "image/png" }];
   } catch {
+    // A flyer that failed its gates has nothing to show; the text reply says why.
     return [];
   }
 }
@@ -619,22 +631,56 @@ export function buildMcpServer(): McpServer {
       inputSchema: {
         flyerId: z.string(),
         format: z.enum(["png", "svg"]).optional(),
-        outputPath: z.string().optional().describe("Where to write it, if the client has a filesystem."),
+        outputPath: z
+          .string()
+          .optional()
+          .describe(
+            "Only useful when this server runs on the same machine as you. On a hosted deployment it " +
+              "writes to the server's disk, which you cannot reach — use the returned URL instead.",
+          ),
       },
     },
     async ({ flyerId, format = "png", outputPath }) => {
-      const bytes = await apiBinary(`/v1/flyers/${flyerId}/export?format=${format}`);
-      if (outputPath) {
-        await mkdir(dirname(resolve(outputPath)), { recursive: true });
-        await writeFile(resolve(outputPath), bytes);
-        return { content: [{ type: "text", text: `Wrote ${outputPath} (${bytes.length} bytes)` }] };
-      }
       if (format === "svg") {
-        return { content: [{ type: "text", text: bytes.toString("utf8") }] };
+        const svg = await apiBinary(`/v1/flyers/${flyerId}/export?format=svg`);
+        if (outputPath) {
+          await mkdir(dirname(resolve(outputPath)), { recursive: true });
+          await writeFile(resolve(outputPath), svg);
+          return { content: [{ type: "text", text: `Wrote ${outputPath}` }] };
+        }
+        return { content: [{ type: "text", text: svg.toString("utf8") }] };
+      }
+
+      /**
+       * Show a preview, link the original.
+       *
+       * Returning the full render inline base64'd to 3.2MB, which chat clients
+       * drop without a word — the tool reported success and nobody saw a flyer.
+       * `outputPath` was no help either: on a hosted server it writes to the
+       * *server's* disk, which the reader cannot reach. So: a preview small
+       * enough to travel, plus the URL of the real file.
+       */
+      const preview = await apiBinary(`/v1/flyers/${flyerId}/export?format=png&scale=0.4`);
+      if (outputPath) {
+        const full = await apiBinary(`/v1/flyers/${flyerId}/export?format=png`);
+        await mkdir(dirname(resolve(outputPath)), { recursive: true });
+        await writeFile(resolve(outputPath), full);
       }
       return {
         content: [
-          { type: "image", data: bytes.toString("base64"), mimeType: "image/png" },
+          { type: "image" as const, data: preview.toString("base64"), mimeType: "image/png" },
+          {
+            type: "text" as const,
+            text: [
+              outputPath ? `Full resolution written to ${outputPath}.` : "",
+              `Full-resolution PNG: ${BASE}/v1/flyers/${flyerId}/export?format=png`,
+              `Editable SVG:        ${BASE}/v1/flyers/${flyerId}/export?format=svg`,
+              "Both need your API key as an Authorization: Bearer header.",
+              "The image above is a preview — full size is too large to send inline.",
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          },
         ],
       };
     },
