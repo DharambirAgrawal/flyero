@@ -39,6 +39,22 @@ export function Flyer({
   const groundPlates = drawn.filter((el) => (layout.boxes[el.id]?.zIndex ?? 0) <= GROUND_Z);
   const content = drawn.filter((el) => (layout.boxes[el.id]?.zIndex ?? 0) > GROUND_Z);
 
+  /**
+   * Occluders per element, from `layout.masks`.
+   *
+   * The solver has always computed these — which element passes behind which —
+   * and the renderer threw them away. So `woven-through-image` and
+   * `masked-by-subject` were labels: the type was drawn flat on top and Gate G4
+   * could still count it as participating. Weaving only exists if something is
+   * actually cut.
+   */
+  const occludersFor = new Map<string, string[]>();
+  for (const mask of layout.masks) {
+    const list = occludersFor.get(mask.elementId) ?? [];
+    list.push(mask.occluderId);
+    occludersFor.set(mask.elementId, list);
+  }
+
   function drawElement(el: (typeof drawn)[number]) {
     const box = layout.boxes[el.id];
     if (!box) return null;
@@ -57,16 +73,52 @@ export function Flyer({
       assets: elementAssets,
       rng: new Rng(`element:${spec.seed}:${el.id}`),
     });
+    const occluders = occludersFor.get(el.id) ?? [];
+    const maskId = occluders.length > 0 ? `weave-${el.id}` : null;
+    const wrapped = maskId ? (
+      <>
+        <defs>
+          <mask id={maskId} maskUnits="userSpaceOnUse">
+            {/* White keeps, black cuts: the element shows everywhere except
+                where the occluder physically sits in front of it. */}
+            <rect x={0} y={0} width={spec.canvas.w} height={spec.canvas.h} fill="#ffffff" />
+            {occluders.map((oid) => {
+              const ob = layout.boxes[oid];
+              if (!ob) return null;
+              return (
+                <rect
+                  key={oid}
+                  x={ob.x}
+                  y={ob.y}
+                  width={ob.w}
+                  height={ob.h}
+                  fill="#000000"
+                  transform={
+                    ob.rotate
+                      ? `rotate(${ob.rotate.toFixed(3)} ${(ob.x + ob.w / 2).toFixed(2)} ${(ob.y + ob.h / 2).toFixed(2)})`
+                      : undefined
+                  }
+                />
+              );
+            })}
+          </mask>
+        </defs>
+        <g mask={`url(#${maskId})`}>{drawnContent}</g>
+      </>
+    ) : (
+      drawnContent
+    );
+
     if (box.rotate) {
       const cx = box.x + box.w / 2;
       const cy = box.y + box.h / 2;
       return (
         <g key={el.id} transform={`rotate(${box.rotate.toFixed(3)} ${cx.toFixed(2)} ${cy.toFixed(2)})`}>
-          {drawnContent}
+          {wrapped}
         </g>
       );
     }
-    return <g key={el.id}>{drawnContent}</g>;
+    return <g key={el.id}>{wrapped}</g>;
   }
 
   return (

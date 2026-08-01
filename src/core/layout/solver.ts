@@ -428,6 +428,17 @@ export function solveLayout(
         box.y + (box.lines.length - 1) * box.fontSize * lineHeight + box.fontSize * 0.82;
       for (const el of spec.elements) {
         if (el.id === headlineEl.id || el.role === "structure") continue;
+        /**
+         * A *declared* overlap is the composition, not an accident.
+         *
+         * This pass exists to stop something drifting across the last line of a
+         * headline. But when the author has asked for a weave — the subject
+         * passing in front of the type — covering part of the letters is
+         * precisely the intent, and pushing the occluder clear destroyed it.
+         * Every relationship-backed pair was being separated, which is why
+         * `layout.masks` came out empty on every flyer ever rendered.
+         */
+        if (justifiedPairs.has(pairKey(headlineEl.id, el.id))) continue;
         const other = boxes[el.id];
         if (!other || other.zIndex <= box.zIndex) continue;
         const f = footprint(other);

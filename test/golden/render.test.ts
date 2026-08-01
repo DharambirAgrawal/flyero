@@ -4,6 +4,8 @@ import { createHash } from "node:crypto";
 import { fixtureLineages, fixtureSpec } from "../fixtures.js";
 import { renderSpec, rasterize } from "../../src/core/render/index.js";
 import { checkEditability } from "../../src/core/export/index.js";
+import { solveLayout } from "../../src/core/layout/solver.js";
+import { themeFromSpec } from "../../src/core/render/theme.js";
 
 /**
  * The determinism guarantee (AGENTS.md law 3): same spec + seed → identical
@@ -103,6 +105,42 @@ describe("SVG editability", () => {
     }
     const { svg } = renderSpec(spec);
     expect(svg).toContain("arcguide-");
+    expect(checkEditability(svg).problems).toEqual([]);
+  });
+
+  it("actually cuts an element that passes behind another", () => {
+    /*
+     * `layout.masks` was computed by the solver and discarded by the renderer,
+     * so weaving typography through an image was a label rather than a fact —
+     * the type drew flat on top and G4 could still count it as participating.
+     * A mask must reach the SVG for the relationship to mean anything.
+     */
+    // Built explicitly rather than hunted for in the fixtures: none of them
+    // declares a behind-relationship, which is exactly why this went unnoticed.
+    // `framed-evidence` keeps the subject inside the page. A topology whose
+    // evidence slot bleeds cannot weave at all: a full-bleed plate is the
+    // ground, so it is drawn *under* the type by construction and the solver
+    // correctly refuses to call it an occluder.
+    const spec = fixtureSpec({ ...fixtureLineages("WEAVE-1", 1)[0]!, topology: "framed-evidence" });
+    const message = spec.elements.find((e) => e.role === "message")!;
+    const evidence = spec.elements.find((e) => e.role === "evidence")!;
+    spec.relationships = [
+      {
+        front: evidence.id,
+        behind: message.id,
+        overlap: 0.3,
+        purpose: "The subject passes in front of the headline so the type weaves through it.",
+      },
+    ];
+
+    const layout = solveLayout(spec, themeFromSpec(spec));
+    expect(layout.masks.length, "the solver should record a weave").toBeGreaterThan(0);
+    const { svg } = renderSpec(spec);
+    for (const mask of layout.masks) {
+      expect(svg, `${mask.elementId} should be masked by ${mask.occluderId}`).toContain(
+        `weave-${mask.elementId}`,
+      );
+    }
     expect(checkEditability(svg).problems).toEqual([]);
   });
 });

@@ -73,6 +73,23 @@ const composedSchema = z.object({
     )
     .min(4)
     .max(7),
+  /**
+   * Small labelled facts — date, place, price, phone, handle.
+   *
+   * Carried by a single `detail-cluster` element rather than one element per
+   * line, so a poster can hold a dozen text objects inside the 4-7 budget Gate
+   * G3 enforces. Every value must come from the brief: this is copy, and Gate
+   * G6 applies to it exactly as it does to the headline.
+   */
+  details: z
+    .array(
+      z.object({
+        label: z.string().max(24).describe("e.g. When, Where, Price — one or two words"),
+        value: z.string().max(48).describe("the fact itself, taken from the brief"),
+      }),
+    )
+    .max(6)
+    .describe("Only facts the brief actually states. Empty when there are none."),
   relationships: z
     .array(
       z.object({
@@ -233,6 +250,7 @@ Fix exactly these problems and return the whole structure again.`
           url: input.brief.campaign.cta.url,
           qr: composed.qr && Boolean(input.brief.campaign.cta.url),
         },
+        details: composed.details ?? [],
       },
       elements: composed.elements.map((el) => ({
         id: el.id,

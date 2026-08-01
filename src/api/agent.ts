@@ -4,7 +4,7 @@ import { z } from "zod";
 import { config, type Risk } from "../config.js";
 import { guideMarkdown } from "./guide.js";
 import { newJobSeed, sampleLineages } from "../core/studio/sampler.js";
-import { lineageSchema, type Lineage } from "../core/compose/spec.js";
+import { copySchema, lineageSchema, type Lineage } from "../core/compose/spec.js";
 import { assembleSpec, type AuthoredSpec, type DesignSpec } from "../core/compose/assemble.js";
 import { renderSpec, rasterize } from "../core/render/index.js";
 import { paletteFor } from "../core/render/theme.js";
@@ -47,16 +47,16 @@ const authoredSchema = z.object({
   productName: z.string().min(1).max(60),
   idea: z.string().min(10).max(140),
   story: z.tuple([z.string(), z.string(), z.string(), z.string()]),
-  copy: z.object({
-    eyebrow: z.string().max(42).nullable(),
-    headline: z.string().min(3).max(90),
-    body: z.string().max(180).nullable(),
-    cta: z.object({
-      label: z.string().min(2).max(34),
-      url: z.string().nullable(),
-      qr: z.boolean(),
-    }),
-  }),
+  /**
+   * The one copy schema, not a second copy of it.
+   *
+   * This used to re-declare the shape by hand — and drifted: `copy.details`
+   * was added to `copySchema` and the component library, but never here, so
+   * every fact cluster an agent sent was silently stripped at the API boundary
+   * and no flyer produced through the real path could ever show one. A schema
+   * duplicated is a schema that will disagree.
+   */
+  copy: copySchema,
   elements: z
     .array(
       z.object({
