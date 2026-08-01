@@ -25,6 +25,13 @@ type PipelineStage =
 
 ```ts
 type Brief = {
+  /** Communication shape — drives sampler art-direction filtering and story framing. */
+  archetype:
+    | "product-promotion"
+    | "event-invitation"
+    | "awareness-education"
+    | "editorial-announcement"
+    | "offer-promotion";
   product: { name: string; category: string; knownBenefits: string[] };
   campaign: {
     objective: string;
@@ -58,14 +65,18 @@ type Brief = {
 type Lineage = {
   jobSeed: string;          // shared across candidates in one job
   candidateSeed: string;    // unique per candidate
+  /** Coherent studio position; dimensions are sampled inside this family. */
+  artDirection: ArtDirectionId;
   metaphor: MetaphorId;     // 12 values — see ARCHITECTURE §4
-  topology: TopologyId;     // 10 values
+  topology: TopologyId;     // includes composition-grammar topologies
   typography: TypographyId; // 8 values
   material: MaterialId;     // 6 values
   colorLogic: ColorLogicId; // 8 values
   gesture: GestureId;       // 10 values
+  graphics: GraphicsId;     // graphic language (defaulted on older stored specs)
   risk: "safe" | "studio" | "experimental";
   readingPath: ReadingPath; // DERIVED from topology (not sampled independently)
+  fontPair: string;         // curated pair id
 };
 
 type ReadingPath =
@@ -92,6 +103,10 @@ type ReadingPath =
 | framed-evidence | center-out |
 | vertical-narrative | top-to-bottom |
 | asymmetric-two-column | left-to-right |
+| banded-masthead | top-to-bottom |
+| type-poster | top-to-bottom |
+| section-stack | top-to-bottom |
+| framed-centre | top-to-bottom |
 
 DR-1 "reading path differs" is measured via this derived field.
 
@@ -104,17 +119,22 @@ type DesignSpec = {
   specVersion: "1.0";
   seed: string;                 // candidateSeed — layout determinism key
   lineage: Lineage;
+  productName: string;
+  campaignArchetype: Brief["archetype"]; // defaults to product-promotion
   idea: string;                 // one sentence (Gate G1)
   story: [string, string, string, string]; // problem → acting → payoff → CTA
   canvas: { w: 1080; h: 1350; safe: number }; // safe default 64
   brand: {
     colors: { bg: string; fg: string; accent: string; muted: string };
-    fonts: { display: string; body: string }; // from curated fontpairs only
+    fonts: { display: string; body: string; mono?: string | null };
   };
+  /** Exact user-supplied statements retained so Gate G6 can verify without the Brief. */
+  provenance: { userStatements: string[] };
   copy: {
     eyebrow: string | null;
     headline: string;
     body: string | null;
+    details?: Array<{ label: string; value: string }>; // event/offer facts
     cta: { label: string; url: string | null; qr: boolean };
   };
   elements: SpecElement[];
@@ -187,11 +207,11 @@ type GateResult = {
 | Gate | Automated how |
 |---|---|
 | G1 | Spec has non-empty `idea` ≤ 140 chars; vision critic answers "does this idea read in the image?" = yes |
-| G2 | Vision: logo+headline regions masked in a critique crop; model asked if product category is still guessable |
+| G2 | Code builds a masked critique crop (`maskForCoverTest`: sharp overlay over logo + headline boxes); vision asked if product category is still guessable from what remains |
 | G3 | `elements.length` in 4–7; every element has non-empty `whyHere` |
 | G4 | Spec has a relationship or gesture involving the headline element, OR typography behavior ∈ participating set; vision confirms type isn't a floating label |
 | G5 | Exactly one `gesture` present with `purpose`; layout applies exactly one gesture family |
-| G6 | Brief statements with `source:user` only for claims; slogan ban-list regex; vision/copy check for hollow slogans |
+| G6 | Slogan ban-list regex; invented-stat heuristics; every `copy.details` value and every numeric claim must appear in `provenance.userStatements` (copied from Brief `source:user`); vision/copy check for hollow slogans |
 
 ## 8. Banned-list detector (code heuristics)
 

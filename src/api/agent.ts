@@ -5,6 +5,7 @@ import { config, type Risk } from "../config.js";
 import { guideMarkdown } from "./guide.js";
 import { newJobSeed, sampleLineages } from "../core/studio/sampler.js";
 import { copySchema, lineageSchema, type Lineage } from "../core/compose/spec.js";
+import { rehydrateTone } from "../core/canvas/tone.js";
 import { assembleSpec, type AuthoredSpec, type DesignSpec } from "../core/compose/assemble.js";
 import { renderSpec, rasterize } from "../core/render/index.js";
 import { paletteFor } from "../core/render/theme.js";
@@ -16,8 +17,9 @@ import { materialById } from "../creative/materials.js";
 import { colorLogicById } from "../creative/colorlogic.js";
 import { gestureById } from "../creative/gestures.js";
 import { graphicsById } from "../creative/graphics.js";
+import { artDirectionById, elementBudgetForDensity } from "../creative/artdirections.js";
 import { recipeFor } from "../core/layout/recipes.js";
-import { manifestsFor } from "../components/registry.js";
+import { componentPropsSchema, engineOwnedPropsFor, manifestsFor } from "../components/registry.js";
 import { runGates, failedGateIds, visionVerdictSchema } from "../core/gates/index.js";
 import { ruleCritic, describeFix } from "../core/critic/index.js";
 import { checkEditability, exportFlyer } from "../core/export/index.js";
@@ -45,6 +47,16 @@ import type { AssetRef } from "../components/types.js";
 const authoredSchema = z.object({
   lineage: lineageSchema,
   productName: z.string().min(1).max(60),
+  campaignArchetype: z
+    .enum([
+      "product-promotion",
+      "event-invitation",
+      "awareness-education",
+      "editorial-announcement",
+      "offer-promotion",
+    ])
+    .default("product-promotion"),
+  sourceStatements: z.array(z.string().min(1).max(300)).max(40).default([]),
   idea: z.string().min(10).max(140),
   story: z.tuple([z.string(), z.string(), z.string(), z.string()]),
   /**
@@ -73,6 +85,7 @@ const authoredSchema = z.object({
   relationships: z
     .array(
       z.object({
+        kind: z.enum(["overlap", "weave", "annotate", "connect", "frame"]).default("overlap"),
         front: z.string(),
         behind: z.string(),
         overlap: z.number().min(0).max(0.4).optional(),
@@ -106,7 +119,17 @@ const elementEditSchema = z.object({
  */
 const patchSchema = z.object({
   productName: z.string().min(1).max(60).optional(),
+  campaignArchetype: z
+    .enum([
+      "product-promotion",
+      "event-invitation",
+      "awareness-education",
+      "editorial-announcement",
+      "offer-promotion",
+    ])
+    .optional(),
   idea: z.string().min(10).max(140).optional(),
+  sourceStatements: z.array(z.string().min(1).max(300)).max(40).optional(),
   story: z.tuple([z.string(), z.string(), z.string(), z.string()]).optional(),
   copy: z
     .object({
@@ -136,6 +159,7 @@ const patchSchema = z.object({
   relationships: z
     .array(
       z.object({
+        kind: z.enum(["overlap", "weave", "annotate", "connect", "frame"]).default("overlap"),
         front: z.string(),
         behind: z.string(),
         overlap: z.number().min(0).max(0.4).optional(),
@@ -151,6 +175,15 @@ const patchSchema = z.object({
 const assignmentSchema = z.object({
   runs: z.number().int().min(1).max(6).default(3),
   risk: z.enum(["safe", "studio", "experimental"]).optional(),
+  campaignArchetype: z
+    .enum([
+      "product-promotion",
+      "event-invitation",
+      "awareness-education",
+      "editorial-announcement",
+      "offer-promotion",
+    ])
+    .optional(),
   brandColors: z.array(z.string()).max(5).default([]),
   jobSeed: z.string().optional(),
 });
@@ -168,12 +201,19 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
   const colorLogic = colorLogicById(lineage.colorLogic);
   const gesture = gestureById(lineage.gesture);
   const graphics = graphicsById(lineage.graphics);
+  const artDirection = artDirectionById(lineage.artDirection);
+  const elementBudget = elementBudgetForDensity(artDirection.density);
   const recipe = recipeFor(lineage.topology);
   const pair = fontPairById(lineage.fontPair);
 
   return {
     lineage,
     direction: {
+      artDirection: {
+        id: artDirection.id,
+        brief: artDirection.brief,
+        density: artDirection.density,
+      },
       metaphor: { id: metaphor.id, brief: metaphor.brief },
       topology: { id: topology.id, brief: topology.brief, readingPath: topology.readingPath },
       typography: { id: typography.id, brief: typography.brief, participating: typography.participating },
@@ -199,7 +239,7 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
       fonts: { display: pair.display, body: pair.body, mono: pair.mono ?? null },
     },
     constraints: {
-      elements: { min: 4, max: 7 },
+      elements: elementBudget,
       headlineMaxLines: recipe.headlineMaxLines,
       requiredRoles: ["evidence", "message", "cta"],
       note: recipe.notes,
@@ -211,6 +251,8 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
       purpose: m.purpose,
       assetSlots: m.assetSlots,
       textLimits: m.textLimits ?? null,
+      propsSchema: componentPropsSchema(m.id),
+      engineOwnedProps: engineOwnedPropsFor(m.id),
     })),
   };
 }
@@ -234,6 +276,9 @@ async function renderAndRecord(input: {
     assetId: a.id,
     href: assetDataUri(a),
     toneMap: a.analysis.toneMap,
+    focalPoint: a.analysis.focalPoint,
+    subjectBox: a.analysis.subjectBox,
+    textSafeZones: a.analysis.textSafeZones,
     width: a.width,
     height: a.height,
   }));
@@ -296,6 +341,19 @@ async function renderAndRecord(input: {
   };
 }
 
+
+/**
+ * A layout reloaded from the job store is plain JSON: `tone` has lost its
+ * methods. Anything placed on `LayoutResult` crosses that storage boundary, so
+ * it either has to be plain data or be rebuilt here.
+ */
+function rehydrateLayout(layout: any, spec: any): any {
+  return {
+    ...layout,
+    tone: rehydrateTone(layout?.tone, spec.canvas, layout?.ground?.base ?? spec.brand.colors.bg),
+  };
+}
+
 export function registerAgentRoutes(app: FastifyInstance): void {
   // ── How to use this API at all ───────────────────────────────────────────
   app.get("/v1/guide", async (_request, reply) => {
@@ -308,14 +366,15 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     if (!parsed.success) {
       return fail(reply, 400, "invalid_request", "Invalid assignment request", parsed.error.issues);
     }
-    const { runs, brandColors } = parsed.data;
+    const { runs, brandColors, campaignArchetype } = parsed.data;
     const risk = (parsed.data.risk ?? config.defaultRisk) as Risk;
     const jobSeed = parsed.data.jobSeed ?? newJobSeed();
-    const { lineages } = sampleLineages({ jobSeed, count: runs, risk });
+    const { lineages } = sampleLineages({ jobSeed, count: runs, risk, campaignArchetype });
 
     return {
       jobSeed,
       risk,
+      campaignArchetype: campaignArchetype ?? null,
       assignments: lineages.map((l) => describeAssignment(l, brandColors)),
       next: "Write the idea, then POST /v1/flyers/compose with the lineage returned here.",
     };
@@ -328,6 +387,16 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       return fail(reply, 400, "invalid_request", "Invalid composition", parsed.error.issues);
     }
     const body = parsed.data;
+    const direction = artDirectionById(body.lineage.artDirection);
+    const elementBudget = elementBudgetForDensity(direction.density);
+    if (body.elements.length < elementBudget.min || body.elements.length > elementBudget.max) {
+      return fail(
+        reply,
+        422,
+        "invalid_spec",
+        `${direction.id} requires ${elementBudget.min}-${elementBudget.max} content elements; received ${body.elements.length}`,
+      );
+    }
 
     // An element naming an asset *is* the request to use it. Requiring the id to
     // be repeated in a top-level list only creates a silent failure mode where
@@ -348,6 +417,8 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       body.lineage,
       {
         productName: body.productName,
+        campaignArchetype: body.campaignArchetype,
+        sourceStatements: body.sourceStatements,
         idea: body.idea,
         story: body.story,
         copy: body.copy,
@@ -450,9 +521,21 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       if (edit.props !== undefined) target.props = { ...(target.props ?? {}), ...edit.props };
     }
     if (patch.addElements) elements = [...elements, ...patch.addElements];
+    const direction = artDirectionById(current.lineage.artDirection);
+    const elementBudget = elementBudgetForDensity(direction.density);
+    if (elements.length < elementBudget.min || elements.length > elementBudget.max) {
+      return fail(
+        reply,
+        422,
+        "invalid_spec",
+        `${direction.id} requires ${elementBudget.min}-${elementBudget.max} content elements; patch would produce ${elements.length}`,
+      );
+    }
 
     const authored: AuthoredSpec = {
       productName: patch.productName ?? current.productName,
+      campaignArchetype: patch.campaignArchetype ?? current.campaignArchetype,
+      sourceStatements: patch.sourceStatements ?? current.provenance?.userStatements ?? [],
       idea: patch.idea ?? current.idea,
       story: patch.story ?? current.story,
       copy,
@@ -521,7 +604,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       if (!row) return fail(reply, 404, "not_found", `No revision ${job.revision}`);
 
       const spec = JSON.parse(row.spec);
-      const layout = JSON.parse(row.layout);
+      const layout = rehydrateLayout(JSON.parse(row.layout), spec);
       const gates = await runGates(
         {
           spec,
@@ -570,7 +653,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       if (!row) return fail(reply, 404, "not_found", `No revision ${revision}`);
 
       const spec = JSON.parse(row.spec);
-      const layout = JSON.parse(row.layout);
+      const layout = rehydrateLayout(JSON.parse(row.layout), spec);
       const fixes = ruleCritic(spec, layout);
       return {
         flyerId: job.id,

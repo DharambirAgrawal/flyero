@@ -60,7 +60,8 @@ describe("auth", () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.components).toBeGreaterThanOrEqual(25);
-    expect(body.designerProfiles).toBeGreaterThan(400_000);
+    // Coherent art-direction profiles, not the old unrestricted Cartesian product.
+    expect(body.designerProfiles).toBeGreaterThan(10_000);
     expect(body.fontFamilies).toBeGreaterThan(5);
   });
 });
@@ -280,8 +281,10 @@ describe("export surface", () => {
     const spec = res.json();
     expect(spec.specVersion).toBe("1.0");
     expect(spec.elements.length).toBeGreaterThanOrEqual(4);
-    // The spec carries no geometry — that is the layout solver's output.
-    expect(JSON.stringify(spec)).not.toMatch(/"x":\s*\d/);
+    // The spec carries no layout geometry — that is the solver's output.
+    // Path-connector props may still hold normalised 0–1 waypoints with `x`/`y`.
+    expect(spec).not.toHaveProperty("boxes");
+    expect(JSON.stringify(spec)).not.toMatch(/"x":\s*[1-9]\d{2,}/);
   });
 });
 

@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import sharp from "sharp";
 import { contrastRatio, meetsAA } from "../../creative/color.js";
 import { inkFor } from "../../components/primitives.js";
 import { themeFromSpec } from "../render/theme.js";
@@ -64,15 +65,32 @@ const HOLLOW_WORDS = [
   "reimagine",
 ];
 
-/** Numbers that look like invented proof. */
-const STAT_PATTERN = /\b\d+(\.\d+)?\s*(%|x\b|×)|\b\d{1,3},\d{3}\+?\b|\b\d+\s*(million|billion|k\+)\b/i;
+/** Numbers that look like proof and therefore need an exact user source. */
+const STAT_CLAIM_PATTERN =
+  /\b\d+(?:\.\d+)?\s*(?:%|x\b|×)|\b\d{1,3},\d{3}\+?\b|\b\d+\s*(?:million|billion|k\+)\b/gi;
+
+function normalizeFact(value: string): string {
+  return value
+    .normalize("NFKD")
+    .toLowerCase()
+    .replaceAll("×", "x")
+    .replace(/[^\p{L}\p{N}%$€£+]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isBackedByUser(value: string, userStatements: string[]): boolean {
+  const fact = normalizeFact(value);
+  if (!fact) return true;
+  return userStatements.some((statement) => normalizeFact(statement).includes(fact));
+}
 
 export const visionVerdictSchema = z.object({
   ideaReads: z.boolean().describe("Can you describe this flyer's single visual idea in one sentence?"),
   ideaAsSeen: z.string().max(160).describe("State the idea you actually see, in your own words."),
   productGuessable: z
     .boolean()
-    .describe("With the logo and headline ignored, can you tell roughly what the product does?"),
+    .describe("From image 2, where logo and headline are physically covered, is the product roughly guessable?"),
   productGuess: z.string().max(120),
   headlineParticipates: z
     .boolean()
@@ -86,9 +104,12 @@ export type VisionVerdict = z.infer<typeof visionVerdictSchema>;
 const VISION_SYSTEM = `You are the final reviewer in a flyer studio. You are shown a rendered flyer
 and you answer specific questions about it. You are not asked whether you like it.
 
+You receive two images of the same flyer: image 1 is the full render; image 2 has every
+headline/message and brand/logo region physically covered by opaque rectangles.
+
 Judge only what is visible. Be strict but fair:
-- "productGuessable" means: cover the logo and the headline in your mind. Does the remaining
-  imagery still suggest what kind of product this is? Generic shapes, abstract gradients, and
+- "productGuessable" is judged ONLY from image 2. Does the remaining imagery still suggest
+  what kind of product this is? Generic shapes, abstract gradients, and
   decorative panels do NOT count. A depicted document, interface, chart, or artefact does.
 - "headlineParticipates" means the headline has a structural role — it is scaled against
   something, overlaps something, is masked by something, or anchors the composition. A
@@ -223,7 +244,7 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
   // An externally supplied verdict wins: the reviewer already saw the render,
   // so there is nothing to gain from asking a model the same questions again.
   const vision =
-    input.verdict ?? (input.png && hasLlm() ? await askVision(spec, input.png, ctx) : null);
+    input.verdict ?? (input.png && hasLlm() ? await askVision(spec, layout, input.png, ctx) : null);
   const visualReview: GateResult["visualReview"] = input.verdict
     ? "agent"
     : vision
@@ -278,13 +299,29 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
 
   // G6 — real words.
   const copyBlob = [spec.copy.eyebrow, spec.copy.headline, spec.copy.body, spec.copy.cta.label]
+    .concat(spec.copy.details.flatMap((detail) => [detail.label, detail.value]))
     .filter(Boolean)
     .join(" ");
   const hollow = HOLLOW_WORDS.filter((w) => copyBlob.toLowerCase().includes(w));
-  const inventedStat = STAT_PATTERN.test(copyBlob);
-  const g6 = hollow.length === 0 && !inventedStat && (vision ? vision.copyReadsHuman : true);
+  const userStatements = spec.provenance.userStatements;
+  const unsupportedStats = [...copyBlob.matchAll(STAT_CLAIM_PATTERN)]
+    .map((match) => match[0])
+    .filter((claim) => !isBackedByUser(claim, userStatements));
+  const unsupportedDetails = spec.copy.details
+    .map((detail) => detail.value)
+    .filter((value) => !isBackedByUser(value, userStatements));
+  const g6 =
+    hollow.length === 0 &&
+    unsupportedStats.length === 0 &&
+    unsupportedDetails.length === 0 &&
+    (vision ? vision.copyReadsHuman : true);
   if (hollow.length > 0) notes.push(`G6: slogan-shaped words: ${hollow.join(", ")}`);
-  if (inventedStat) notes.push("G6: copy contains a figure that reads as an invented statistic");
+  if (unsupportedStats.length > 0) {
+    notes.push(`G6: unsupported proof figure(s): ${unsupportedStats.join(", ")}`);
+  }
+  if (unsupportedDetails.length > 0) {
+    notes.push(`G6: detail value(s) absent from user statements: ${unsupportedDetails.join(", ")}`);
+  }
   if (vision && !vision.copyReadsHuman) notes.push("G6: reviewer finds the copy machine-written");
 
   if (vision?.collisions.length) {
@@ -315,12 +352,57 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
   };
 }
 
+/**
+ * Produces the literal Cover Test image. The reviewer no longer has to imagine
+ * hiding identity copy: every message/headline and brand/logo box is physically
+ * occluded in the pixels it judges.
+ */
+export async function maskForCoverTest(
+  spec: DesignSpec,
+  layout: LayoutResult,
+  png: Buffer,
+): Promise<Buffer> {
+  const targets = spec.elements
+    .filter(
+      (element) =>
+        element.role === "message" ||
+        element.role === "brand" ||
+        element.component === "logo-lockup" ||
+        element.component === "footer-lockup",
+    )
+    .map((element) => layout.boxes[element.id])
+    .filter((box): box is NonNullable<typeof box> => Boolean(box));
+  if (targets.length === 0) return Buffer.from(png);
+
+  const metadata = await sharp(png).metadata();
+  const width = metadata.width ?? spec.canvas.w;
+  const height = metadata.height ?? spec.canvas.h;
+  const sx = width / spec.canvas.w;
+  const sy = height / spec.canvas.h;
+  const pad = 10;
+  const rects = targets
+    .map((box) => {
+      const x = Math.max(0, (box.x - pad) * sx);
+      const y = Math.max(0, (box.y - pad) * sy);
+      const w = Math.min(width - x, (box.w + pad * 2) * sx);
+      const h = Math.min(height - y, (box.h + pad * 2) * sy);
+      return `<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${Math.max(1, w).toFixed(2)}" height="${Math.max(1, h).toFixed(2)}" rx="3" fill="#787878"/>`;
+    })
+    .join("");
+  const overlay = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${rects}</svg>`,
+  );
+  return sharp(png).composite([{ input: overlay, blend: "over" }]).png().toBuffer();
+}
+
 async function askVision(
   spec: DesignSpec,
+  layout: LayoutResult,
   png: Buffer,
   ctx: CallContext,
 ): Promise<VisionVerdict | null> {
   try {
+    const masked = await maskForCoverTest(spec, layout, png);
     return await callStructured(
       {
         role: "vision",
@@ -332,7 +414,10 @@ Its intended idea was: "${spec.idea}"
 Answer the questions about what you actually see. Do not be generous — this flyer will only ship if it genuinely clears the bar.`,
         schema: visionVerdictSchema,
         schemaName: "gate_verdict",
-        images: [{ mediaType: "image/png", base64: png.toString("base64") }],
+        images: [
+          { mediaType: "image/png", base64: png.toString("base64") },
+          { mediaType: "image/png", base64: masked.toString("base64") },
+        ],
         maxTokens: 3000,
         effort: "low",
       },

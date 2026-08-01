@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { hasComponent } from "../../components/registry.js";
+import { getComponent, hasComponent } from "../../components/registry.js";
 import { METAPHOR_IDS } from "../../creative/metaphors.js";
 import { TOPOLOGY_IDS } from "../../creative/topologies.js";
 import { TYPOGRAPHY_IDS } from "../../creative/typebehaviors.js";
@@ -7,6 +7,7 @@ import { MATERIAL_IDS } from "../../creative/materials.js";
 import { COLOR_LOGIC_IDS } from "../../creative/colorlogic.js";
 import { GESTURE_IDS, gestureById } from "../../creative/gestures.js";
 import { GRAPHICS_IDS } from "../../creative/graphics.js";
+import { ART_DIRECTION_IDS } from "../../creative/artdirections.js";
 
 /**
  * Data contracts from docs/SCHEMAS.md. These are law: the Composer's output is
@@ -32,6 +33,8 @@ export const readingPathSchema = z.enum([
 export const lineageSchema = z.object({
   jobSeed: z.string().min(1),
   candidateSeed: z.string().min(1),
+  // Defaulted for stored specs created before coherent studio positions existed.
+  artDirection: enumOf(ART_DIRECTION_IDS).default("editorial-impact"),
   metaphor: enumOf(METAPHOR_IDS),
   topology: enumOf(TOPOLOGY_IDS),
   typography: enumOf(TYPOGRAPHY_IDS),
@@ -50,25 +53,46 @@ export type Lineage = z.infer<typeof lineageSchema>;
 
 export const roleSchema = z.enum(["evidence", "message", "support", "cta", "brand", "structure"]);
 
-export const specElementSchema = z.object({
-  id: z
-    .string()
-    .min(1)
-    .max(40)
-    .regex(/^[a-z0-9-]+$/, "element ids are lowercase kebab-case"),
-  component: z.string().refine(hasComponent, {
-    message: "component must exist in the Component Library",
-  }),
-  role: roleSchema,
-  /** Gate G3's delete test: what breaks if this element is removed? */
-  whyHere: z.string().min(8).max(200),
-  assets: z.array(z.string()).max(6).optional(),
-  props: z.record(z.unknown()).optional(),
-});
+export const specElementSchema = z
+  .object({
+    id: z
+      .string()
+      .min(1)
+      .max(40)
+      .regex(/^[a-z0-9-]+$/, "element ids are lowercase kebab-case"),
+    component: z.string().refine(hasComponent, {
+      message: "component must exist in the Component Library",
+    }),
+    role: roleSchema,
+    /** Gate G3's delete test: what breaks if this element is removed? */
+    whyHere: z.string().min(8).max(200),
+    assets: z.array(z.string()).max(6).optional(),
+    props: z.record(z.unknown()).optional(),
+  })
+  .superRefine((element, ctx) => {
+    if (!hasComponent(element.component)) return;
+    const component = getComponent(element.component);
+    if (!component.manifest.roles.includes(element.role)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${element.component} cannot serve role '${element.role}'`,
+        path: ["role"],
+      });
+    }
+    const parsed = component.props.safeParse(element.props ?? {});
+    if (!parsed.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `props do not match ${element.component}: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`,
+        path: ["props"],
+      });
+    }
+  });
 
 export type SpecElement = z.infer<typeof specElementSchema>;
 
 export const specRelationshipSchema = z.object({
+  kind: z.enum(["overlap", "weave", "annotate", "connect", "frame"]).default("overlap"),
   front: z.string().min(1),
   behind: z.string().min(1),
   overlap: z.number().min(0).max(1).optional(),
@@ -130,9 +154,18 @@ export const designSpecSchema = z
     seed: z.string().min(1),
     lineage: lineageSchema,
     productName: z.string().min(1).max(60),
+    campaignArchetype: z
+      .enum([
+        "product-promotion",
+        "event-invitation",
+        "awareness-education",
+        "editorial-announcement",
+        "offer-promotion",
+      ])
+      .default("product-promotion"),
     /** Gate G1: one sentence, and it must be short enough to actually be one. */
     idea: z.string().min(10).max(140),
-    /** problem → product acting → payoff → CTA */
+    /** Four beats interpreted through the campaign archetype chosen in the brief. */
     story: z.tuple([z.string(), z.string(), z.string(), z.string()]),
     canvas: z.object({
       w: z.literal(1080),
@@ -140,6 +173,16 @@ export const designSpecSchema = z
       safe: z.number().int().min(32).max(120),
     }),
     brand: brandSchema,
+    /**
+     * Exact user-supplied statements copied from the Brief. Revisions retain
+     * this list, letting Gate G6 verify facts without needing the original LLM
+     * object or trusting the generated copy to cite itself.
+     */
+    provenance: z
+      .object({
+        userStatements: z.array(z.string().min(1).max(300)).max(40),
+      })
+      .default({ userStatements: [] }),
     copy: copySchema,
     /** Gate G3: restraint. Enforced by the schema, not just critiqued. */
     elements: z.array(specElementSchema).min(4).max(7),
@@ -184,26 +227,18 @@ export const designSpecSchema = z
         });
       }
     }
-    if (!spec.elements.some((e) => e.role === "cta")) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "every flyer needs an element with role 'cta'",
-        path: ["elements"],
-      });
-    }
-    if (!spec.elements.some((e) => e.role === "evidence")) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "every flyer needs an element with role 'evidence' (Gate G2, the cover test)",
-        path: ["elements"],
-      });
-    }
-    if (!spec.elements.some((e) => e.role === "message")) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "every flyer needs an element with role 'message'",
-        path: ["elements"],
-      });
+    for (const role of ["cta", "evidence", "message"] as const) {
+      const count = spec.elements.filter((element) => element.role === role).length;
+      if (count !== 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            role === "evidence"
+              ? `every flyer needs exactly one element with role 'evidence' (found ${count}; Gate G2)`
+              : `every flyer needs exactly one element with role '${role}' (found ${count})`,
+          path: ["elements"],
+        });
+      }
     }
     if (spec.gesture.type !== spec.lineage.gesture) {
       ctx.addIssue({

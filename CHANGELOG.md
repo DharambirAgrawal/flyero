@@ -6,6 +6,32 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-07-31 — Milestone-3 gap closure (structure, gates, selection)
+
+The sameness diagnosis was structural: independent dimension sampling, safest-passer
+selection, thin gates, and unused canvas awareness. Closed in this change:
+
+**Art directions.** Sampler rolls inside coherent families
+(`src/creative/artdirections.ts`), filtered by brief `archetype`. `PROFILE_SPACE`
+counts only allowed combinations (~47k), not the old contradictory Cartesian product.
+
+**Comparative selection + outer restart.** Among gate passers, a vision jury
+(`src/core/select/`) picks the most authored candidate; vision-budget exhaustion
+falls back to least-revised. If the first lineage set produces no passer,
+`MAX_OUTER_RESTARTS` (default 1) samples a fresh set.
+
+**Gate correctness.** G2 builds a masked critique crop (`maskForCoverTest`) over
+logo + headline. G6 checks `provenance.userStatements` for details and numeric
+claims, not only slogan regex.
+
+**Canvas placement.** Solver consults `quietZones` when nudging type; tone-field
+scrims are sized to the protected text.
+
+**DR-1 precheck.** `npm run diversity` batches independent jobs, writes a contact
+sheet, and flags structural/perceptual duplicates before the human grouping panel.
+
+Docs: `SCHEMAS.md`, `ARCHITECTURE.md`, `GAP-ANALYSIS.md` updated to match.
+
 ## 2026-07-31 — Closing the gaps the decoration work opened
 
 Four items were identified while building the decoration layer and left open.

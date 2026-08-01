@@ -4,6 +4,7 @@ import { PHOTO_COMPONENTS } from "./photo.js";
 import { STRUCTURE_COMPONENTS } from "./structure.js";
 import type { ComponentManifest, ComponentModule, Role } from "./types.js";
 import type { TopologyId } from "../creative/types.js";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 /**
  * The Component Library. The Composer may only choose from this registry — it
@@ -45,6 +46,54 @@ export function componentsWithRole(role: Role): ComponentModule[] {
   return ALL.filter((c) => c.manifest.roles.includes(role));
 }
 
+const ENGINE_OWNED_PROPS = new Set([
+  "align",
+  "maxLines",
+  "pointTo",
+  "side",
+  "scrimBand",
+  "bow",
+  "tilt",
+  "gutter",
+  "radius",
+  "columns",
+  "rows",
+  "points",
+]);
+
+/** Public, author-safe JSON Schema for agents that do not have this codebase. */
+export function componentPropsSchema(id: string, includeEngineOwned = false): Record<string, unknown> {
+  const schema = zodToJsonSchema(getComponent(id).props, {
+    target: "openApi3",
+    $refStrategy: "none",
+  }) as Record<string, unknown>;
+  if (includeEngineOwned) return schema;
+  const properties = { ...((schema.properties ?? {}) as Record<string, unknown>) };
+  for (const key of ENGINE_OWNED_PROPS) delete properties[key];
+  const required = ((schema.required ?? []) as string[]).filter((key) => !ENGINE_OWNED_PROPS.has(key));
+  return { ...schema, properties, ...(required.length > 0 ? { required } : {}) };
+}
+
+export function engineOwnedPropsFor(id: string): string[] {
+  const full = componentPropsSchema(id, true) as { properties?: Record<string, unknown> };
+  return Object.keys(full.properties ?? {}).filter((key) => ENGINE_OWNED_PROPS.has(key));
+}
+
+function propSummary(id: string): string {
+  const schema = componentPropsSchema(id) as {
+    properties?: Record<string, { enum?: unknown[]; type?: string; default?: unknown }>;
+    required?: string[];
+  };
+  const required = new Set(schema.required ?? []);
+  return Object.entries(schema.properties ?? {})
+    .map(([key, value]) => {
+      const shape = value.enum?.join("|") ?? value.type ?? "value";
+      const fallback = value.default === undefined ? "" : `=${String(value.default)}`;
+      return `${key}${required.has(key) ? "!" : ""}:${shape}${fallback}`;
+    })
+    .join(",");
+}
+
 /** Compact catalogue handed to the Composer so it picks real components only. */
 export function catalogueFor(topology: TopologyId): string {
   return manifestsFor(topology)
@@ -54,7 +103,8 @@ export function catalogueFor(topology: TopologyId): string {
             .map(([k, v]) => `${k}<=${v}`)
             .join(",")}}`
         : "";
-      return `- ${m.id} [${m.category}] roles:${m.roles.join("|")} assets:${m.assetSlots}${limits}\n    ${m.purpose}`;
+      const props = propSummary(m.id);
+      return `- ${m.id} [${m.category}] roles:${m.roles.join("|")} assets:${m.assetSlots}${limits}${props ? ` props:{${props}}` : ""}\n    ${m.purpose}`;
     })
     .join("\n");
 }

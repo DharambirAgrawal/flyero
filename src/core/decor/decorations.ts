@@ -34,7 +34,15 @@ import type { Box, Theme } from "../../components/types.js";
 import type { GraphicsValue } from "../../creative/graphics.js";
 import { Rng } from "../../lib/rng.js";
 import type { DesignSpec } from "../compose/spec.js";
-import { DECOR_BUDGET, INK_FACTOR, MAX_BOLD_MOVES, OVER_ALLOWED, boldnessSpent } from "./budget.js";
+import {
+  DECOR_BUDGET,
+  INK_FACTOR,
+  MAX_BOLD_MOVES,
+  OVER_ALLOWED,
+  boldnessSpent,
+  decorBudgetFor,
+} from "./budget.js";
+import type { Density } from "../../creative/artdirections.js";
 import { decorId, patternId } from "./ids.js";
 import { decorInk, effectiveGroundUnder, overlapArea } from "./ink.js";
 import type {
@@ -347,7 +355,7 @@ export function planDecorations(
   ground: GroundPlan,
   boxes: Record<string, Box>,
   /** Loud moves the composition has already committed to — see MAX_BOLD_MOVES. */
-  committed: { gestureApplied: boolean } = { gestureApplied: false },
+  committed: { gestureApplied: boolean; density?: Density } = { gestureApplied: false },
   /** The measured canvas, so ornament can avoid landing on busy ground. */
   tone?: { sample: (r: Rect) => { luminance: number; variance: number; fill: string } },
 ): Decoration[] {
@@ -365,6 +373,7 @@ export function planDecorations(
     treatmentIsLoud,
   });
   const boldAllowance = Math.max(0, MAX_BOLD_MOVES - spent);
+  const densityBudget = decorBudgetFor(committed.density ?? "balanced");
 
   const keepOuts = keepOutsFrom(spec, boxes);
   const canvas = spec.canvas;
@@ -375,11 +384,11 @@ export function planDecorations(
   let overCount = 0;
   let boldUsed = 0;
 
-  for (let i = 0; i < graphics.slots.length && out.length < DECOR_BUDGET.MAX_ITEMS; i++) {
+  for (let i = 0; i < graphics.slots.length && out.length < densityBudget.maxItems; i++) {
     const slot = graphics.slots[i]!;
 
     // A third distinct form turns a design into a mood board.
-    if (!forms.has(slot.form) && forms.size >= DECOR_BUDGET.MAX_FORMS) continue;
+    if (!forms.has(slot.form) && forms.size >= densityBudget.maxForms) continue;
 
     // A solid mark is a loud move and competes with the ground, the gesture and
     // the headline. When the budget is gone it is demoted to a tint rather than
@@ -390,7 +399,7 @@ export function planDecorations(
     // Forms that would bury type are forced underneath rather than skipped.
     const layer =
       slot.layer === "over" && !OVER_ALLOWED.has(slot.form) ? "under" : slot.layer;
-    if (layer === "over" && overCount >= DECOR_BUDGET.MAX_OVER_ITEMS) continue;
+    if (layer === "over" && overCount >= densityBudget.maxOverItems) continue;
 
     const rng = new Rng(`decor:${spec.seed}:${graphics.id}:${i}`);
 
@@ -403,7 +412,7 @@ export function planDecorations(
       if (tone && weight !== "wash" && tone.sample(rect).variance > 0.055) continue;
 
       const estimated = rect.w * rect.h * INK_FACTOR[slot.form];
-      if (inkArea + estimated > canvasArea * DECOR_BUDGET.MAX_INK_COVERAGE) break;
+      if (inkArea + estimated > canvasArea * densityBudget.maxInkCoverage) break;
 
       const groundFill = effectiveGroundUnder(ground, rect);
       const nodes = nodesFor(slot, i, rect, decorInk(theme, groundFill, weight), rng);

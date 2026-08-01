@@ -67,7 +67,7 @@ React components render the spec to SVG server-side; `resvg`/Playwright rasteriz
 Applies the critic's fixes as **spec edits** (never re-generation), then loops back to Stage 5. Hard cap: `MAX_REVISION_LOOPS` (default 3). Also serves user-facing revision requests (FR-3).
 
 ### Stage 9 — Gatekeeper (final judgment)
-Runs the Six Gates + mechanical checks on the finished candidate. The run produces `LINEAGES_PER_RUN` (default 3) candidates in parallel; the Gatekeeper ships the best passing one, records why, and stores the losers in the process log. If none pass: return honestly with `below_bar: true`.
+Runs the Six Gates + mechanical checks on the finished candidate. The run produces `LINEAGES_PER_RUN` (default 3) candidates in parallel. Among passers, a comparative jury (`src/core/select/`) picks the most authored candidate rather than the safest score; if vision budget is exhausted, a deterministic least-revised fallback is used. Losers stay in the process log. If none pass: optionally sample a fresh lineage set once (`MAX_OUTER_RESTARTS`, default 1) and retry stages 3–8 on the restart set; if still nothing passes, return honestly with `below_bar: true`.
 
 ### Stage 10 — Exporter
 PNG (delivery), SVG (editable), `spec.json` + `idea` sentence. PDF is post-v1 (`501` on the API until then). Future formats (story, A4, deck, motion) are new compile targets for the **same spec** — this is the entire scalability story.
@@ -91,9 +91,9 @@ That is **12 × 10 × 8 × 6 × 8 × 10 ≈ 460,000 structurally distinct design
 
 A compatibility matrix (small, hand-written) vetoes the few genuinely bad pairings (e.g., `radial-field` × `editorial-annotated`) and re-rolls that lineage.
 
-`risk` level (`safe`/`studio`/`experimental`) controls how far from the most conventional value each dimension may sample.
+`risk` level (`safe`/`studio`/`experimental`) controls how far from the most conventional value each dimension may sample. Sampling happens **inside an art direction** (`src/creative/artdirections.ts`): a coherent family of metaphor/topology/type/material/colour/gesture/graphics values filtered by brief archetype. Independent dimension rolls that produce contradictory "designers" are out of v1.
 
-**Within one job:** 3 lineages run **in parallel** through stages 3–8. Gatekeeper (stage 9) picks the best passing candidate. Independent sessions (DR-1) each get a fresh job seed — that is how ten same-prompt sessions diverge.
+**Within one job:** 3 lineages run **in parallel** through stages 3–8. Gatekeeper (stage 9) picks among passers comparatively. Independent sessions (DR-1) each get a fresh job seed — that is how ten same-prompt sessions diverge. Live precheck: `npm run diversity`.
 
 **Optional later (not v1):** project-level memory that stores lineage fingerprints so a *returning* user's flyers stay fresh across a campaign. This is an enhancement for a paying feature — never the creativity mechanism.
 

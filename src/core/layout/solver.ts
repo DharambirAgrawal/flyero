@@ -8,10 +8,11 @@ import { gestureById } from "../../creative/gestures.js";
 import { recipeFor, toCanvas, type Rect, type SlotName } from "./recipes.js";
 import type { DesignSpec, SpecElement } from "../compose/spec.js";
 import { graphicsById } from "../../creative/graphics.js";
+import { artDirectionById } from "../../creative/artdirections.js";
 import { markOnDarkFromGround, planGround } from "../decor/ground.js";
 import { planDecorations } from "../decor/decorations.js";
 import type { Decoration, GroundPlan } from "../decor/types.js";
-import { ToneField } from "../canvas/tone.js";
+import { BUSY_VARIANCE, ToneField } from "../canvas/tone.js";
 
 /**
  * The Layout Solver — pure TypeScript, no LLM (AGENTS.md law 1).
@@ -547,6 +548,80 @@ export function solveLayout(
     }
   }
 
+  // ── 8.47. Move unbound text into a nearby quiet image region ─────────────
+  //
+  // A tone field that only chooses ink and scrims is still reactive: it fixes
+  // words after placing them blindly. For message/support text that is not
+  // semantically locked by a relationship or gesture, search a small
+  // neighbourhood inside the same photo plate and use a calmer region when it
+  // materially improves legibility. Composition remains recipe-owned — this is
+  // a bounded nudge, never a free layout search.
+  const boundIds = new Set(spec.relationships.flatMap((relationship) => [relationship.front, relationship.behind]));
+  if (appliedGesture) boundIds.add(appliedGesture.elementId);
+  const photoPlates = spec.elements
+    .filter((element) => PHOTOGRAPHIC.has(element.component))
+    .map((element) => ({ element, box: boxes[element.id] }))
+    .filter((entry): entry is { element: SpecElement; box: Box } => Boolean(entry.box));
+
+  for (const element of spec.elements) {
+    if (!["message", "support"].includes(element.role) || boundIds.has(element.id)) continue;
+    const box = boxes[element.id];
+    if (!box) continue;
+    const plate = photoPlates.find(
+      (entry) =>
+        entry.box.zIndex < box.zIndex &&
+        overlapArea(entry.box, box) / Math.max(1, box.w * box.h) >= 0.55,
+    );
+    if (!plate) continue;
+
+    const large = (box.fontSize ?? 0) >= 32;
+    const currentInk = tone.inkOver(box);
+    const current = tone.sample(box);
+    const currentLegible = tone.legibleFor(box, currentInk, large);
+    if (currentLegible && current.variance <= BUSY_VARIANCE * 0.55) continue;
+
+    const reachX = Math.min(120, spec.canvas.w * 0.11);
+    const reachY = Math.min(180, spec.canvas.h * 0.14);
+    const search: Rect = {
+      x: Math.max(safe.x, box.x - reachX),
+      y: Math.max(safe.y, box.y - reachY),
+      w: Math.min(safe.x + safe.w, box.x + box.w + reachX) - Math.max(safe.x, box.x - reachX),
+      h: Math.min(safe.y + safe.h, box.y + box.h + reachY) - Math.max(safe.y, box.y - reachY),
+    };
+    const blockers = spec.elements
+      .filter((other) => other.id !== element.id && other.id !== plate.element.id && other.role !== "structure")
+      .map((other) => boxes[other.id])
+      .filter((other): other is Box => Boolean(other));
+    const candidates = tone
+      .quietZones({ w: box.w, h: box.h }, search, 24)
+      .filter(
+        (candidate) =>
+          overlapArea(candidate, plate.box) / Math.max(1, candidate.w * candidate.h) >= 0.8 &&
+          blockers.every(
+            (blocker) =>
+              overlapArea(candidate, blocker) / Math.max(1, Math.min(candidate.w * candidate.h, blocker.w * blocker.h)) <
+              0.08,
+          ),
+      )
+      .map((candidate) => {
+        const ink = tone.inkOver(candidate);
+        const legible = tone.legibleFor(candidate, ink, large);
+        const distance = Math.hypot(candidate.x - box.x, candidate.y - box.y);
+        return {
+          candidate,
+          legible,
+          score: (legible ? 0 : 1) + candidate.sample.variance + distance / 10_000,
+        };
+      })
+      .sort((a, b) => a.score - b.score);
+    const best = candidates[0];
+    if (!best) continue;
+    const currentScore = (currentLegible ? 0 : 1) + current.variance;
+    if (best.score + 0.015 >= currentScore) continue;
+    box.x = best.candidate.x;
+    box.y = best.candidate.y;
+  }
+
   // ── 8.5. Type over a saturated ground ─────────────────────────────────────
   markOnDarkFromGround(ground, boxes);
 
@@ -699,7 +774,13 @@ export function solveLayout(
     if (!front || !behind) continue;
     // A bleed plate sits underneath, so it occludes nothing however much of the
     // canvas it covers.
-    if (bleedIds.has(rel.front) || front.zIndex <= behind.zIndex) continue;
+    if (
+      (rel.kind !== "overlap" && rel.kind !== "weave") ||
+      bleedIds.has(rel.front) ||
+      front.zIndex <= behind.zIndex
+    ) {
+      continue;
+    }
     const area = overlapArea(front, behind);
     if (area <= 0) continue;
     const ratio = area / Math.max(1, behind.w * behind.h);
@@ -713,7 +794,10 @@ export function solveLayout(
     graphics,
     ground,
     boxes,
-    { gestureApplied: appliedGesture !== null },
+    {
+      gestureApplied: appliedGesture !== null,
+      density: artDirectionById(spec.lineage.artDirection).density,
+    },
     tone,
   );
 
@@ -757,6 +841,20 @@ function applyRelationshipOverlaps(
       continue;
     }
     front.zIndex = Math.max(front.zIndex, behind.zIndex + 5);
+
+    if (rel.kind === "annotate") {
+      const frontElement = spec.elements.find((element) => element.id === rel.front);
+      if (frontElement?.component === "annotation-label") {
+        const target = { x: behind.x + behind.w / 2, y: behind.y + behind.h / 2 };
+        front.propsOverride = {
+          ...(front.propsOverride ?? {}),
+          pointTo: target,
+          side: target.x > front.x + front.w / 2 ? "left" : "right",
+        };
+      }
+      continue;
+    }
+    if (rel.kind === "connect" || rel.kind === "frame") continue;
 
     const requested = rel.overlap ?? 0;
     if (requested <= 0) continue;

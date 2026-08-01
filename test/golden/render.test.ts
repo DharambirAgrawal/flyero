@@ -97,7 +97,12 @@ describe("SVG editability", () => {
     expect(arcGuideId("body-copy")).not.toMatch(/copy/i);
     expect(arcGuideId("headline")).not.toBe(arcGuideId("hl"));
 
-    const spec = fixtureSpec(fixtureLineages("ARCH-1", 1)[0]!);
+    const lineage = {
+      ...fixtureLineages("ARCH-1", 1)[0]!,
+      // stacked-contrast / quiet-with-one-loud-word short-circuit before treatments.
+      typography: "compressed-monumental" as const,
+    };
+    const spec = fixtureSpec(lineage);
     for (const el of spec.elements) {
       if (el.component === "headline-block") {
         el.props = { ...(el.props ?? {}), treatment: "arch" };
@@ -126,6 +131,7 @@ describe("SVG editability", () => {
     const evidence = spec.elements.find((e) => e.role === "evidence")!;
     spec.relationships = [
       {
+        kind: "weave",
         front: evidence.id,
         behind: message.id,
         overlap: 0.3,

@@ -16,13 +16,22 @@ import { safeParseSpec, type DesignSpec, type Lineage, type SpecParseResult } fr
 
 export type AuthoredSpec = {
   productName: string;
+  campaignArchetype?:
+    | "product-promotion"
+    | "event-invitation"
+    | "awareness-education"
+    | "editorial-announcement"
+    | "offer-promotion";
   idea: string;
   story: [string, string, string, string];
+  /** Exact facts supplied by the caller; Gate G6 checks factual copy against these. */
+  sourceStatements?: string[];
   copy: {
     eyebrow: string | null;
     headline: string;
     body: string | null;
     cta: { label: string; url: string | null; qr: boolean };
+    details?: { label: string; value: string }[];
   };
   elements: Array<{
     id: string;
@@ -33,6 +42,7 @@ export type AuthoredSpec = {
     props?: Record<string, unknown>;
   }>;
   relationships: Array<{
+    kind?: "overlap" | "weave" | "annotate" | "connect" | "frame";
     front: string;
     behind: string;
     overlap?: number;
@@ -54,6 +64,7 @@ export function assembleSpec(
     seed: lineage.candidateSeed,
     lineage,
     productName: authored.productName,
+    campaignArchetype: authored.campaignArchetype ?? "product-promotion",
     idea: authored.idea,
     story: authored.story,
     canvas: { ...CANVAS },
@@ -61,6 +72,7 @@ export function assembleSpec(
       colors: palette,
       fonts: { display: fonts.display, body: fonts.body, mono: fonts.mono ?? null },
     },
+    provenance: { userStatements: authored.sourceStatements ?? [] },
     copy: authored.copy,
     elements: authored.elements.map((el) => ({
       id: el.id,

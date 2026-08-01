@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { FittedLine, Group, inkFor, mutedInkFor } from "./primitives.js";
-import type { ComponentModule } from "./types.js";
+import type { AssetRef, ComponentModule } from "./types.js";
+import { focalPreserveAspect } from "./assets.js";
 import { ensureContrast, mix, withAlpha } from "../creative/color.js";
 import {
   MOTIFS,
@@ -39,17 +40,17 @@ import {
  */
 
 /** Places an image to cover a box without distorting it — SVG's own object-fit. */
-function coverImage(id: string, box: { x: number; y: number; w: number; h: number }, href: string) {
+function coverImage(id: string, box: { x: number; y: number; w: number; h: number }, asset: AssetRef) {
   return (
     <image
       id={`${id}-photo`}
       data-name={`${id}-photo`}
-      href={href}
+      href={asset.href}
       x={box.x}
       y={box.y}
       width={box.w}
       height={box.h}
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio={focalPreserveAspect(asset)}
     />
   );
 }
@@ -161,7 +162,7 @@ const photoCluster: ComponentModule = {
                     {coverImage(
                       `${id}-${i}`,
                       { x: stop.x - radius, y: stop.y - radius, w: radius * 2, h: radius * 2 },
-                      asset.href,
+                      asset,
                     )}
                   </g>
                 ) : (
@@ -271,7 +272,7 @@ const polaroidStack: ComponentModule = {
                 <rect x={photo.x} y={photo.y} width={photo.w} height={photo.h} />
               </clipPath>
               {asset ? (
-                <g clipPath={`url(#${clipId})`}>{coverImage(`${id}-${i}`, photo, asset.href)}</g>
+                <g clipPath={`url(#${clipId})`}>{coverImage(`${id}-${i}`, photo, asset)}</g>
               ) : (
                 <rect
                   x={photo.x}
@@ -380,7 +381,7 @@ const photoGrid: ComponentModule = {
                 <rect x={cell.x} y={cell.y} width={cell.w} height={cell.h} rx={radius} ry={radius} />
               </clipPath>
               {asset ? (
-                <g clipPath={`url(#${clipId})`}>{coverImage(`${id}-${i}`, cell, asset.href)}</g>
+                <g clipPath={`url(#${clipId})`}>{coverImage(`${id}-${i}`, cell, asset)}</g>
               ) : (
                 <rect
                   x={cell.x}
@@ -448,7 +449,7 @@ const tornPhoto: ComponentModule = {
           <path d={d} />
         </clipPath>
         {asset ? (
-          <g clipPath={`url(#clip-${id})`}>{coverImage(id, photoBox, asset.href)}</g>
+          <g clipPath={`url(#clip-${id})`}>{coverImage(id, photoBox, asset)}</g>
         ) : (
           <path d={d} fill={placeholder(theme)} />
         )}

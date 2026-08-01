@@ -3,6 +3,7 @@ import { callStructured, type CallContext } from "../../llm/index.js";
 import { detectBanned } from "../../creative/banned.js";
 import { meetsAA, contrastRatio } from "../../creative/color.js";
 import { hasLlm } from "../../config.js";
+import { artDirectionById } from "../../creative/artdirections.js";
 import type { DesignSpec } from "../compose/spec.js";
 import type { LayoutResult } from "../layout/solver.js";
 
@@ -121,6 +122,11 @@ Only report things you can actually see in the image. Look for:
 - the headline sitting as a floating label rather than participating
 - elements colliding in a way that hurts legibility
 - one element having no visible reason to exist
+- image, type, colour and marks failing to feel like one art-directed campaign world
+- the communication archetype being visually wrong (for example, an invitation with no
+  practical facts, or an educational poster that reads like a product launch)
+- generic AI-template structure: interchangeable chrome, polite stacked blocks, or decorative
+  polish that could advertise any product
 
 Do NOT report: colour preferences, "add more whitespace" without a target, requests for
 extra elements, or anything you would say about any flyer. If the flyer is genuinely fine,
@@ -134,6 +140,7 @@ export async function visionCritic(
   const elementList = input.spec.elements
     .map((e) => `- ${e.id} (${e.component}, ${e.role}): ${e.whyHere}`)
     .join("\n");
+  const artDirection = artDirectionById(input.spec.lineage.artDirection);
 
   try {
     const result = await callStructured(
@@ -142,6 +149,8 @@ export async function visionCritic(
         system: VISION_SYSTEM,
         prompt: `Flyer for "${input.spec.productName}".
 Intended idea: "${input.spec.idea}"
+Communication archetype: ${input.spec.campaignArchetype}
+Assigned art direction: ${artDirection.id} — ${artDirection.brief}
 
 Elements present:
 ${elementList}

@@ -41,6 +41,19 @@ describe("tone field — basics", () => {
     const pale = new ToneField(CANVAS, "#f4f4f4");
     expect(pale.inkOver(FULL)).toBe("#111111");
   });
+
+  it("finds deterministic quiet zones large enough for type", () => {
+    const field = new ToneField(CANVAS, "#ffffff");
+    field.paintPhoto(FULL, undefined);
+    field.paintFlat({ x: 0, y: 0, w: 420, h: 300 }, "#f5f5f5");
+    const first = field.quietZones({ w: 240, h: 100 }, FULL, 4);
+    const second = field.quietZones({ w: 240, h: 100 }, FULL, 4);
+    expect(second).toEqual(first);
+    expect(first).toHaveLength(4);
+    expect(first[0]!.x).toBeLessThan(420);
+    expect(first[0]!.y).toBeLessThan(300);
+    expect(first[0]!.sample.variance).toBeLessThan(BUSY_VARIANCE);
+  });
 });
 
 describe("tone field — the bugs it exists to prevent", () => {

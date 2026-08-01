@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import sharp from "sharp";
 import { applyImageOps, expandPreset, TRANSFORM_CATALOGUE } from "../../src/core/images/transform.js";
+import { focalPreserveAspect } from "../../src/components/assets.js";
 
 /** Solid white 64×64 with a red square in the middle — for cutout tests. */
 async function subjectOnWhite(): Promise<Buffer> {
@@ -13,6 +14,11 @@ async function subjectOnWhite(): Promise<Buffer> {
 }
 
 describe("image transforms", () => {
+  it("anchors cover crops to the analysed subject", () => {
+    expect(focalPreserveAspect({ focalPoint: { x: 0.15, y: 0.82 } })).toBe("xMinYMax slice");
+    expect(focalPreserveAspect({ focalPoint: { x: 0.5, y: 0.5 } }, "meet")).toBe("xMidYMid meet");
+  });
+
   it("exposes a catalogue agents can read", () => {
     expect(TRANSFORM_CATALOGUE.ops).toContain("removeBackground");
     expect(TRANSFORM_CATALOGUE.presets["logo-clean"]).toBeTruthy();

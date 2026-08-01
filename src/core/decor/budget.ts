@@ -13,6 +13,7 @@
  */
 
 import type { DecorForm } from "./types.js";
+import type { Density } from "../../creative/artdirections.js";
 
 export const DECOR_BUDGET = {
   /** Hard ceiling on ornament instances, whatever a language asks for. */
@@ -32,6 +33,31 @@ export const DECOR_BUDGET = {
   /** Keep-out inflation around everything else. */
   PAD_NON_TEXT: 16,
 } as const;
+
+/**
+ * Density is an art-direction decision, not a random ornament multiplier.
+ * Rich systems may spend the global allowance; quiet systems are mechanically
+ * stopped well before it.
+ */
+export function decorBudgetFor(density: Density): {
+  maxItems: number;
+  maxForms: number;
+  maxInkCoverage: number;
+  maxOverItems: number;
+} {
+  if (density === "quiet") {
+    return { maxItems: 3, maxForms: 1, maxInkCoverage: 0.07, maxOverItems: 1 };
+  }
+  if (density === "balanced") {
+    return { maxItems: 5, maxForms: 2, maxInkCoverage: 0.11, maxOverItems: 1 };
+  }
+  return {
+    maxItems: DECOR_BUDGET.MAX_ITEMS,
+    maxForms: DECOR_BUDGET.MAX_FORMS,
+    maxInkCoverage: DECOR_BUDGET.MAX_INK_COVERAGE,
+    maxOverItems: DECOR_BUDGET.MAX_OVER_ITEMS,
+  };
+}
 
 /**
  * Forms permitted above the content. A halftone field or a filled blob over a

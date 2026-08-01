@@ -56,6 +56,11 @@ export type AssetRef = {
    * layout stays a pure function of what it is handed.
    */
   toneMap?: number[];
+  /** Normalised visual centre used by SVG cover crops. */
+  focalPoint?: { x: number; y: number };
+  /** Normalised subject bounds, available to future silhouette-aware recipes. */
+  subjectBox?: { x: number; y: number; w: number; h: number } | null;
+  textSafeZones?: Array<{ x: number; y: number; w: number; h: number }>;
   /** data: URI, so exported SVG is self-contained and portable into Figma. */
   href: string;
   width: number;

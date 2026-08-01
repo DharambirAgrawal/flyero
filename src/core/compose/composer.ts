@@ -5,6 +5,7 @@ import { METAPHORS } from "../../creative/metaphors.js";
 import { TOPOLOGIES } from "../../creative/topologies.js";
 import { gestureById } from "../../creative/gestures.js";
 import { graphicsById } from "../../creative/graphics.js";
+import { artDirectionById, elementBudgetForDensity } from "../../creative/artdirections.js";
 import { typographyById } from "../../creative/typebehaviors.js";
 import { CANVAS } from "../../config.js";
 import { paletteFor } from "../render/theme.js";
@@ -28,12 +29,13 @@ const propsSchema = z.object({
   text: z.string().max(120).nullable(),
   label: z.string().max(48).nullable(),
   title: z.string().max(36).nullable(),
+  loudWord: z.string().max(24).nullable(),
   items: z.array(z.string().max(52)).max(5).nullable(),
   primary: z.string().max(40).nullable(),
   secondary: z.string().max(40).nullable(),
   ask: z.string().max(60).nullable(),
   reply: z.string().max(90).nullable(),
-  value: z.string().max(8).nullable(),
+  value: z.union([z.string().max(8), z.number().min(0).max(100)]).nullable(),
   caption: z.string().max(44).nullable(),
   character: z.string().max(2).nullable(),
   beforeLabel: z.string().max(18).nullable(),
@@ -45,8 +47,54 @@ const propsSchema = z.object({
   resolved: z.number().int().min(0).max(5).nullable(),
   style: z.enum(["underlined", "solid", "bracketed"]).nullable(),
   marker: z.enum(["rule", "index", "dot"]).nullable(),
-  treatment: z.enum(["solid", "outline", "tinted"]).nullable(),
+  treatment: z.enum(["plain", "outline", "shadow", "arch", "plate", "band", "solid", "tinted"]).nullable(),
   state: z.enum(["idle", "active", "resolved"]).nullable(),
+  rule: z.boolean().nullable(),
+  axis: z.enum(["vertical", "horizontal"]).nullable(),
+  display: z.string().max(12).nullable(),
+  layout: z.enum(["beside", "above"]).nullable(),
+  showName: z.boolean().nullable(),
+  fit: z.enum(["cover", "contain"]).nullable(),
+  aspect: z.enum(["square", "portrait", "landscape"]).nullable(),
+  scrim: z.enum(["none", "bottom", "top", "full"]).nullable(),
+  shape: z.enum(["circle", "arch", "pill", "blob"]).nullable(),
+  ring: z.boolean().nullable(),
+  motif: z.enum(["plane", "pin", "compass", "none"]).nullable(),
+  feature: z.boolean().nullable(),
+  edge: z.enum(["top", "bottom", "left", "right"]).nullable(),
+  backing: z.boolean().nullable(),
+  subject: z
+    .enum([
+      "plane",
+      "pin",
+      "suitcase",
+      "camera",
+      "mountain",
+      "sun",
+      "cloud",
+      "leaf",
+      "arrow",
+      "ticket",
+      "compass",
+      "forest",
+      "meadow",
+      "riverside",
+      "hills",
+    ])
+    .nullable(),
+  arrangement: z.enum(["halo", "stack", "scatter", "row", "column", "grid"]).nullable(),
+  dividers: z.boolean().nullable(),
+  uppercaseLabels: z.boolean().nullable(),
+  figures: z.boolean().nullable(),
+  sun: z.boolean().nullable(),
+  curve: z.enum(["straight", "stepped", "curved"]).nullable(),
+  arrow: z.boolean().nullable(),
+  corners: z.enum(["full", "brackets"]).nullable(),
+  orientation: z.enum(["horizontal", "vertical"]).nullable(),
+  weight: z.enum(["hair", "medium", "heavy"]).nullable(),
+  direction: z.enum(["to-right", "to-bottom", "radial"]).nullable(),
+  density: z.number().int().min(1).max(12).nullable(),
+  kind: z.enum(["origin", "waypoint", "destination"]).nullable(),
 });
 
 const composedSchema = z.object({
@@ -65,7 +113,7 @@ const composedSchema = z.object({
           .describe("What breaks if this element is deleted? Answer concretely."),
         useAssets: z
           .array(z.string())
-          .max(2)
+          .max(6)
           .nullable()
           .describe("assetIds to place inside this component, if any"),
         props: propsSchema,
@@ -93,6 +141,7 @@ const composedSchema = z.object({
   relationships: z
     .array(
       z.object({
+        kind: z.enum(["overlap", "weave", "annotate", "connect", "frame"]),
         front: z.string(),
         behind: z.string(),
         overlap: z.number().min(0).max(0.4),
@@ -126,8 +175,10 @@ HARD RULES:
    you make — it is what lets someone identify the product with the logo and headline covered.
    Pick the component that shows the product's subject matter, not a generic frame.
 3. Exactly one element with role "cta" and one with role "message".
-4. Relationships express meaning, not decoration. If you cannot say what an overlap achieves
-   for the reader, do not create it. Zero relationships is a valid answer.
+4. Relationships express meaning, not decoration. Choose a kind: overlap (shared space),
+   weave (one form visibly masks another), annotate (one element explains another), connect
+   (a reading path links beats), or frame (one element defines another's boundary). If you
+   cannot say what it achieves for the reader, do not create it. Zero is valid.
 5. Structure components (grids, halftone fields, rules, letterforms) are decoration unless
    something registers against them. Include one only when it does real work — a bare
    decorative grid is auto-rejected by the quality gates.
@@ -143,6 +194,8 @@ function composePrompt(input: ComposeInput): string {
   const typography = typographyById(lineage.typography);
   const gesture = gestureById(lineage.gesture);
   const graphics = graphicsById(lineage.graphics);
+  const artDirection = artDirectionById(lineage.artDirection);
+  const elementBudget = elementBudgetForDensity(artDirection.density);
 
   const assetLines = brief.assets.length
     ? brief.assets
@@ -171,8 +224,12 @@ cta:      ${idea.ctaLabel}${brief.campaign.cta.url ? ` → ${brief.campaign.cta.
 
 PRODUCT
 ${brief.product.name} — ${brief.product.category}
+Communication archetype: ${brief.archetype}
 
 CREATIVE POSITION
+- Art direction: ${artDirection.id} — ${artDirection.brief}
+  Density: ${artDirection.density}; use ${elementBudget.min}-${elementBudget.max} content elements.
+  This is one coherent campaign world, not seven independent style requests.
 - Metaphor: ${metaphor.id} — ${metaphor.brief}
 - Composition: ${topology.id} — ${topology.brief}
 - Typography behaviour: ${typography.id} — ${typography.brief}
@@ -228,18 +285,30 @@ Fix exactly these problems and return the whole structure again.`
       },
       ctx,
     );
+    const direction = artDirectionById(input.lineage.artDirection);
+    const budget = elementBudgetForDensity(direction.density);
+    if (composed.elements.length < budget.min || composed.elements.length > budget.max) {
+      errors = [
+        `${direction.id} is a ${direction.density} art direction and requires ${budget.min}-${budget.max} content elements; received ${composed.elements.length}`,
+      ];
+      continue;
+    }
 
     const candidate = {
       specVersion: "1.0" as const,
       seed: input.lineage.candidateSeed,
       lineage: input.lineage,
       productName: input.brief.product.name,
+      campaignArchetype: input.brief.archetype,
       idea: input.idea.idea,
       story: input.idea.story,
       canvas: { ...CANVAS },
       brand: {
         colors: palette,
         fonts: { display: fonts.display, body: fonts.body, mono: fonts.mono ?? null },
+      },
+      provenance: {
+        userStatements: input.brief.statements.filter((s) => s.source === "user").map((s) => s.text),
       },
       copy: {
         eyebrow: input.idea.eyebrow,

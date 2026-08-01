@@ -50,9 +50,10 @@ export const config = {
 
   lineagesPerRun: num("LINEAGES_PER_RUN", 3),
   maxRevisionLoops: num("MAX_REVISION_LOOPS", 3),
+  maxOuterRestarts: num("MAX_OUTER_RESTARTS", 1),
   defaultRisk: str("DEFAULT_RISK", "studio") as Risk,
   jobTimeoutSeconds: num("JOB_TIMEOUT_SECONDS", 240),
-  maxVisionCallsPerJob: num("MAX_VISION_CALLS_PER_JOB", 6),
+  maxVisionCallsPerJob: num("MAX_VISION_CALLS_PER_JOB", 10),
 
   maxConcurrentJobs: num("MAX_CONCURRENT_JOBS", 2),
   maxDailyUsd: num("MAX_DAILY_USD", 20),

@@ -21,6 +21,12 @@ export type AssetAnalysis = {
   /** 8x8 mean relative luminance, row-major. See `computeToneMap`. */
   toneMap?: number[];
   cropSafety: { left: number; right: number; top: number; bottom: number };
+  /** Normalised centre of the subject; cover crops keep this point visible. */
+  focalPoint?: { x: number; y: number };
+  /** Normalised subject bounds when one dominant subject is visible. */
+  subjectBox?: { x: number; y: number; w: number; h: number } | null;
+  /** Normalised calm regions that can accept type without covering the subject. */
+  textSafeZones?: Array<{ x: number; y: number; w: number; h: number }>;
   background: "opaque" | "transparent" | "unknown";
 };
 
@@ -56,6 +62,28 @@ const analysisSchema = z.object({
     top: z.number().min(0).max(0.5),
     bottom: z.number().min(0).max(0.5),
   }),
+  focalPoint: z.object({
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+  }),
+  subjectBox: z
+    .object({
+      x: z.number().min(0).max(1),
+      y: z.number().min(0).max(1),
+      w: z.number().min(0.01).max(1),
+      h: z.number().min(0.01).max(1),
+    })
+    .nullable(),
+  textSafeZones: z
+    .array(
+      z.object({
+        x: z.number().min(0).max(1),
+        y: z.number().min(0).max(1),
+        w: z.number().min(0.05).max(1),
+        h: z.number().min(0.05).max(1),
+      }),
+    )
+    .max(3),
   background: z.enum(["opaque", "transparent", "unknown"]),
   /**
    * An 8x8 grid of mean relative luminance (0-1), row-major.
@@ -105,6 +133,9 @@ const FALLBACK_ANALYSIS: AssetAnalysis = {
   recommendedRoles: ["hero-evidence"],
   palette: [],
   cropSafety: { left: 0.05, right: 0.05, top: 0.05, bottom: 0.05 },
+  focalPoint: { x: 0.5, y: 0.5 },
+  subjectBox: null,
+  textSafeZones: [],
   background: "unknown",
 };
 
@@ -123,8 +154,9 @@ async function analyze(
         system:
           "You analyse images that will be placed inside marketing flyers. Report what you see, " +
           "not what would be flattering. cropSafety is the fraction of each edge that can be cropped " +
-          "without losing anything meaningful.",
-        prompt: `This image was uploaded as a "${kind}". Describe where it could sit in a flyer, its dominant colours, and how far it can be cropped from each edge.`,
+          "without losing anything meaningful. focalPoint is the dominant subject's visual centre. " +
+          "subjectBox and textSafeZones are normalised 0-1 rectangles; safe zones must not cover the subject.",
+        prompt: `This image was uploaded as a "${kind}". Describe where it could sit in a flyer, its dominant colours, safe crop, dominant subject/focal point, and up to three quiet regions that could carry type.`,
         schema: analysisSchema,
         schemaName: "asset_analysis",
         images: [{ mediaType: mime as any, base64: buf.toString("base64") }],
@@ -342,6 +374,9 @@ export async function createDerivedAsset(input: {
   } else if (input.opsApplied.some((o) => (o as { op?: string })?.op === "removeBackground")) {
     analysis = { ...analysis, background: "transparent" };
   }
+  // Transforms change the pixels even when semantic re-analysis is disabled.
+  // Never carry the parent's luminance grid into a crop/duotone/blur variant.
+  analysis = { ...analysis, toneMap: await computeToneMap(input.buffer) };
 
   getDb()
     .prepare(

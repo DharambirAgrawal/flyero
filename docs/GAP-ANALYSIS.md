@@ -293,10 +293,10 @@ Consolidated onto it:
 Tests 156 -> 167, including a synthetic gradient proving `computeToneMap`
 reports real spread rather than a mean.
 
-**Still open:** `quietZones` is implemented but nothing consults it yet — the
-solver could *place* type in calm regions rather than rescuing it afterwards.
-Scrims are still all-or-nothing rather than sized to the text they protect.
-Decoration placement does not yet avoid busy areas.
+**Closed since:** the solver now consults `quietZones` when nudging type into
+calmer tone regions; scrims are sized to the text they protect via the
+tone-field loop. Decoration still do not fully avoid busy areas — that remains
+open and lower priority than grammar / sampling / selection.
 
 ### 2026-08-01 — the sameness is structural, and half of it is the agent's fault
 
@@ -366,13 +366,65 @@ a silhouette but not behind a straight edge. That narrowing did not change the
 render, so the remaining artefact has a different cause and I stopped guessing.
 Next session: dump the geometry rather than hypothesise, as with the connector.
 
-**Still to do from the audit, in its order:** canvas-aware placement (quietZones
-is built and unused), gate correctness (G2 has no masked critique image, G6 does
-not check provenance), a rendered-diversity harness, and the bounded outer
-restart. Plus two I agree are high value: art-direction systems binding
-compatible dimensions instead of independent sampling, and comparative winner
-selection — `scoreCandidate` currently rewards the safest passing candidate,
-which is itself a source of sameness.
+### 2026-07-31 — audit items closed (structure before more polish)
+
+Landed in code (unit/acceptance covered; live DR-1 still needs the human panel):
+
+1. **Art directions** — sampler rolls inside coherent families
+   (`src/creative/artdirections.ts`), filtered by brief `archetype`. Profile
+   space is smaller (~47k coherent positions) because contradictory Cartesian
+   products are no longer counted as designers.
+2. **Comparative winner selection** — `src/core/select/` jury among passers;
+   deterministic least-revised fallback when vision budget is gone.
+3. **Bounded outer restart** — `MAX_OUTER_RESTARTS` (default 1) when the first
+   lineage set produces no passer.
+4. **G2 masked cover crop** — `maskForCoverTest` overlays logo + headline
+   before the vision ask.
+5. **G6 provenance** — `spec.provenance.userStatements` retained from the brief;
+   details and numeric claims must appear there.
+6. **quietZones placement** — solver nudges type into calm tone regions.
+7. **Rendered diversity harness** — `npm run diversity` batches independent jobs,
+   builds a contact sheet, and flags structural/perceptual duplicates before the
+   three-person DR-1 grouping panel.
+
+**Still open (do not pretend these are solved):**
+
+- Headline/photo edge collision on some topologies (geometry dump, not more
+  heuristics).
+- Coverage floor as a mechanical check; type-in-shapes / full frames / scene
+  illustration from the original working order.
+- Decoration avoiding busy tone cells.
+- The human DR-1 panel itself — the harness prepares it; it does not replace it.
+
+### 2026-08-01 — first Nepal run through the real API: three defects
+
+Driving the API as an agent (assignment -> skills -> search -> import -> compose
+-> render -> review) surfaced three faults the test suite could not.
+
+**1. `LayoutResult.tone` did not survive storage.** `tone` is a class instance
+and the job store persists layouts as JSON, so every path that reloads one — the
+review endpoint, the reviser — threw `layout.tone.legibleFor is not a function`.
+Fixed with `rehydrateTone`. The general rule this exposes: **anything placed on
+`LayoutResult` crosses a storage boundary**, so it must be plain data or be
+explicitly rebuilt. A class on that type is a latent 500.
+
+**2. G6 cannot see component props.** The provenance check inspects `copy` and
+correctly rejected three invented `details` ("Kathmandu", "Annapurna", "Oct to
+Apr") — good. But an invented claim placed in a component prop
+(`annotation-label.text = "Sunrise is at 5.40am"`) reached the page untouched.
+Props are a hole straight through the no-invented-facts law, and props are
+exactly where an agent puts short factual text.
+
+**3. Reported collisions do not block `done`.** The review endpoint accepted a
+verdict listing three collisions and still returned `status: done`. A collision
+is a defect the agent has *seen*; it must at minimum force a revision rather
+than being recorded and ignored.
+
+Poster faults worth fixing separately: the `plate` treatment renders one plate
+per line, so a three-line headline becomes a ragged staircase (it should be one
+plate, or a set of aligned ones); an evidence cutout overlapped that plate; and
+the brand lockup drew light-on-light because `footer-lockup` picks ink without
+consulting the tone field — the fourth component to do this.
 
 ## Working order
 

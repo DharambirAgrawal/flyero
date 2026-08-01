@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
+import sharp from "sharp";
 import { fixtureLineages, fixtureSpec } from "../fixtures.js";
-import { runGates } from "../../src/core/gates/index.js";
+import { maskForCoverTest, runGates } from "../../src/core/gates/index.js";
 import { ruleCritic } from "../../src/core/critic/index.js";
 import { detectBanned } from "../../src/creative/banned.js";
 import { solveLayout } from "../../src/core/layout/solver.js";
-import { renderSpec } from "../../src/core/render/index.js";
+import { rasterizeForCritique, renderSpec } from "../../src/core/render/index.js";
 import { themeFromSpec } from "../../src/core/render/theme.js";
 import { contrastRatio, ensureContrast, hueFamily, meetsAA } from "../../src/creative/color.js";
 import { COLOR_LOGIC } from "../../src/creative/colorlogic.js";
@@ -152,6 +153,39 @@ describe("gates", () => {
       ctx,
     );
     expect(result.detail.G6).toBe(false);
+  });
+
+  it("allows a supplied proof figure and rejects an unsupported detail", async () => {
+    const spec = fixtureSpec(fixtureLineages("g6-provenance", 1)[0]!);
+    const sourced: DesignSpec = JSON.parse(JSON.stringify(spec));
+    sourced.provenance.userStatements = ["Customers reported 3x more callbacks."];
+    sourced.copy.body = "Customers reported 3x more callbacks.";
+    let result = await runGates(
+      { spec: sourced, layout: layoutFor(sourced), requestedAssetIds: [] },
+      ctx,
+    );
+    expect(result.detail.G6).toBe(true);
+
+    sourced.copy.details = [{ label: "Where", value: "123 Anywhere Street" }];
+    result = await runGates(
+      { spec: sourced, layout: layoutFor(sourced), requestedAssetIds: [] },
+      ctx,
+    );
+    expect(result.detail.G6).toBe(false);
+    expect(result.notes.join(" ")).toContain("absent from user statements");
+  });
+
+  it("physically masks headline and brand pixels for the Cover Test", async () => {
+    const spec = fixtureSpec(fixtureLineages("g2-mask", 1)[0]!);
+    const render = renderSpec(spec);
+    const png = rasterizeForCritique(render.svg);
+    const masked = await maskForCoverTest(spec, render.layout, png);
+    const metadata = await sharp(masked).metadata();
+    const headline = render.layout.boxes.headline!;
+    const x = Math.round((headline.x + headline.w / 2) * (metadata.width! / spec.canvas.w));
+    const y = Math.round((headline.y + headline.h / 2) * (metadata.height! / spec.canvas.h));
+    const pixel = await sharp(masked).extract({ left: x, top: y, width: 1, height: 1 }).raw().toBuffer();
+    expect([...pixel.slice(0, 3)]).toEqual([120, 120, 120]);
   });
 
   it("reports unused assets rather than dropping them silently", async () => {

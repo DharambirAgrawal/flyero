@@ -19,7 +19,8 @@
     "fonts": "tsx scripts/install-fonts.ts",
     "smoke": "tsx scripts/smoke.ts",
     "sheet": "tsx scripts/sheet.ts",
-    "sheet:graphics": "tsx scripts/sheet-graphics.ts"
+    "sheet:graphics": "tsx scripts/sheet-graphics.ts",
+    "diversity": "tsx scripts/diversity.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
@@ -36,7 +37,8 @@
     "react-dom": "^18.3.1",
     "sharp": "^0.35.3",
     "ulid": "^3.0.1",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { FittedLine, Group, Panel, Rule, TextBlock, fitText, inkFor} from "./primitives.js";
 import type { ComponentModule } from "./types.js";
+import { focalPreserveAspect } from "./assets.js";
 import { ensureContrast, mix, withAlpha } from "../creative/color.js";
 
 /**
@@ -483,7 +484,7 @@ const beforeAfterStack: ComponentModule = {
                 y={y + labelH}
                 width={w}
                 height={h - labelH}
-                preserveAspectRatio="xMidYMid slice"
+                preserveAspectRatio={focalPreserveAspect(asset)}
                 clipPath={`url(#clip-${id}-${side})`}
               />
               {!after ? (
@@ -876,7 +877,7 @@ const assetImage: ComponentModule = {
           y={box.y}
           width={box.w}
           height={box.h}
-          preserveAspectRatio={fit === "cover" ? "xMidYMid slice" : "xMidYMid meet"}
+          preserveAspectRatio={focalPreserveAspect(asset, fit === "cover" ? "slice" : "meet")}
           clipPath={`url(#clip-${id})`}
         />
       </Group>
@@ -1165,7 +1166,7 @@ const photoHero: ComponentModule = {
           y={box.y}
           width={box.w}
           height={box.h}
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio={focalPreserveAspect(asset)}
           clipPath={`url(#clip-${id})`}
         />
         {scrim !== "none" ? (
@@ -1342,7 +1343,7 @@ const maskedImage: ComponentModule = {
           y={box.y}
           width={box.w}
           height={box.h}
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio={focalPreserveAspect(asset)}
           clipPath={`url(#clip-${id})`}
         />
         {ring ? (

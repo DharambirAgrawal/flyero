@@ -77,6 +77,36 @@ export type GraphicsId =
   | "sticker-sheet"
   | "geometric-memphis";
 
+/**
+ * What kind of communication the flyer is doing.
+ *
+ * This is deliberately about information structure, not visual style. An event
+ * invitation and a product launch may share a visual language, but they should
+ * not be forced through the same problem → solution copy skeleton.
+ */
+export type CampaignArchetype =
+  | "product-promotion"
+  | "event-invitation"
+  | "awareness-education"
+  | "editorial-announcement"
+  | "offer-promotion";
+
+/**
+ * A coherent studio position. Unlike the independently sampled dimensions,
+ * this binds compatible choices into one recognisable design instinct.
+ */
+export type ArtDirectionId =
+  | "editorial-impact"
+  | "photographic-campaign"
+  | "rational-information"
+  | "crafted-collage"
+  | "retro-event"
+  | "botanical-celebration"
+  | "cartographic-story"
+  | "document-transformation"
+  | "maximal-pop"
+  | "cinematic-minimal";
+
 export type ColorLogicId =
   | "single-accent-on-action"
   | "duotone-evidence"

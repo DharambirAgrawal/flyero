@@ -28,6 +28,10 @@ export type ToneSample = {
   fill: string;
 };
 
+export type QuietZone = Rect & {
+  sample: ToneSample;
+};
+
 /**
  * The neutral whose relative luminance is `l`.
  *
@@ -55,6 +59,28 @@ export const BUSY_VARIANCE = 0.055;
 const CELL = 90;
 
 type Cell = { lum: number; varr: number; fill: string };
+
+/**
+ * Rebuilds a `ToneField` from a layout that has been through JSON.
+ *
+ * `LayoutResult.tone` is a class instance, and the job store persists layouts as
+ * JSON — so on any path that reloads one (the review endpoint, the reviser) the
+ * methods were gone and the first call threw
+ * `layout.tone.legibleFor is not a function`. Rehydrating is the small fix;
+ * the larger lesson is that anything on `LayoutResult` must survive a round
+ * trip, because that type crosses a storage boundary.
+ */
+export function rehydrateTone(
+  tone: unknown,
+  canvas: { w: number; h: number },
+  base: string,
+): ToneField {
+  if (tone instanceof ToneField) return tone;
+  const field = new ToneField(canvas, base);
+  const cells = (tone as { cells?: unknown })?.cells;
+  if (Array.isArray(cells)) field.restore(cells as never);
+  return field;
+}
 
 export class ToneField {
   readonly cols: number;
@@ -167,6 +193,46 @@ export class ToneField {
   }
 
   /**
+   * Finds calm regions large enough to hold a requested box.
+   *
+   * Candidates are aligned to the field grid and sorted deterministically by
+   * busyness, then by available black/white contrast. The caller still owns
+   * composition constraints and collision checks; this method answers only
+   * "where can these words physically read?"
+   */
+  quietZones(size: { w: number; h: number }, bounds?: Rect, limit = 8): QuietZone[] {
+    const area = bounds ?? { x: 0, y: 0, w: this.canvas.w, h: this.canvas.h };
+    if (size.w <= 0 || size.h <= 0 || size.w > area.w || size.h > area.h) return [];
+
+    const maxX = area.x + area.w - size.w;
+    const maxY = area.y + area.h - size.h;
+    const xs = new Set<number>([area.x, maxX]);
+    const ys = new Set<number>([area.y, maxY]);
+    for (let x = area.x; x <= maxX; x += this.cellW) xs.add(Math.min(maxX, x));
+    for (let y = area.y; y <= maxY; y += this.cellH) ys.add(Math.min(maxY, y));
+
+    const zones: QuietZone[] = [];
+    for (const y of ys) {
+      for (const x of xs) {
+        const rect = { x, y, w: size.w, h: size.h };
+        zones.push({ ...rect, sample: this.sample(rect) });
+      }
+    }
+
+    return zones
+      .sort((a, b) => {
+        const variance = a.sample.variance - b.sample.variance;
+        if (Math.abs(variance) > 1e-9) return variance;
+        const contrastPotential = (sample: ToneSample) =>
+          Math.max(1.05 / (sample.luminance + 0.05), (sample.luminance + 0.05) / 0.05);
+        const contrast = contrastPotential(b.sample) - contrastPotential(a.sample);
+        if (Math.abs(contrast) > 1e-9) return contrast;
+        return a.y - b.y || a.x - b.x;
+      })
+      .slice(0, Math.max(0, limit));
+  }
+
+  /**
    * Ink that will actually read on this rect: white or near-black, whichever
    * clears the measured tone by more. Deliberately not the brand foreground —
    * over a photograph or a saturated field, brand ink is exactly what fails.
@@ -190,6 +256,12 @@ export class ToneField {
     const hi = Math.max(inkLum, luminance) + 0.05;
     const lo = Math.min(inkLum, luminance) + 0.05;
     return hi / lo >= (large ? 3 : 4.5);
+  }
+
+  /** Reinstates persisted cells — see `rehydrateTone`. */
+  restore(cells: Cell[]): void {
+    if (cells.length !== this.cells.length) return;
+    for (let i = 0; i < cells.length; i++) this.cells[i] = { ...cells[i]! };
   }
 
   /** Coarse debug view, one character per cell. Used by tests and scripts. */

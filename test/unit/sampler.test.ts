@@ -8,29 +8,63 @@ import { MATERIAL_IDS } from "../../src/creative/materials.js";
 import { COLOR_LOGIC_IDS } from "../../src/creative/colorlogic.js";
 import { GESTURE_IDS } from "../../src/creative/gestures.js";
 import { GRAPHICS_IDS } from "../../src/creative/graphics.js";
+import { ART_DIRECTIONS, artDirectionById } from "../../src/creative/artdirections.js";
 
 /**
  * Milestone 1's definition of done: the sampler produces valid lineages with the
  * right distribution — 10,000 samples, no vetoed pair, all values reachable.
  */
 describe("Studio Sampler", () => {
-  it("spans roughly 4.6M designer profiles", () => {
-    expect(PROFILE_SPACE).toBe(
-      METAPHOR_IDS.length *
-        TOPOLOGY_IDS.length *
-        TYPOGRAPHY_IDS.length *
-        MATERIAL_IDS.length *
-        COLOR_LOGIC_IDS.length *
-        GESTURE_IDS.length *
-        GRAPHICS_IDS.length,
+  it("counts only coherent profiles inside art-direction systems", () => {
+    const expected = ART_DIRECTIONS.reduce(
+      (sum, d) =>
+        sum +
+        d.metaphors.length *
+          d.topologies.length *
+          d.typography.length *
+          d.materials.length *
+          d.colorLogic.length *
+          d.gestures.length *
+          d.graphics.length,
+      0,
     );
-    expect(PROFILE_SPACE).toBeGreaterThan(4_000_000);
+    expect(PROFILE_SPACE).toBe(expected);
+    expect(PROFILE_SPACE).toBeGreaterThan(40_000);
   });
 
   it("forces unique metaphor families within one job", () => {
     for (let i = 0; i < 200; i++) {
       const { lineages } = sampleLineages({ jobSeed: `job-${i}`, count: 3, risk: "studio" });
       expect(new Set(lineages.map((l) => l.metaphor)).size).toBe(3);
+    }
+  });
+
+  it("forces distinct coherent art directions within the normal competition", () => {
+    for (let i = 0; i < 200; i++) {
+      const { lineages } = sampleLineages({ jobSeed: `direction-${i}`, count: 3, risk: "studio" });
+      expect(new Set(lineages.map((l) => l.artDirection)).size).toBe(3);
+      for (const lineage of lineages) {
+        const direction = artDirectionById(lineage.artDirection);
+        expect(direction.metaphors).toContain(lineage.metaphor);
+        expect(direction.topologies).toContain(lineage.topology);
+        expect(direction.typography).toContain(lineage.typography);
+        expect(direction.materials).toContain(lineage.material);
+        expect(direction.colorLogic).toContain(lineage.colorLogic);
+        expect(direction.gestures).toContain(lineage.gesture);
+        expect(direction.graphics).toContain(lineage.graphics);
+      }
+    }
+  });
+
+  it("routes campaign archetypes only into art directions that support them", () => {
+    const { lineages } = sampleLineages({
+      jobSeed: "event",
+      count: 3,
+      risk: "studio",
+      campaignArchetype: "event-invitation",
+    });
+    for (const lineage of lineages) {
+      expect(artDirectionById(lineage.artDirection).archetypes).toContain("event-invitation");
     }
   });
 

@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { callStructured, type CallContext } from "../../llm/index.js";
 import type { AssetRecord } from "../../store/assets.js";
+import type { CampaignArchetype } from "../../creative/types.js";
 
 /**
  * Stage 1 — Brief Builder.
@@ -12,6 +13,15 @@ import type { AssetRecord } from "../../store/assets.js";
  */
 
 export const briefSchema = z.object({
+  archetype: z
+    .enum([
+      "product-promotion",
+      "event-invitation",
+      "awareness-education",
+      "editorial-announcement",
+      "offer-promotion",
+    ])
+    .default("product-promotion"),
   product: z.object({
     name: z.string().max(60),
     category: z.string().max(80),
@@ -64,6 +74,13 @@ NEVER INVENT FACTS. Every statement you record carries a source:
 Statistics, testimonials, awards, customer counts, funding, and performance claims are NEVER
 "user" unless the user stated them. If you are tempted to write "trusted by thousands" or
 "3x faster", that is an invention — either omit it or mark it "placeholder".
+
+Choose the communication archetype from the user's actual intent:
+- product-promotion: sell or introduce a product/service
+- event-invitation: announce an occasion and its practical details
+- awareness-education: explain an issue and move the reader to act
+- editorial-announcement: publish a notice, story, programme or update
+- offer-promotion: lead with a concrete sale, menu, package or limited offer
 
 Write the CTA label as something a person would actually click or do ("Join the waitlist",
 "Book a demo"), not a slogan. If the prompt contains a URL, use it verbatim.
@@ -130,3 +147,5 @@ Produce the campaign brief.`;
     },
   };
 }
+
+export type { CampaignArchetype };

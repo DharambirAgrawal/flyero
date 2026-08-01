@@ -9,6 +9,7 @@ import { prioritise, ruleCritic, visionCritic, describeFix, type CriticFix } fro
 import { reviseSpec } from "./revise/index.js";
 import { failedGateIds, runGates, type GateResult } from "./gates/index.js";
 import { checkEditability, exportFlyer } from "./export/index.js";
+import { selectPassingCandidate, type SelectionDecision } from "./select/index.js";
 import { assetDataUri, getAssets, type AssetRecord } from "../store/assets.js";
 import {
   getJob,
@@ -41,6 +42,9 @@ class VisionBudget {
   get spent(): number {
     return this.used;
   }
+  get remaining(): number {
+    return Math.max(0, this.max - this.used);
+  }
 }
 
 export type CandidateOutcome = {
@@ -61,6 +65,9 @@ function assetRefs(assets: AssetRecord[]): AssetRef[] {
     assetId: a.id,
     href: assetDataUri(a),
     toneMap: a.analysis.toneMap,
+    focalPoint: a.analysis.focalPoint,
+    subjectBox: a.analysis.subjectBox,
+    textSafeZones: a.analysis.textSafeZones,
     width: a.width,
     height: a.height,
   }));
@@ -72,6 +79,7 @@ async function buildCandidate(
     lineage: Lineage;
     assets: AssetRecord[];
     budget: VisionBudget;
+    allowVisionCritique: boolean;
   },
   ctx: CallContext,
 ): Promise<CandidateOutcome> {
@@ -91,14 +99,18 @@ async function buildCandidate(
   let png = rasterizeForCritique(render.svg);
   const critiques: CriticFix[][] = [];
   let revisions = 0;
+  let visionReviewed = false;
 
   for (let round = 0; round < config.maxRevisionLoops; round++) {
     const rules = ruleCritic(spec, render.layout);
     // Vision is only worth spending when the cheap checks are already satisfied.
+    const mayReview =
+      input.allowVisionCritique && !visionReviewed && !rules.some((f) => f.severity === "high");
     const vision =
-      rules.some((f) => f.severity === "high") || !input.budget.take()
+      !mayReview || !input.budget.take()
         ? []
         : await visionCritic({ spec, png }, { ...ctx, stage: "critique" });
+    if (mayReview && vision.length > 0) visionReviewed = true;
 
     const fixes = prioritise([...rules, ...vision]);
     critiques.push(fixes);
@@ -120,16 +132,21 @@ async function buildCandidate(
     }
   }
 
-  const gatePng = input.budget.take() ? png : undefined;
-  const gates = await runGates(
-    {
-      spec,
-      layout: render.layout,
-      requestedAssetIds: input.assets.map((a) => a.id),
-      png: gatePng,
-    },
-    { ...ctx, stage: "gates" },
-  );
+  const gateInput = {
+    spec,
+    layout: render.layout,
+    requestedAssetIds: input.assets.map((a) => a.id),
+  };
+  const preflight = await runGates(gateInput, { ...ctx, stage: "gates" });
+  const worthVisualReview =
+    Object.values(preflight.mechanical).every(Boolean) &&
+    preflight.detail.G3 &&
+    preflight.detail.G5 &&
+    preflight.detail.G6;
+  const gates =
+    worthVisualReview && input.budget.take()
+      ? await runGates({ ...gateInput, png }, { ...ctx, stage: "gates" })
+      : preflight;
 
   return {
     lineage: input.lineage,
@@ -171,28 +188,60 @@ export async function runJob(jobId: string): Promise<void> {
     updateJob(jobId, { product_name: brief.product.name });
 
     setStage(jobId, "sample");
-    const { lineages } = sampleLineages({
+    const initial = sampleLineages({
       jobSeed: job.job_seed,
       count: config.lineagesPerRun,
       risk: job.risk as Risk,
+      campaignArchetype: brief.archetype,
     });
 
     const budget = new VisionBudget(config.maxVisionCallsPerJob);
-
-    setStage(jobId, "idea");
-    // Candidates run in parallel — sequential would miss both the latency and
-    // the cost budget (SCHEMAS.md §10).
-    const settled = await Promise.allSettled(
-      lineages.map((lineage) =>
-        buildCandidate({ brief, lineage, assets, budget }, { ...ctx, stage: "idea" }),
-      ),
-    );
-
+    const allLineages: Lineage[] = [];
     const candidates: CandidateOutcome[] = [];
     const failures: string[] = [];
-    for (const [i, outcome] of settled.entries()) {
-      if (outcome.status === "fulfilled") candidates.push(outcome.value);
-      else failures.push(`${describeLineage(lineages[i]!)}: ${String(outcome.reason?.message ?? outcome.reason)}`);
+
+    const runLineageSet = async (lineages: Lineage[], allowVisionCritique: boolean) => {
+      allLineages.push(...lineages);
+      setStage(jobId, "idea");
+      // Candidates within a set run in parallel. A restart is a second bounded
+      // set, never an unbounded search and never a history lookup.
+      const settled = await Promise.allSettled(
+        lineages.map((lineage) =>
+          buildCandidate(
+            { brief, lineage, assets, budget, allowVisionCritique },
+            { ...ctx, stage: "idea" },
+          ),
+        ),
+      );
+      for (const [i, outcome] of settled.entries()) {
+        if (outcome.status === "fulfilled") candidates.push(outcome.value);
+        else {
+          failures.push(
+            `${describeLineage(lineages[i]!)}: ${String(outcome.reason?.message ?? outcome.reason)}`,
+          );
+        }
+      }
+    };
+
+    await runLineageSet(initial.lineages, true);
+
+    let restartCount = 0;
+    while (
+      !candidates.some((candidate) => candidate.gates.passed) &&
+      restartCount < config.maxOuterRestarts &&
+      budget.remaining > 0
+    ) {
+      restartCount += 1;
+      setStage(jobId, "sample");
+      const restarted = sampleLineages({
+        jobSeed: `${job.job_seed}:restart:${restartCount}`,
+        count: config.lineagesPerRun,
+        risk: job.risk as Risk,
+        campaignArchetype: brief.archetype,
+      });
+      // Restart candidates skip the exploratory vision-critic pass. Their
+      // remaining allowance is spent on final gate evidence, not polish loops.
+      await runLineageSet(restarted.lineages, false);
     }
 
     if (candidates.length === 0) {
@@ -201,7 +250,31 @@ export async function runJob(jobId: string): Promise<void> {
 
     setStage(jobId, "gates");
     const ranked = [...candidates].sort((a, b) => scoreCandidate(b) - scoreCandidate(a));
-    const winner = ranked.find((c) => c.gates.passed) ?? ranked[0]!;
+    const passing = candidates.filter((candidate) => candidate.gates.passed);
+    let winner: CandidateOutcome;
+    let selection: SelectionDecision;
+    if (passing.length > 0) {
+      const allowJury = passing.length > 1 && budget.take();
+      selection = await selectPassingCandidate(
+        passing.map((candidate) => ({
+          spec: candidate.spec,
+          png: rasterizeForCritique(candidate.svg),
+          gates: candidate.gates,
+          revisions: candidate.revisions,
+        })),
+        { ...ctx, stage: "select" },
+        allowJury,
+      );
+      winner = passing[selection.index]!;
+    } else {
+      winner = ranked[0]!;
+      selection = {
+        index: candidates.indexOf(winner),
+        method: "deterministic-fallback",
+        reason: "No candidate cleared every gate; attached the mechanically strongest failure.",
+        findings: failedGateIds(winner.gates),
+      };
+    }
     const passed = winner.gates.passed;
 
     setStage(jobId, "export");
@@ -221,10 +294,12 @@ export async function runJob(jobId: string): Promise<void> {
     // The process log is a training asset — every candidate, not just the winner.
     saveProcessLog(jobId, revision, {
       brief,
-      lineages,
+      lineages: allLineages,
+      restartCount,
       durationMs: Date.now() - started,
       visionCallsUsed: budget.spent,
       candidateFailures: failures,
+      selection,
       editability,
       candidates: candidates.map((c) => ({
         lineage: c.lineage,

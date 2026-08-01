@@ -5,6 +5,7 @@ import { TOPOLOGIES } from "../../creative/topologies.js";
 import { typographyById } from "../../creative/typebehaviors.js";
 import { materialById } from "../../creative/materials.js";
 import { gestureById } from "../../creative/gestures.js";
+import { graphicsById } from "../../creative/graphics.js";
 import type { Lineage } from "../compose/spec.js";
 import type { Brief } from "../brief/index.js";
 
@@ -24,7 +25,7 @@ export const ideaSchema = z.object({
     .describe("One sentence naming what the viewer literally sees. Not a slogan, not a summary."),
   story: z
     .tuple([z.string(), z.string(), z.string(), z.string()])
-    .describe("Four beats: the problem state, the product acting, the payoff, the call to action."),
+    .describe("Four beats following the supplied communication-archetype grammar."),
   headline: z.string().max(90),
   eyebrow: z.string().max(42).nullable(),
   body: z.string().max(180).nullable(),
@@ -74,6 +75,14 @@ export async function generateIdea(
   const typography = typographyById(lineage.typography);
   const material = materialById(lineage.material);
   const gesture = gestureById(lineage.gesture);
+  const graphics = graphicsById(lineage.graphics);
+  const storyGrammar = {
+    "product-promotion": "the tension → the product visibly acting → the concrete benefit → the action",
+    "event-invitation": "the occasion → the promised experience → the practical facts → the RSVP/action",
+    "awareness-education": "the issue → visible evidence → what changes it → the action",
+    "editorial-announcement": "the subject → the editorial angle → the supporting fact → the next step",
+    "offer-promotion": "the product or offer → supplied offer facts → the reason to act now → the action",
+  }[brief.archetype];
 
   const facts = brief.statements
     .map((s) => `- [${s.source}] ${s.text}`)
@@ -82,6 +91,7 @@ export async function generateIdea(
   const prompt = `THE BRIEF
 
 Product: ${brief.product.name} — ${brief.product.category}
+Communication archetype: ${brief.archetype}
 Benefits the user actually claimed: ${brief.product.knownBenefits.join("; ") || "(none stated)"}
 Objective: ${brief.campaign.objective}
 Audience (assumed, confidence ${brief.audience.confidence}): ${brief.audience.assumed}
@@ -100,11 +110,14 @@ instincts, and your idea must live inside them:
 - Typography behaviour — ${typography.id}: ${typography.brief}
 - Material — ${material.id}: ${material.brief}
 - Signature gesture — ${gesture.id}: ${gesture.brief}
+- Graphic language — ${graphics.id}: ${graphics.brief}
 
 The metaphor family is the binding constraint. An idea that would work equally well under a
 different metaphor is not using this one. Push it until the metaphor is doing visible work.
 
-Write the idea, the four story beats, and the copy.`;
+Write the idea, the four story beats, and the copy.
+For this ${brief.archetype}, the four beats are: ${storyGrammar}.
+Do not force a problem/solution sales story onto an invitation, notice or educational poster.`;
 
   return callStructured(
     {
