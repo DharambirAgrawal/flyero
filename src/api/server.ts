@@ -106,6 +106,18 @@ export function buildServer(): FastifyInstance {
   // ── Auth — no bypass paths beyond the liveness probe above ───────────────
   app.addHook("onRequest", async (request: FastifyRequest, reply: FastifyReply) => {
     if (request.url === "/health") return;
+    /**
+     * OAuth discovery must 404, not 401.
+     *
+     * A connector that sees 401 on /.well-known/oauth-* concludes the server
+     * wants an OAuth flow and tries to start one. We do not implement OAuth —
+     * the key is in the URL — so that attempt fails and the client reports
+     * "cannot connect" without ever calling /mcp. A 404 tells it plainly that
+     * there is no OAuth here, and it falls back to the credential it was given.
+     */
+    if (request.url.startsWith("/.well-known/")) {
+      return reply.status(404).send({ error: { code: "not_found", message: "No OAuth here" } });
+    }
     const header = request.headers.authorization ?? "";
     const bearer = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
     /**

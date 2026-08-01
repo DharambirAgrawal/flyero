@@ -65,6 +65,38 @@ export function registerMcpHttp(app: FastifyInstance): void {
       void server.close();
     });
 
+    /**
+     * Normalise Accept before the transport sees it.
+     *
+     * StreamableHTTP insists the client accept *both* application/json and
+     * text/event-stream, and returns 406 otherwise. Plenty of clients send only
+     * application/json — a spec-legal request that a connector cannot recover
+     * from, and which looks to the user exactly like "cannot connect". We reply
+     * with JSON anyway (enableJsonResponse), so demanding the stream type is a
+     * handshake detail the caller should not have to care about.
+     */
+    const accept = String(request.headers.accept ?? "");
+    if (!accept.includes("text/event-stream") || !accept.includes("application/json")) {
+      const both = "application/json, text/event-stream";
+      request.raw.headers.accept = both;
+      /*
+       * `rawHeaders` too, and that is the one that actually matters: the
+       * transport converts the Node request into a web-standard Request and
+       * reads Accept from *that*, so mutating only the parsed `headers` object
+       * changed nothing and the 406 persisted. Node keeps rawHeaders as a flat
+       * [name, value, name, value] array.
+       */
+      const raw = request.raw.rawHeaders;
+      let found = false;
+      for (let i = 0; i < raw.length; i += 2) {
+        if (raw[i]?.toLowerCase() === "accept") {
+          raw[i + 1] = both;
+          found = true;
+        }
+      }
+      if (!found) raw.push("accept", both);
+    }
+
     await server.connect(transport);
     await transport.handleRequest(request.raw, reply.raw, request.body);
   };

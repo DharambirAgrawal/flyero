@@ -46,6 +46,41 @@ describe("auth", () => {
     expect(res.json().error.code).toBe("unauthorized");
   });
 
+  it("connects whatever Accept header the client sends", async () => {
+    /*
+     * The transport demands the client accept BOTH application/json and
+     * text/event-stream and 406s otherwise. Plenty of connectors send only
+     * application/json, or */*, or nothing — all spec-legal, none recoverable
+     * from the client side, and the user just sees "cannot connect". We answer
+     * with JSON regardless, so the handshake requirement is ours to absorb.
+     */
+    for (const accept of ["application/json", "*/*", undefined]) {
+      const headers: Record<string, string> = { ...auth };
+      if (accept) headers.accept = accept;
+      const res = await app.inject({
+        method: "POST",
+        url: "/mcp",
+        headers,
+        payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+      });
+      expect(res.statusCode, `accept: ${accept ?? "(none)"}`).toBe(200);
+    }
+  });
+
+  it("returns 404 for OAuth discovery, never 401", async () => {
+    // A connector that sees 401 here concludes the server wants an OAuth flow
+    // and tries to start one. We have no OAuth — the key is in the URL — so
+    // that attempt fails and it reports "cannot connect" without ever reaching
+    // /mcp. 404 tells it plainly to use the credential it already has.
+    for (const path of [
+      "/.well-known/oauth-authorization-server",
+      "/.well-known/oauth-protected-resource",
+    ]) {
+      const res = await app.inject({ method: "GET", url: path });
+      expect(res.statusCode, path).toBe(404);
+    }
+  });
+
   it("rejects an unknown key", async () => {
     const res = await app.inject({
       method: "GET",
@@ -456,6 +491,41 @@ describe("remote MCP", () => {
     // and logs, so the convenience is scoped to the one place it is needed.
     const rest = await app.inject({ method: "GET", url: `/v1/skills?key=${KEY}` });
     expect(rest.statusCode).toBe(401);
+  });
+
+  it("connects whatever Accept header the client sends", async () => {
+    /*
+     * The transport demands the client accept BOTH application/json and
+     * text/event-stream and 406s otherwise. Plenty of connectors send only
+     * application/json, or */*, or nothing — all spec-legal, none recoverable
+     * from the client side, and the user just sees "cannot connect". We answer
+     * with JSON regardless, so the handshake requirement is ours to absorb.
+     */
+    for (const accept of ["application/json", "*/*", undefined]) {
+      const headers: Record<string, string> = { ...auth };
+      if (accept) headers.accept = accept;
+      const res = await app.inject({
+        method: "POST",
+        url: "/mcp",
+        headers,
+        payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+      });
+      expect(res.statusCode, `accept: ${accept ?? "(none)"}`).toBe(200);
+    }
+  });
+
+  it("returns 404 for OAuth discovery, never 401", async () => {
+    // A connector that sees 401 here concludes the server wants an OAuth flow
+    // and tries to start one. We have no OAuth — the key is in the URL — so
+    // that attempt fails and it reports "cannot connect" without ever reaching
+    // /mcp. 404 tells it plainly to use the credential it already has.
+    for (const path of [
+      "/.well-known/oauth-authorization-server",
+      "/.well-known/oauth-protected-resource",
+    ]) {
+      const res = await app.inject({ method: "GET", url: path });
+      expect(res.statusCode, path).toBe(404);
+    }
   });
 
   it("rejects an unknown key", async () => {
