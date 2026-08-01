@@ -95,10 +95,23 @@ const pathConnector: ComponentModule = {
   },
   props: z.object({
     /** Normalised waypoints within the element's box. */
+    /**
+     * Optional, and defaulted, because the solver owns these.
+     *
+     * They were required — so an agent adding the component its gesture demands
+     * was forced to invent coordinates, which is precisely what AGENTS.md law 1
+     * forbids and what the solver overwrites a moment later. Requiring a value
+     * nobody is allowed to choose is a schema arguing with its own architecture.
+     * The default is a placeholder the gesture replaces.
+     */
     points: z
       .array(z.object({ x: z.number().min(-0.2).max(1.2), y: z.number().min(-0.2).max(1.2) }))
       .min(2)
-      .max(6),
+      .max(6)
+      .default([
+        { x: 0, y: 0.5 },
+        { x: 1, y: 0.5 },
+      ]),
     curve: z.enum(["straight", "stepped", "curved"]).default("curved"),
     arrow: z.boolean().default(false),
   }),

@@ -37,8 +37,20 @@ async function api(path: string, init: RequestInit = {}): Promise<Json> {
     body = { raw: text };
   }
   if (!res.ok) {
+    /**
+     * Surface the whole error, not just its headline.
+     *
+     * This used to throw `${error.message} (400)` and drop `error.details` —
+     * which is the only part that says *which field* is wrong. Two different
+     * agents hit "Invalid composition (400)" and then guessed at the schema
+     * fifteen times each, because the answer was in the response and we threw
+     * it away. An error an agent cannot act on is worse than no error: it looks
+     * like the service is broken.
+     */
     const message = body?.error?.message ?? `HTTP ${res.status}`;
-    throw new Error(`${message} (${res.status})`);
+    const details = body?.error?.details ?? body?.hint;
+    const rendered = details ? `\n${JSON.stringify(details, null, 2)}` : "";
+    throw new Error(`${message} (${res.status})${rendered}`);
   }
   return body;
 }
@@ -497,20 +509,38 @@ export function buildMcpServer(): McpServer {
   );
 
   server.registerTool(
+    "get_composition_example",
+    {
+      title: "Get a copyable composition example",
+      description:
+        "A complete, valid composition you can paste and edit, plus the rules that are not obvious from " +
+        "the shape alone. CALL THIS BEFORE compose_flyer. Guessing the schema wastes attempts — the " +
+        "example is exact.",
+      inputSchema: {},
+    },
+    async () => ({
+      content: [
+        { type: "text", text: JSON.stringify(await api("/v1/schema/composition"), null, 2) },
+      ],
+    }),
+  );
+
+  server.registerTool(
     "compose_flyer",
     {
       title: "Compose a flyer yourself",
       description:
-        "You write the flyer; the engine draws it. Send the designer lineage from request_designers, the " +
-        "copy, and 4-7 elements each naming a component, a role and why it is there. Returns the rendered " +
-        "flyer plus which gates passed. If the composition breaks a rule the reply names the exact rule — " +
-        "fix and send again. Never place coordinates, colours or fonts: those are computed.",
+        "You write the flyer; the engine draws it. CALL get_composition_example FIRST — it returns a valid " +
+        "composition to copy, and guessing the shape wastes attempts. Send the lineage from " +
+        "request_designers unchanged, the copy, and 4-7 elements each naming a component, a role and " +
+        "`whyHere`. Returns the rendered flyer plus which gates passed. A rejection lists the exact " +
+        "fields that are wrong — read them, they are precise. Never send coordinates, colours or fonts.",
       inputSchema: {
         composition: z
           .record(z.any())
           .describe(
-            "The full composition object: lineage, productName, idea, story, copy, elements, " +
-              "relationships, gesturePurpose, assetIds, brandColors. Read the design guide for the shape.",
+            "The full composition object. Get its exact shape from get_composition_example — it is a " +
+              "working one you can edit, not a description of one.",
           ),
       },
     },

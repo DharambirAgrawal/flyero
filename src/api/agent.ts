@@ -44,6 +44,85 @@ import type { AssetRef } from "../components/types.js";
  * pipeline; only the author changes.
  */
 
+
+/**
+ * A complete, valid composition.
+ *
+ * Published because two separate agents burned fifteen attempts each guessing
+ * at this shape. The tool description said "read the design guide for the
+ * shape" and the guide described it in prose — which is not something you can
+ * copy. An example you can paste and edit is worth more than any schema.
+ */
+export const COMPOSITION_EXAMPLE = {
+  lineage: "<<paste the `lineage` object from request_designers, unchanged>>",
+  productName: "Nepal",
+  idea: "The peak you can see from the city is the one you can walk to.",
+  story: [
+    "A valley full of temples.",
+    "A ridge behind it.",
+    "A peak behind that.",
+    "All of it in one week.",
+  ],
+  copy: {
+    eyebrow: "HIMALAYA",
+    headline: "Walk to the view",
+    body: "Temples in the morning, a ridgeline by evening.",
+    cta: { label: "Start planning", url: null, qr: false },
+    details: [],
+  },
+  elements: [
+    {
+      id: "message",
+      component: "headline-block",
+      role: "message",
+      whyHere: "The one idea, in four words.",
+      props: { treatment: "plain" },
+    },
+    {
+      id: "hero",
+      component: "photo-hero",
+      role: "evidence",
+      whyHere: "The mountain itself — without it the cover test fails.",
+      assets: ["<<assetId from import_image>>"],
+      props: {},
+    },
+    {
+      id: "note",
+      component: "body-paragraph",
+      role: "support",
+      whyHere: "Says what a week actually contains.",
+      props: {},
+    },
+    {
+      id: "action",
+      component: "cta-button",
+      role: "cta",
+      whyHere: "The one thing to do.",
+      props: {},
+    },
+  ],
+  relationships: [],
+  gesturePurpose:
+    "Explains the single deliberate rule-break your lineage's gesture applies.",
+  assetIds: ["<<same assetIds as above>>"],
+  brandColors: [],
+} as const;
+
+/**
+ * The rules that are not visible from the example alone.
+ */
+export const COMPOSITION_NOTES = [
+  "`lineage` must be the object from request_designers, copied unchanged. Do not rebuild or trim it.",
+  "Each element needs `whyHere` — not `purpose`, not `why`. Gate G3 rejects an element that cannot justify itself.",
+  "`role` is singular, one of: evidence | message | support | cta | brand | structure.",
+  "You need exactly one `message` and one `cta`, and at least one `evidence`.",
+  "Element count is 4-7, and your campaign archetype may narrow that further — the error says so if it does.",
+  "`assets` goes on the element that displays the image; `assetIds` at the top level lists every asset used.",
+  "`props` may only contain keys that component declares. Engine-owned props (positions, scrims, alignment) are rejected.",
+  "`copy.cta.url` may be null. Do not invent a web address.",
+  "Never send colours, fonts, sizes or coordinates. They come from the lineage.",
+] as const;
+
 const authoredSchema = z.object({
   lineage: lineageSchema,
   productName: z.string().min(1).max(60),
@@ -397,6 +476,12 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   });
 
   // ── 2. Compose: author's spec in, rendered and judged flyer out ──────────
+  /** The shape of a composition, as something an agent can copy rather than infer. */
+  app.get("/v1/schema/composition", async () => ({
+    example: COMPOSITION_EXAMPLE,
+    notes: COMPOSITION_NOTES,
+  }));
+
   app.post("/v1/flyers/compose", async (request, reply) => {
     const parsed = authoredSchema.safeParse(request.body);
     if (!parsed.success) {
