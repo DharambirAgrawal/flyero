@@ -67,6 +67,7 @@ function widthsFrom(rng: { float: () => number }, n: number): number[] {
 const browserFrame: ComponentModule = {
   manifest: {
     id: "browser-frame",
+    visual: { shape: "rectangle", aspect: 1.35, density: "heavy", carriesTone: true, reads: "A wide rectangle with a thin title bar and dots at the top, holding a screenshot; unmistakably a web app on a desktop." },
     category: "evidence",
     purpose:
       "The product as a web app, in a restrained browser chrome. Shows a screenshot asset when one exists. Software only — never the evidence for a physical product.",
@@ -184,6 +185,7 @@ const browserFrame: ComponentModule = {
 const phoneFrame: ComponentModule = {
   manifest: {
     id: "phone-frame",
+    visual: { shape: "rectangle", aspect: 0.5, density: "heavy", carriesTone: true, reads: "A tall rounded slab with a screen inside; very narrow and very tall, so it wants a column of its own." },
     category: "evidence",
     purpose:
       "The product on a phone. Tall and narrow — good for split and two-column topologies. Software only — never the evidence for a physical product.",
@@ -273,6 +275,7 @@ const phoneFrame: ComponentModule = {
 const documentCard: ComponentModule = {
   manifest: {
     id: "document-card",
+    visual: { shape: "rectangle", aspect: 0.72, density: "medium", carriesTone: true, reads: "An upright page with ruled lines of type and a heading; reads as paper — a résumé, a report, a letter." },
     category: "evidence",
     purpose:
       "A page-like artefact — résumé, report, brief. The subject when the product acts on documents. Not a picture frame: for photographs use photo-hero, masked-image or asset-image.",
@@ -397,6 +400,7 @@ const documentCard: ComponentModule = {
 const beforeAfterStack: ComponentModule = {
   manifest: {
     id: "before-after-stack",
+    visual: { shape: "rectangle", aspect: 1.1, density: "heavy", carriesTone: true, reads: "One rectangle split by a hard seam with a different state either side; the eye jumps across the seam and reads change." },
     category: "evidence",
     purpose:
       "Two states of the same artefact along one hard seam. The single strongest component for transformation and before/after metaphors. Give it two image assets (before, after) and it shows them; without assets it draws abstract document lines — only credible for document/software subjects.",
@@ -576,6 +580,7 @@ const beforeAfterStack: ComponentModule = {
 const scoreRing: ComponentModule = {
   manifest: {
     id: "score-ring",
+    visual: { shape: "circle-row", aspect: 1, density: "medium", carriesTone: false, reads: "A circular gauge with an arc drawn part-way round and a figure in the middle; a clean round object that reads as a measurement." },
     category: "evidence",
     purpose: "A measured reading of something. Only for values the brief supplies — never an invented score.",
     roles: ["evidence", "support"],
@@ -659,6 +664,7 @@ const scoreRing: ComponentModule = {
 const annotationLabel: ComponentModule = {
   manifest: {
     id: "annotation-label",
+    visual: { shape: "line", aspect: 3.2, density: "sparse", carriesTone: false, reads: "A small handwritten-feeling note with a thin leader line running out of it into whatever it is pointing at." },
     category: "evidence",
     purpose:
       "A short expert note with a leader line pointing into the evidence. This is what makes annotation/editorial metaphors read.",
@@ -742,6 +748,7 @@ const annotationLabel: ComponentModule = {
 const uiFragment: ComponentModule = {
   manifest: {
     id: "ui-fragment",
+    visual: { shape: "rectangle", aspect: 2.4, density: "medium", carriesTone: true, reads: "A single close-up slice of interface — one control or one row — floating with no surrounding chrome; small, wide and specific." },
     category: "evidence",
     purpose: "A single close-up piece of the interface — one control, one row, one result. Good for magnification.",
     roles: ["evidence"],
@@ -827,6 +834,7 @@ const uiFragment: ComponentModule = {
 const assetImage: ComponentModule = {
   manifest: {
     id: "asset-image",
+    visual: { shape: "rectangle", aspect: 1, density: "heavy", carriesTone: true, reads: "The supplied image placed plainly at a chosen aspect, no border and no frame; whatever silhouette the picture itself has." },
     category: "evidence",
     purpose:
       "A user-supplied image placed directly, no chrome, with a chosen aspect. Use when the asset itself is the subject — a cutout product shot, an illustration, a logo lockup.",
@@ -893,6 +901,7 @@ const assetImage: ComponentModule = {
 const checklistCard: ComponentModule = {
   manifest: {
     id: "checklist-card",
+    visual: { shape: "stack", aspect: 1.15, density: "medium", carriesTone: true, reads: "A panel of rows with ticks appearing down the left; reads as work being completed rather than a list being described." },
     category: "evidence",
     purpose: "Items being resolved one by one — shows the product working through a list rather than describing it.",
     roles: ["evidence"],
@@ -981,6 +990,7 @@ const checklistCard: ComponentModule = {
 const chatExchange: ComponentModule = {
   manifest: {
     id: "chat-exchange",
+    visual: { shape: "stack", aspect: 1.2, density: "medium", carriesTone: true, reads: "Two speech bubbles offset left and right, the second clearly fuller than the first; reads as a conversation at a glance." },
     category: "evidence",
     purpose: "A question and a markedly better answer. The component that makes the conversation metaphor concrete.",
     roles: ["evidence"],
@@ -1083,6 +1093,7 @@ const chatExchange: ComponentModule = {
 const photoHero: ComponentModule = {
   manifest: {
     id: "photo-hero",
+    visual: { shape: "rectangle", aspect: 0.8, density: "heavy", carriesTone: true, reads: "A photograph filling its whole box edge to edge, often with a dark gradient scrim along one side so type can sit on it; the heaviest object available." },
     category: "evidence",
     purpose:
       "The photograph IS the design: a full-crop image with no chrome and an optional scrim so the headline can sit directly on it. The default evidence for physical products — food, flowers, fashion, places, events. Requires a prepared image asset.",
@@ -1266,6 +1277,7 @@ function blobPath(
 const maskedImage: ComponentModule = {
   manifest: {
     id: "masked-image",
+    visual: { shape: "arch", aspect: 0.85, density: "heavy", carriesTone: true, reads: "One photograph cut to a circle, arch, pill or organic blob; a deliberate silhouette that reads as composed rather than dropped in." },
     category: "evidence",
     purpose:
       "A photograph cut into a deliberate shape — circle, arch, pill or organic blob. The florist/boutique/editorial device that makes an image feel composed rather than pasted. Requires a prepared image asset.",

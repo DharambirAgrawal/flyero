@@ -10,6 +10,7 @@ import { arcGuideId, arcTextPath } from "./shapes.js";
 const headlineBlock: ComponentModule = {
   manifest: {
     id: "headline-block",
+    visual: { shape: "text-only", aspect: 2.2, density: "medium", carriesTone: false, reads: "Two or three lines of very large type, set tight; the biggest object on the page and the thing a viewer reads first." },
     category: "content",
     purpose:
       "The primary message. Sized by the solver to be the loudest typographic object unless an oversized anchor outranks it.",
@@ -357,6 +358,7 @@ const headlineBlock: ComponentModule = {
 const eyebrowLabel: ComponentModule = {
   manifest: {
     id: "eyebrow-label",
+    visual: { shape: "line", aspect: 8, density: "sparse", carriesTone: false, reads: "One short line of small letter-spaced capitals; a thin horizontal strip that sets up whatever sits under it." },
     category: "content",
     purpose: "A short label above the headline that names the category or the moment. Never a slogan.",
     roles: ["support", "brand"],
@@ -419,6 +421,7 @@ const eyebrowLabel: ComponentModule = {
 const bodyParagraph: ComponentModule = {
   manifest: {
     id: "body-paragraph",
+    visual: { shape: "text-only", aspect: 3, density: "sparse", carriesTone: false, reads: "A small block of two to four lines at reading size; quiet grey texture rather than a shape." },
     category: "content",
     purpose: "One short paragraph of specific, human supporting copy. Optional — omit it when the picture says enough.",
     roles: ["support"],
@@ -468,6 +471,7 @@ const bodyParagraph: ComponentModule = {
 const benefitList: ComponentModule = {
   manifest: {
     id: "benefit-list",
+    visual: { shape: "stack", aspect: 2, density: "medium", carriesTone: false, reads: "Two to four short lines stacked with a marker in front of each; a left-aligned column with a visible ragged right edge." },
     category: "content",
     purpose: "Two to four concrete benefits as short lines with markers. Use only when the benefits are specific.",
     roles: ["support"],
@@ -572,6 +576,7 @@ function qrMatrix(text: string): boolean[][] {
 const ctaButton: ComponentModule = {
   manifest: {
     id: "cta-button",
+    visual: { shape: "band", aspect: 4, density: "medium", carriesTone: true, reads: "A filled pill or rectangle of solid colour with a short label inside, sometimes with a QR square beside it; a small dense block of colour." },
     category: "content",
     purpose:
       "The action. Carries the label, the URL and optionally a scannable QR — it is a flyer, so the CTA must work in the physical world.",
@@ -738,6 +743,7 @@ const ctaButton: ComponentModule = {
 const footerLockup: ComponentModule = {
   manifest: {
     id: "footer-lockup",
+    visual: { shape: "line", aspect: 9, density: "sparse", carriesTone: false, reads: "A name or small logo plus one line of context on a single baseline; a thin quiet strip along an edge." },
     category: "content",
     purpose: "Product name (or logo asset) plus one line of context, sitting quietly at an edge.",
     roles: ["brand"],
@@ -818,6 +824,7 @@ const footerLockup: ComponentModule = {
 const quoteBlock: ComponentModule = {
   manifest: {
     id: "quote-block",
+    visual: { shape: "text-only", aspect: 2.4, density: "medium", carriesTone: false, reads: "A short line set larger than body copy, usually with a hanging quote mark or a rule beside it; reads as speech, not description." },
     category: "content",
     purpose:
       "A short verbatim line in the user's own voice. Only usable when the brief supplies real words — never invented testimony.",
@@ -891,6 +898,7 @@ const quoteBlock: ComponentModule = {
 const bigNumeral: ComponentModule = {
   manifest: {
     id: "big-numeral",
+    visual: { shape: "text-only", aspect: 1.3, density: "heavy", carriesTone: false, reads: "One enormous figure with a small caption beneath; a single bold silhouette that competes with the headline for the eye." },
     category: "content",
     purpose:
       "One number set very large with a short caption. Only for figures the user supplied — never an invented statistic.",
@@ -954,6 +962,7 @@ const bigNumeral: ComponentModule = {
 const logoLockup: ComponentModule = {
   manifest: {
     id: "logo-lockup",
+    visual: { shape: "rectangle", aspect: 2.6, density: "sparse", carriesTone: false, reads: "A logo image beside or above a name and optional tagline; a small tidy rectangle that must sit clear of everything else." },
     category: "content",
     purpose:
       "A logo image set at a controlled size, locked up with the company name and an optional tagline. Use this whenever the user supplies a logo — prepare it with the logo-clean preset first so it sits on any ground.",

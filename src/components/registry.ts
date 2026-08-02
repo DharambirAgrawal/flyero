@@ -1,5 +1,6 @@
 import { CONTENT_COMPONENTS } from "./content.js";
 import { EVIDENCE_COMPONENTS } from "./evidence.js";
+import { FIGURE_COMPONENTS } from "./figure.js";
 import { PHOTO_COMPONENTS } from "./photo.js";
 import { STRUCTURE_COMPONENTS } from "./structure.js";
 import type { ComponentManifest, ComponentModule, Role } from "./types.js";
@@ -14,6 +15,7 @@ const ALL: ComponentModule[] = [
   ...CONTENT_COMPONENTS,
   ...EVIDENCE_COMPONENTS,
   ...PHOTO_COMPONENTS,
+  ...FIGURE_COMPONENTS,
   ...STRUCTURE_COMPONENTS,
 ];
 

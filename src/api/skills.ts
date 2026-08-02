@@ -89,11 +89,26 @@ Conversely: a flyer for a *place*, a *dish* or an *object* with no picture of it
 cannot pass the cover test, and no amount of styling will rescue it. Search for
 one (POST /v1/assets/search) before you compose.
 
+## When nothing in the catalogue fits, build the component
+
+\`composed-figure\` is assembled for one flyer and thrown away. You name the
+parts — motifs, shapes, cut-out photos, short words — and how each sits
+*relative to the figure or to another part*: "the plane top-right of the sun",
+"the word on the seal", "the leaf below the blob, far". The engine computes
+every coordinate; there is no way to write one and you should not want to.
+
+Reach for it when the brief asks for something specific that no finished
+component says. A balloon in the corner, a stamp with a price in it, three pins
+walking down the page — these are wanted once each, so no component will ever
+exist for them.
+
 ## Density without clutter
 
 The canvas should feel used. But you have 4-7 elements and Gate G3 counts them,
 so density comes from elements that carry *several* things:
 
+- \`composed-figure\` is one element and can hold **eight parts**. This is the
+  strongest tool you have against an empty page.
 - \`detail-cluster\` holds up to six labelled facts as one element. "Sat 17
   June", "Kestrel Park" and "Bring gloves" are one idea — when and where — not
   three.
@@ -101,6 +116,15 @@ so density comes from elements that carry *several* things:
 
 Spending one element per line is how you run out of budget with a half-empty
 page.
+
+## Do not build the same flyer twice
+
+Every component in the catalogue carries a **LOOKS LIKE** line — what it
+actually puts on the page, not when to use it. Read them. Output from this API
+spent a long time converging on the same two or three components for every
+brief, and the cause was simply that the rest were not described well enough to
+picture. They are now. If your composition resembles the last one you made,
+that is the failure repeating.
 
 ## Before you submit
 

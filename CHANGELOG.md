@@ -6,6 +6,69 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-02 — Twenty-eight invisible components, and components the agent builds itself
+
+User feedback on real output: the flyers repeat. "It kept that on side that
+circular things" — every flyer coming back with the same component, no density,
+no creativity, and no way for the agent to make something for a request that has
+no component.
+
+The cause was measured, not guessed. **The library had 35 components. Seven had
+a `visual` block. The agent picked from the seven it could see** — and of those,
+`photo-cluster` was listed first in the guide, described twice, and given the
+most vivid prose, so it won nearly every time. Nothing was wrong with the
+sampler, the ranking or the model. Twenty-eight components were unreachable
+because nobody had written down what they look like.
+
+### Added
+- **`visual` on all 35 manifests, and the field is now required** — shape,
+  natural aspect, density, `carriesTone`, and one line describing the finished
+  thing as a viewer sees it. `test/unit/anchors.test.ts` fails the build if a
+  component ships without one. A component nobody can picture is a component
+  nobody will ever choose.
+- **`composed-figure`** (`src/components/figure.tsx`) — a component the agent
+  assembles for one flyer and throws away: up to eight parts (motifs, shapes,
+  cut-out photos, short words), each placed *relative to the figure or to
+  another part*. Answers two complaints at once. The one-off ("a balloon at the
+  top right") will never get its own component because it is wanted exactly
+  once. And density: Gate G3 counts elements, not marks, so a page could only
+  hold seven things and output stayed sparse — one figure is one element
+  carrying eight parts, so the page gets busy while the gate stays as strict.
+- **Relational placement resolver** (`src/core/layout/anchors.ts`) — named spots
+  (`top-right`), named sides (`top-right-of`, `above`, `on`), named gaps and
+  sizes; topological ordering so parts can be declared in any order; cycles
+  rejected rather than silently half-applied. `Anchor` has **no numeric escape
+  hatch** and a test asserts it never grows one — that is what keeps this inside
+  law 1. A relationship survives the figure moving; an `x: 812` was true once.
+- `npm run sheet:figures` — one flyer per arrangement, no model calls.
+
+### Fixed
+- **Depth-of-field blurred flat vector art.** Blur was applied from depth alone,
+  so a full-bleed drawn figure came back with every motif smeared. Softness
+  reads as distance on a photograph and as a broken export on a drawn shape,
+  which has no focal plane to be outside of. Blur is now gated on the element
+  actually carrying an image; haze still applies to everything.
+- **A new drawing component reintroduced the exact bug the canvas tone field
+  exists to prevent.** The field only knew about photographic components, so the
+  first composed figure under a line of type put solid accent behind grey text
+  and nothing measured it. `figureInk()` resolves the parts and declares its
+  rects to the field before rendering. **General rule: anything that puts ink on
+  the canvas must tell the tone field, or the canvas model is lying.**
+- **Corner anchors did not actually straddle their corner.** The gap is a
+  fraction of the figure, so on a small part it exceeded the part's half-width
+  and pushed it fully outside — turning "badge on the corner" into "badge
+  floating beside it". Caught by a test, not by eye. Backoff is now capped
+  against the part's own extent so some overlap always survives.
+- **Guide anchoring.** `photo-cluster` was listed first and described twice; the
+  section is now neutral and states the repetition failure explicitly.
+
+### Known gap
+A small text box straddling a hard edge — half over a dark mark, half over pale
+paper — still takes one ink for the whole box, so neither half is right. Scrims
+solve this for photo plates; a partial-coverage figure has no equivalent yet.
+
+---
+
 ## 2026-08-01 — Hard photo edges and a diluted "handmade" register
 
 User feedback on a real run (`output/nepal5/`): the grid layout's photos butted

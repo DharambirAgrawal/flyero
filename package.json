@@ -22,7 +22,8 @@
     "sheet:graphics": "tsx scripts/sheet-graphics.ts",
     "diversity": "tsx scripts/diversity.ts",
     "typecheck": "tsc --noEmit",
-    "prune": "tsx scripts/prune-storage.ts"
+    "prune": "tsx scripts/prune-storage.ts",
+    "sheet:figures": "tsx scripts/sheet-figures.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

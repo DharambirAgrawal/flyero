@@ -13,6 +13,7 @@ import { markOnDarkFromGround, planGround } from "../decor/ground.js";
 import { planDecorations } from "../decor/decorations.js";
 import type { Decoration, GroundPlan } from "../decor/types.js";
 import { depthForRole } from "../canvas/depth.js";
+import { figureInk } from "../../components/figure.js";
 import { BUSY_VARIANCE, ToneField } from "../canvas/tone.js";
 
 /**
@@ -121,6 +122,9 @@ const SHAPED_COMPONENTS = new Set([
   "scene-illustration",
   "oversized-letterform",
   "photo-cluster",
+  // A figure assembled from marks is a silhouette by construction — that is
+  // what it is made of — so it weaves with type on the same terms.
+  "composed-figure",
 ]);
 
 /** No element may hide more than this fraction of the element behind it. */
@@ -557,6 +561,14 @@ export function solveLayout(
     if (PHOTOGRAPHIC.has(el.component)) {
       const toneMap = el.assets?.length ? assetTone?.get(el.assets[0]!) : undefined;
       tone.paintPhoto(box, toneMap, theme.palette.fg);
+    } else if (el.component === "composed-figure") {
+      // An assembled figure paints real ink in places only it knows, so it has
+      // to declare them. Painting its whole box instead would report a solid
+      // slab where there are actually four small marks and a lot of paper —
+      // and every scrim and ink decision downstream would be wrong.
+      for (const mark of figureInk(el.props ?? {}, box, theme.palette)) {
+        tone.paintFlat(mark.rect, mark.fill, 0.85);
+      }
     } else if (PHOTO_COMPONENTS.has(el.component)) {
       // A drawn ground: we know its colours. Its mid tone is the accent mixed
       // toward the page, which is how every scene builds its depth ramp.

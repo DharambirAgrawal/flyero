@@ -1,4 +1,5 @@
 import { COMPONENTS } from "../components/registry.js";
+import { MOTIF_NAMES } from "../components/shapes.js";
 import { METAPHORS } from "../creative/metaphors.js";
 import { TOPOLOGIES } from "../creative/topologies.js";
 import { TYPOGRAPHY } from "../creative/typebehaviors.js";
@@ -92,25 +93,22 @@ every transform returns a new assetId.
 
 ## How an image lands on the page is itself a design decision
 
-Do not default to one photo in one rectangle. The way an image enters the
-composition carries as much meaning as the image:
+Do not default to one photo in one rectangle. The arrangement is a claim:
+three cutouts joined by a dashed line say *"we go to these places"*; the same
+three in a grid say *"we offer range"*. Those are different sentences. Choose
+the true one.
 
-- **photo-cluster** — 2–4 circular cutouts on a bowed line joined by a dashed
-  route, with a plane or pin riding it. Turns several photos into a *journey*.
-  Travel, itineraries, multi-stop events, "how it works" in three steps.
-- **polaroid-stack** — tilted prints with white borders, overlapping. Warm and
-  personal: weddings, parties, food, anything nostalgic.
-- **photo-grid** — 2–4 images on a tight gutter, optionally with one running
-  larger. Shows *range* rather than a hero: lookbooks, menus, portfolios.
-- **torn-photo** — one image with a torn paper edge over an offset colour
-  block. Collage and zine register, when a clean rectangle feels corporate.
-- **masked-image** — a single photo cut to a circle, arch, pill or blob.
-- **motif-collage** — no photograph at all. Drawn shapes composed around a
-  subject mark. For services and ideas with nothing literal to shoot.
+Every component below carries a **LOOKS LIKE** line describing the finished
+thing as a viewer sees it — its silhouette, the space it wants, and whether it
+darkens what it covers. Read those before choosing. There are ${COMPONENTS.length}
+components and most flyers should not be reaching for the same three.
 
-Pick the one that tells the story. Three circular cutouts joined by a dashed
-line say "we go to these places"; the same three photos in a grid say "we offer
-range". Those are different claims — choose the true one.
+**A warning, from real output.** For a long stretch every flyer this API
+produced came back built from the same handful of components — the same ring of
+circular photo cutouts, in the same place, whatever the brief. Not because the
+library was small, but because only those few were described vividly enough to
+picture. If your composition looks like the last one you made, that is the
+failure repeating: go back to the catalogue and read what you skipped.
 
 ## Choosing evidence — match the component to the product
 
@@ -133,6 +131,50 @@ photo-hero renders a darkened scrim (top or bottom), so the headline can sit
 *on* the photograph: declare a relationship with the headline element in front
 and the photo behind. That single move — type participating in the image — is
 what Gate G4 wants and what most templates never do.
+
+## Building a component for one flyer
+
+When nothing in the catalogue says what the brief needs, **compose one**.
+\`composed-figure\` lets you assemble a figure from motifs, shapes, cut-out
+photos and short words for this flyer only — a sun behind a hill with a plane
+off the corner, a scalloped stamp with a word inside it, three pins descending
+a page.
+
+You place parts by **relationship**, never by coordinate:
+
+\`\`\`json
+{ "component": "composed-figure", "role": "evidence",
+  "props": { "parts": [
+    { "id": "seal",  "draw": { "kind": "shape", "form": "seal" },
+      "size": "huge",  "at": { "at": "center" }, "tone": "accent" },
+    { "id": "word",  "draw": { "kind": "word", "text": "FREE" },
+      "size": "medium", "at": { "of": "seal", "side": "on" },
+      "tone": "paper", "layer": "front" },
+    { "id": "spark", "draw": { "kind": "shape", "form": "sparkle" },
+      "size": "small", "at": { "of": "seal", "side": "top-right-of", "gap": "tight" } }
+  ] } }
+\`\`\`
+
+- **draw** — \`motif\` (${MOTIF_NAMES.join(", ")}), \`shape\`
+  (circle, blob, star, sparkle, burst, seal, ribbon, polygon, squiggle, wave,
+  tape, arch, panel, torn; \`outline: true\` for stroke only), \`photo\`
+  (\`slot\` into your \`assets\`, \`mask\`: rect|circle|arch|blob|torn), or
+  \`word\` (up to 24 characters).
+- **at** — either \`{ "at": "top-right" }\` for a spot on the figure, or
+  \`{ "of": "<partId>", "side": "...", "gap": "..." }\` against another part.
+  Sides: above, below, left-of, right-of, on, and the four diagonals
+  (\`top-right-of\` straddles that corner, for badges and stickers).
+  Gaps: touching, tight, near, far.
+- **size** — tiny, small, medium, large, huge. **tone** — ink, accent, muted,
+  paper, ground. **layer** — behind, with, front. **rotate** — -30 to 30.
+
+There are no x/y coordinates and there is no way to add one. A relationship
+stays true when the figure moves or the canvas changes shape; a coordinate was
+true once. The engine does the arithmetic.
+
+**This is also how you get density.** Gate G3 counts elements, not marks — so a
+composed figure is ONE element carrying up to eight parts. If your page feels
+empty, this is the fix, not more elements.
 
 ## The Six Gates — a flyer ships only if all six pass
 

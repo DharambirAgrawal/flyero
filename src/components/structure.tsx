@@ -13,6 +13,7 @@ import { ensureContrast, withAlpha } from "../creative/color.js";
 const gridField: ComponentModule = {
   manifest: {
     id: "grid-field",
+    visual: { shape: "grid", aspect: 1, density: "sparse", carriesTone: false, reads: "Faint ruled lines crossing the area at a fixed interval; barely visible on its own, and only earns its place when things line up to it." },
     category: "structure",
     purpose:
       "A measured field the other elements register against. Legitimate only when something actually aligns to it — otherwise it is decoration and will be rejected.",
@@ -83,6 +84,7 @@ const gridField: ComponentModule = {
 const pathConnector: ComponentModule = {
   manifest: {
     id: "path-connector",
+    visual: { shape: "line", aspect: 2, density: "sparse", carriesTone: false, reads: "A single drawn line — often curved or dashed — travelling between two points and arriving somewhere on purpose." },
     category: "structure",
     purpose:
       "The line the eye follows through the story. Its endpoint is meaningful — it should arrive somewhere, usually the CTA.",
@@ -173,6 +175,7 @@ const pathConnector: ComponentModule = {
 const oversizedLetterform: ComponentModule = {
   manifest: {
     id: "oversized-letterform",
+    visual: { shape: "freeform", aspect: 0.8, density: "heavy", carriesTone: false, reads: "One character blown up until it is architecture rather than type, usually bleeding off an edge; other elements lean against it." },
     category: "structure",
     purpose: "One giant character used as architecture. Other elements sit against it, so it is never mere texture.",
     roles: ["structure"],
@@ -221,6 +224,7 @@ const oversizedLetterform: ComponentModule = {
 const edgeCropFrame: ComponentModule = {
   manifest: {
     id: "edge-crop-frame",
+    visual: { shape: "rectangle", aspect: 1, density: "sparse", carriesTone: false, reads: "A window outline that deliberately cuts whatever is behind it at one edge; you notice the crop, not the frame." },
     category: "structure",
     purpose: "A window the evidence is seen through, deliberately cropping it at one edge.",
     roles: ["structure"],
@@ -277,6 +281,7 @@ const edgeCropFrame: ComponentModule = {
 const ruleLine: ComponentModule = {
   manifest: {
     id: "rule-line",
+    visual: { shape: "line", aspect: 20, density: "sparse", carriesTone: false, reads: "One measured line, hairline to heavy, dividing or piercing the page; the cheapest mark that makes a layout look edited." },
     category: "structure",
     purpose: "A single measured rule that divides or pierces. The cheapest way to make a layout feel edited.",
     roles: ["structure"],
@@ -335,6 +340,7 @@ const ruleLine: ComponentModule = {
 const halftoneField: ComponentModule = {
   manifest: {
     id: "halftone-field",
+    visual: { shape: "freeform", aspect: 1, density: "medium", carriesTone: false, reads: "A field of dots graded from dense to sparse; printed-matter texture that can carry a gradient of noise into signal." },
     category: "structure",
     purpose:
       "A graded dot field that gives a printed material its character and can encode a gradient of noise-to-signal.",
@@ -387,6 +393,7 @@ const halftoneField: ComponentModule = {
 const waypointMarker: ComponentModule = {
   manifest: {
     id: "waypoint-marker",
+    visual: { shape: "circle-row", aspect: 1.4, density: "sparse", carriesTone: false, reads: "A small dot or pin with a short label beside it; a single labelled point on a route." },
     category: "structure",
     purpose: "A labelled point on a route — the cartography metaphor's vocabulary.",
     roles: ["structure", "support"],

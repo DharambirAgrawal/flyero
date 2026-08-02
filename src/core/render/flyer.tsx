@@ -81,7 +81,21 @@ export function Flyer({
      * to be decoded and re-encoded on every render otherwise, and the whole
      * point of this engine is that rendering stays a cheap pure function.
      */
-    const effects = depthEffects(box.depth ?? FOCAL_DEPTH, theme.material.surface.elevation ? 1 : 0.6);
+    const rawEffects = depthEffects(box.depth ?? FOCAL_DEPTH, theme.material.surface.elevation ? 1 : 0.6);
+    /**
+     * Defocus is a *photographic* cue and only reads as one on a photograph.
+     *
+     * A far-away photo plate going soft is depth; the eye accepts it instantly
+     * because that is what a lens does. The same blur on flat vector marks is
+     * not depth — it reads as a rendering fault, because a drawn shape has no
+     * focal plane to be outside of. A full-bleed composed figure came back with
+     * every circle and motif smeared, looking like a failed export rather than
+     * a background.
+     *
+     * Haze still applies to everything: atmosphere between the viewer and a
+     * distant object is real whether that object is drawn or photographed.
+     */
+    const effects = elementAssets.length > 0 ? rawEffects : { ...rawEffects, blur: 0 };
     const atmosphere = layout.ground.base;
 
     const occluders = occludersFor.get(el.id) ?? [];

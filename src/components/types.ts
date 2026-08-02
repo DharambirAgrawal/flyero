@@ -137,8 +137,15 @@ export type ComponentManifest = {
    * them will fight — is reasoning about appearance, and had nothing to reason
    * from. It could pick `photo-cluster` for a journey without knowing it lays
    * down a wide horizontal band of circles that will crowd a headline beside it.
+   *
+   * **Required, and that is the point.** For a while only the seven photo
+   * components carried one, so those were the only components an agent could
+   * picture — and every flyer came back built from the same two or three of
+   * them while twenty-eight others sat unreachable in the registry. The library
+   * was never the limit; the description of it was. A new component without a
+   * `visual` is a component nobody will ever choose, so the type refuses it.
    */
-  visual?: {
+  visual: {
     /** The silhouette a viewer registers before reading anything. */
     shape:
       | "rectangle"
