@@ -177,14 +177,19 @@ async function analyze(
  * SVG, which carries its assets as data URIs to stay self-contained. A 24-megapixel
  * phone photo becomes a 24 MB base64 blob if left alone.
  */
-const MAX_ASSET_EDGE = 2400;
+/**
+ * The canvas is 1080x1350, so anything past ~1600px on its long edge is detail
+ * nobody will ever see. 2400 was chosen when storage was free; on a 0.5GB
+ * database it is three times the pixels the renderer can use.
+ */
+const MAX_ASSET_EDGE = 1600;
 
 /** Re-encodes an oversized raster through the renderer we already depend on. */
-function downscale(
+async function downscale(
   buffer: Buffer,
   mime: string,
   from: { width: number; height: number },
-): { buffer: Buffer; width: number; height: number; mime: string } | null {
+): Promise<{ buffer: Buffer; width: number; height: number; mime: string } | null> {
   if (mime === "image/svg+xml") return null;
   const longest = Math.max(from.width, from.height);
   if (longest <= MAX_ASSET_EDGE) return null;
@@ -192,10 +197,31 @@ function downscale(
   const scale = MAX_ASSET_EDGE / longest;
   const width = Math.round(from.width * scale);
   const height = Math.round(from.height * scale);
-  const wrapper = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><image href="data:${mime};base64,${buffer.toString("base64")}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none"/></svg>`;
+  /**
+   * Photographs are stored as WebP, not PNG.
+   *
+   * This used to rasterise through resvg and emit PNG — lossless, and therefore
+   * catastrophic for a photograph: measured, imported photos landed at 2-4MB
+   * each while the same image as JPEG was 108KB. Seventeen of them came to
+   * 47MB. PNG is the right format for a logo with flat colour and the wrong one
+   * for a mountain.
+   *
+   * Anything with transparency stays PNG, because WebP-ing a logo's alpha away
+   * would put a white box on the flyer.
+   */
   try {
-    const png = Buffer.from(new Resvg(wrapper).render().asPng());
-    return { buffer: png, width, height, mime: "image/png" };
+    const meta = await sharp(buffer).metadata();
+    const keepAlpha = meta.hasAlpha === true;
+    const pipeline = sharp(buffer).resize(width, height, { fit: "fill" });
+    const out = keepAlpha
+      ? await pipeline.png({ compressionLevel: 9 }).toBuffer()
+      : await pipeline.webp({ quality: 82 }).toBuffer();
+    return {
+      buffer: out,
+      width,
+      height,
+      mime: keepAlpha ? "image/png" : "image/webp",
+    };
   } catch {
     // If the decoder cannot handle it, keep the original and let the size limit
     // speak for itself rather than silently corrupting the asset.
@@ -218,7 +244,7 @@ export async function createAsset(
   }
 
   const original = imageSize(input.buffer, input.mime);
-  const reduced = downscale(input.buffer, input.mime, original);
+  const reduced = await downscale(input.buffer, input.mime, original);
 
   const buffer = reduced?.buffer ?? input.buffer;
   const mime = reduced?.mime ?? input.mime;

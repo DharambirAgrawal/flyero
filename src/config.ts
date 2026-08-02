@@ -90,6 +90,15 @@ export const config = {
    * API over loopback — and a host that assigns its own port, as Render does,
    * would otherwise send every tool call to a port with nothing on it.
    */
+  /**
+   * Whether rendered PNG/SVG are cached on disk.
+   *
+   * Off by default: rendering is deterministic, so a render is a cache, not
+   * data. Measured, renders were 83% of all stored bytes. Turn on where CPU is
+   * dearer than storage.
+   */
+  persistRenders: str("PERSIST_RENDERS", "false") === "true",
+
   flyeroApiUrl: str("FLYERO_API_URL", `http://127.0.0.1:${num("PORT", 8080)}`),
   flyeroApiKey: str("FLYERO_API_KEY", "dev_key_change_me"),
   webhookSigningSecret: process.env.WEBHOOK_SIGNING_SECRET ?? "",

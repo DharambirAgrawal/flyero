@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { createAsset } from "../../src/store/assets.js";
 import sharp from "sharp";
 import { applyImageOps, expandPreset, TRANSFORM_CATALOGUE } from "../../src/core/images/transform.js";
 import { focalPreserveAspect } from "../../src/components/assets.js";
@@ -82,5 +83,50 @@ describe("image transforms", () => {
     await expect(
       applyImageOps(input, "image/png", { reanalyze: false }),
     ).rejects.toThrow(/ops|preset/i);
+  });
+});
+
+describe("storage economy", () => {
+  it("stores a photograph as WebP, not lossless PNG", async () => {
+    /*
+     * The downscale path used to rasterise through resvg and emit PNG —
+     * lossless, and therefore catastrophic for a photograph. Measured on one
+     * image: 6656KB as PNG against 142KB as WebP. Seventeen imported photos
+     * came to 47MB, on a budget of 500MB.
+     */
+    const { default: sharp } = await import("sharp");
+    const wide = await sharp({
+      create: { width: 2400, height: 3000, channels: 3, background: { r: 90, g: 120, b: 60 } },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const asset = await createAsset({
+      buffer: wide,
+      mime: "image/jpeg",
+      kind: "reference",
+      apiKey: "test_key_1",
+    });
+
+    expect(asset.mime, "photographs must not be stored lossless").toBe("image/webp");
+    expect(Math.max(asset.width, asset.height), "no bigger than the renderer can use").toBeLessThanOrEqual(1600);
+  });
+
+  it("keeps transparency as PNG", async () => {
+    // WebP-ing a logo's alpha away would put a white box on the flyer.
+    const { default: sharp } = await import("sharp");
+    const logo = await sharp({
+      create: { width: 2000, height: 2000, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+    })
+      .png()
+      .toBuffer();
+
+    const asset = await createAsset({
+      buffer: logo,
+      mime: "image/png",
+      kind: "logo",
+      apiKey: "test_key_1",
+    });
+    expect(asset.mime).toBe("image/png");
   });
 });

@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { config } from "../config.js";
 
@@ -10,6 +10,43 @@ import { config } from "../config.js";
 function ensure(path: string): string {
   mkdirSync(dirname(path), { recursive: true });
   return path;
+}
+
+/**
+ * Bytes on disk, by kind.
+ *
+ * Storage is a budget now, not an afterthought: a free Postgres tier is 0.5GB
+ * and a single unoptimised flyer used to cost ~3MB. You cannot manage what you
+ * cannot see, so this is measurable from the API rather than by SSH.
+ */
+export function storageUsage(): {
+  totalBytes: number;
+  specs: number;
+  renders: number;
+  assets: number;
+  flyers: number;
+} {
+  const walk = (dir: string): string[] => {
+    if (!existsSync(dir)) return [];
+    return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const full = join(dir, e.name);
+      return e.isDirectory() ? walk(full) : [full];
+    });
+  };
+  const root = config.storageDir;
+  let specs = 0;
+  let renders = 0;
+  let assets = 0;
+  const flyerIds = new Set<string>();
+  for (const file of walk(root)) {
+    const size = statSync(file).size;
+    if (file.includes(`${join(root, "assets")}`)) assets += size;
+    else if (file.endsWith("spec.json")) specs += size;
+    else if (file.includes("render.")) renders += size;
+    const m = file.match(/flyers\/([^/]+)\//);
+    if (m) flyerIds.add(m[1]!);
+  }
+  return { totalBytes: specs + renders + assets, specs, renders, assets, flyers: flyerIds.size };
 }
 
 export function flyerKey(jobId: string, revision: number, name: string): string {

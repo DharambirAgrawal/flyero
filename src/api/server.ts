@@ -7,13 +7,14 @@ import { COMPONENT_COUNT } from "../components/registry.js";
 import { PROFILE_SPACE, newJobSeed } from "../core/studio/sampler.js";
 import { VETO_COUNT } from "../creative/compatibility.js";
 import { availableFamilies } from "../core/render/fonts.js";
-import { createAsset, getAsset, createDerivedAsset } from "../store/assets.js";
+import { createAsset, getAsset, getAssets, assetDataUri, createDerivedAsset } from "../store/assets.js";
 import { listJobs } from "../store/jobs.js";
-import { rasterize } from "../core/render/index.js";
+import { parseSpec } from "../core/compose/spec.js";
+import { rasterize, renderSpec } from "../core/render/index.js";
 import { fetchCandidate, imageProvider } from "../core/images/search.js";
 import { SKILL_INDEX, getSkill } from "./skills.js";
 import { registerMcpHttp } from "../mcp/http.js";
-import { flyerKey, exists, getBuffer, getText } from "../store/objects.js";
+import { flyerKey, exists, getBuffer, getText, storageUsage } from "../store/objects.js";
 import {
   countActiveJobs,
   createBatch,
@@ -515,6 +516,21 @@ export function buildServer(): FastifyInstance {
     },
   );
 
+  /** What storage is actually being used, so a 0.5GB budget can be managed. */
+  app.get("/v1/storage", async () => {
+    const u = storageUsage();
+    const mb = (n: number) => Math.round((n / 1024 / 1024) * 100) / 100;
+    return {
+      totalMB: mb(u.totalBytes),
+      breakdown: { specsMB: mb(u.specs), assetsMB: mb(u.assets), rendersMB: mb(u.renders) },
+      flyers: u.flyers,
+      persistRenders: config.persistRenders,
+      note: config.persistRenders
+        ? "Renders are cached. They are reproducible from the spec — set PERSIST_RENDERS=false to reclaim that space."
+        : "Renders are not cached; exports re-render from the spec, which is deterministic.",
+    };
+  });
+
   /** Recent flyers, so one can be found again after the fact. */
   app.get("/v1/flyers", async (request) => ({
     flyers: listJobs(request.apiKey, 20).map((j) => ({
@@ -545,7 +561,38 @@ export function buildServer(): FastifyInstance {
 
       const revision = request.query.revision ? Number(request.query.revision) : job.revision;
       const path = flyerKey(job.id, revision, format === "png" ? "render.png" : "render.svg");
-      if (!exists(path)) return fail(reply, 404, "not_found", `No ${format} for revision ${revision}`);
+
+      /**
+       * Re-render when the cache is not there.
+       *
+       * Renders are no longer persisted by default — they were 83% of stored
+       * bytes and are exactly reproducible from the spec. So a missing file is
+       * the normal case, not an error: rebuild it from the spec and the assets,
+       * which is guaranteed to give the same bytes it would have had.
+       */
+      if (!exists(path)) {
+        const specPath = flyerKey(job.id, revision, "spec.json");
+        if (!exists(specPath)) {
+          return fail(reply, 404, "not_found", `No spec for revision ${revision}`);
+        }
+        const spec = parseSpec(JSON.parse(getText(specPath)));
+        const assets = getAssets(
+          spec.elements.flatMap((el: { assets?: string[] }) => el.assets ?? []),
+        ).map((a) => ({
+          assetId: a.id,
+          href: assetDataUri(a),
+          width: a.width,
+          height: a.height,
+          toneMap: a.analysis.toneMap,
+        }));
+        const { svg } = renderSpec(spec, assets);
+        if (format === "svg") {
+          return reply.type("image/svg+xml").send(svg);
+        }
+        const scaleQ = Number(request.query.scale);
+        const s = Number.isFinite(scaleQ) && scaleQ > 0 && scaleQ < 1 ? scaleQ : undefined;
+        return reply.type("image/png").send(rasterize(svg, s));
+      }
 
       if (format === "svg") {
         return reply
