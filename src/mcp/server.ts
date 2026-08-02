@@ -63,8 +63,24 @@ async function api(path: string, init: RequestInit = {}): Promise<Json> {
  * finished flyer that nobody could see. The key is embedded because a clicked
  * link carries no headers — the same trade-off already accepted for /mcp.
  */
+/**
+ * The origin a *client* can reach, set per request by the HTTP transport.
+ *
+ * `BASE` is how this process calls itself — on Render that is
+ * http://127.0.0.1:10000. Handing that to a user produces a link only the
+ * server can open, which is exactly what happened: an agent delivered two
+ * loopback URLs and the reader could use neither. The public origin is whatever
+ * host the request actually arrived on, so it has to come from the request.
+ */
+let publicOrigin: string | null = null;
+
+export function setPublicOrigin(origin: string | null): void {
+  publicOrigin = origin;
+}
+
 function shareUrl(flyerId: string, format: "png" | "svg"): string {
-  return `${BASE}/v1/flyers/${flyerId}/export?format=${format}&key=${encodeURIComponent(config.flyeroApiKey)}`;
+  const origin = config.publicUrl || publicOrigin || BASE;
+  return `${origin.replace(/\/$/, "")}/v1/flyers/${flyerId}/export?format=${format}&key=${encodeURIComponent(config.flyeroApiKey)}`;
 }
 
 async function apiBinary(path: string): Promise<Buffer> {

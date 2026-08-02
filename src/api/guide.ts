@@ -197,7 +197,10 @@ ${COMPONENTS.map((c) => {
         .map(([k, v]) => `${k}≤${v}`)
         .join(", ")}`
     : "";
-  return `- **${m.id}** [${m.category}] roles: ${m.roles.join("|")} · assets: ${m.assetSlots}${limits}\n  ${m.purpose}`;
+  const v = m.visual
+    ? `\n  LOOKS LIKE: ${m.visual.reads} (${m.visual.shape}, aspect ~${m.visual.aspect}, ${m.visual.density} density, ${m.visual.carriesTone ? "carries its own tone — darkens what it covers" : "leaves the ground showing through"})`
+    : "";
+  return `- **${m.id}** [${m.category}] roles: ${m.roles.join("|")} · assets: ${m.assetSlots}${limits}\n  ${m.purpose}${v}`;
 }).join("\n")}
 `;
 }

@@ -99,6 +99,15 @@ export const config = {
    */
   persistRenders: str("PERSIST_RENDERS", "false") === "true",
 
+  /**
+   * The origin clients reach this service on, e.g. https://flyero.onrender.com.
+   *
+   * Only needed when the request's own Host header cannot be trusted; normally
+   * the public origin is derived per-request. Never confuse this with
+   * `flyeroApiUrl`, which is how the process talks to itself over loopback.
+   */
+  publicUrl: str("PUBLIC_URL", ""),
+
   flyeroApiUrl: str("FLYERO_API_URL", `http://127.0.0.1:${num("PORT", 8080)}`),
   flyeroApiKey: str("FLYERO_API_KEY", "dev_key_change_me"),
   webhookSigningSecret: process.env.WEBHOOK_SIGNING_SECRET ?? "",

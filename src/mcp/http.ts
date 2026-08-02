@@ -14,7 +14,7 @@
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { buildMcpServer } from "./server.js";
+import { buildMcpServer, setPublicOrigin } from "./server.js";
 import { config } from "../config.js";
 
 /**
@@ -53,6 +53,19 @@ export function registerMcpHttp(app: FastifyInstance): void {
       });
       return;
     }
+
+    /*
+     * Record where the client reached us, so links handed back are ones they
+     * can actually open. Forwarded headers first: behind Render's proxy the
+     * socket sees plain HTTP on an internal port.
+     */
+    const proto = String(request.headers["x-forwarded-proto"] ?? request.protocol ?? "https")
+      .split(",")[0]!
+      .trim();
+    const host = String(request.headers["x-forwarded-host"] ?? request.headers.host ?? "").split(
+      ",",
+    )[0]!.trim();
+    setPublicOrigin(host ? `${proto}://${host}` : null);
 
     const server = buildMcpServer();
     const transport = new StreamableHTTPServerTransport({

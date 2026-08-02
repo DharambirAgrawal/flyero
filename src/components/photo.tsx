@@ -71,6 +71,7 @@ function placeholder(theme: { palette: { bg: string; accent: string } }): string
 const photoCluster: ComponentModule = {
   manifest: {
     id: "photo-cluster",
+    visual: { shape: "circle-row", aspect: 1.6, density: "medium", carriesTone: true, reads: "A wide horizontal run of circular photo cutouts joined by a dashed curve; reads as a route across the page and needs width, not height." },
     category: "evidence",
     purpose:
       "Two to four circular photo cutouts strung along a curve and joined by a dashed route, with an optional travel motif riding the line. Turns several images into one journey — the travel, events and itinerary device. Works with fewer images than slots.",
@@ -212,6 +213,7 @@ const photoCluster: ComponentModule = {
 const polaroidStack: ComponentModule = {
   manifest: {
     id: "polaroid-stack",
+    visual: { shape: "stack", aspect: 0.95, density: "heavy", carriesTone: true, reads: "Two or three tilted white-bordered prints overlapping, casting shadows; a compact, roughly square pile that reads as objects on a surface." },
     category: "evidence",
     purpose:
       "Two or three photographs as tilted instant prints with thick white borders, overlapping like a handful of snapshots on a table. Warm and personal — for events, food, portraits and anything nostalgic.",
@@ -320,6 +322,7 @@ const polaroidStack: ComponentModule = {
 const photoGrid: ComponentModule = {
   manifest: {
     id: "photo-grid",
+    visual: { shape: "grid", aspect: 1.05, density: "heavy", carriesTone: true, reads: "A tight block of 2-4 photographs edge to edge; a solid rectangle of imagery with no ground showing through." },
     category: "evidence",
     purpose:
       "Two to four photographs in a tight grid with a consistent gutter, optionally with one cell running larger. The lookbook, menu and portfolio device — shows range rather than a single hero.",
@@ -428,6 +431,7 @@ const photoGrid: ComponentModule = {
 const tornPhoto: ComponentModule = {
   manifest: {
     id: "torn-photo",
+    visual: { shape: "rectangle", aspect: 0.9, density: "heavy", carriesTone: true, reads: "One photograph with a ragged torn edge over an offset colour block; a solid upright rectangle with one irregular side." },
     category: "evidence",
     purpose:
       "A single photograph with one edge torn like paper, optionally over a offset colour block. The collage, zine and hand-made register — good when a clean rectangle would feel corporate.",
@@ -493,6 +497,7 @@ const tornPhoto: ComponentModule = {
 const motifCollage: ComponentModule = {
   manifest: {
     id: "motif-collage",
+    visual: { shape: "freeform", aspect: 1.1, density: "sparse", carriesTone: false, reads: "A drawn symbol on a soft tinted shape with a few sparkles; light, open, and lets the page colour show through." },
     category: "evidence",
     purpose:
       "A composed arrangement of drawn shapes and a subject motif — no photograph required. For services, ideas and offers where there is nothing literal to photograph, and a stock image would say less than a drawing.",
@@ -604,6 +609,7 @@ const motifCollage: ComponentModule = {
 const detailCluster: ComponentModule = {
   manifest: {
     id: "detail-cluster",
+    visual: { shape: "band", aspect: 5.0, density: "sparse", carriesTone: false, reads: "A thin horizontal strip of small labelled facts separated by hairlines; wants full width and very little height." },
     category: "content",
     purpose:
       "Two to six small labelled facts — date, place, time, price, phone, handle — set as one block in a row, a column or a grid. The practical information a poster needs without spending an element on each line.",
@@ -719,6 +725,7 @@ const detailCluster: ComponentModule = {
 const sceneIllustration: ComponentModule = {
   manifest: {
     id: "scene-illustration",
+    visual: { shape: "rectangle", aspect: 1.45, density: "medium", carriesTone: true, reads: "A flat drawn landscape in layered bands — sky, hills, treeline — filling its box completely in the palette colours." },
     category: "evidence",
     purpose:
       "A drawn landscape — sky, hills, treeline, water, optional figures — composed in flat colour. No photograph needed. The default evidence for environmental, community and campaign briefs, where an illustrated scene says more than stock photography.",

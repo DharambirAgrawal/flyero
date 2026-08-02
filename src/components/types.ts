@@ -128,6 +128,40 @@ export type ComponentManifest = {
   motion: string;
   /** Character budgets the Composer must respect, by prop name. */
   textLimits?: Record<string, number>;
+  /**
+   * What the component actually *looks like*.
+   *
+   * `purpose` says when to reach for something; it says nothing about what
+   * appears on the page. An agent choosing between components — and then
+   * deciding how they sit together, which one carries the dark, whether two of
+   * them will fight — is reasoning about appearance, and had nothing to reason
+   * from. It could pick `photo-cluster` for a journey without knowing it lays
+   * down a wide horizontal band of circles that will crowd a headline beside it.
+   */
+  visual?: {
+    /** The silhouette a viewer registers before reading anything. */
+    shape:
+      | "rectangle"
+      | "circle-row"
+      | "stack"
+      | "grid"
+      | "arch"
+      | "band"
+      | "line"
+      | "freeform"
+      | "text-only";
+    /** Natural width:height it wants. 1 is square; >1 is wide. */
+    aspect: number;
+    /** How much ink it lays down over its box. */
+    density: "sparse" | "medium" | "heavy";
+    /**
+     * Whether it brings its own tone. A photograph or a filled panel darkens
+     * whatever it covers; type and rules leave the ground showing through.
+     */
+    carriesTone: boolean;
+    /** One line describing the finished thing, as a viewer would see it. */
+    reads: string;
+  };
 };
 
 export type ComponentModule = {
