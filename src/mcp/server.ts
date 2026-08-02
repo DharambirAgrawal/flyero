@@ -138,17 +138,69 @@ async function apiText(path: string): Promise<string> {
 }
 
 export function buildMcpServer(): McpServer {
-  const server = new McpServer({ name: "flyero", version: "0.1.0" });
+  /**
+   * Server instructions — the workflow, delivered automatically.
+   *
+   * Without these an agent receives a bag of tools and no idea of the order, so
+   * the *user* ends up having to write the process into their prompt. Real
+   * users say "make me a flyer for my shop" and stop. Everything an agent needs
+   * to get from that to a finished poster has to arrive with the connection.
+   *
+   * Deliberately short. This is read on every conversation, so it carries the
+   * order of operations and the traps, and defers detail to the skills.
+   */
+  const server = new McpServer(
+    { name: "flyero", version: "0.1.0" },
+    {
+      instructions: [
+        "Flyero turns a plain-language brief into one 1080x1350 flyer. YOU are the designer:",
+        "you choose the words, the pictures and the components. The engine owns colour, fonts,",
+        "sizes, positions and ornament — never send coordinates or hex values, they are ignored",
+        "or rejected.",
+        "",
+        "Work in this order. Skipping a step is what makes runs fail slowly:",
+        "",
+        "1. read_design_guide, then read_design_skill (composition and copywriting at minimum).",
+        "2. request_designers with a campaignArchetype — event-invitation, product-promotion,",
+        "   awareness-education, editorial-announcement, offer-promotion. The archetype filters",
+        "   metaphors to ones that suit the brief; without it you are drawing from everything and",
+        "   will waste calls hunting for a fit. Pick the designer whose METAPHOR matches the",
+        "   message, not the palette you like. Read its `constraints`: element count varies by",
+        "   designer, and `direction.gesture.requiresComponent` may force a specific component.",
+        "3. search_images then import_image. A flyer about a place, a dish or an object with no",
+        "   picture of it cannot pass the cover test. If there is genuinely nothing to photograph,",
+        "   use scene-illustration or motif-collage instead of a stock photo of nothing.",
+        "4. get_composition_example BEFORE compose_flyer. It returns a working composition to copy.",
+        "   Guessing the shape wastes many attempts.",
+        "5. compose_flyer. A rejection names the exact field or rule — read it, it is precise.",
+        "6. LOOK at the returned image, then review_flyer. Three gates (does the idea read, is the",
+        "   product guessable with the words covered, does the type participate) cannot be settled",
+        "   by code, so the flyer stays awaiting_review until you judge it. Reporting done on",
+        "   something you would not print is the one failure that cannot be undone.",
+        "7. Wrong? revise_composition and look again. Then export_composed_flyer.",
+        "",
+        "ALWAYS give the user the export links. The inline image is for your eyes; a chat UI does",
+        "not always show tool-result images to the person reading, so a flyer they cannot see is a",
+        "flyer you did not deliver.",
+        "",
+        "Never invent facts. No prices, dates, seasons, statistics or claims the user did not give",
+        "you — Gate G6 checks this and will reject them. Leave cta.url null rather than inventing",
+        "an address.",
+      ].join("\n"),
+    },
+  );
 
   server.registerTool(
     "create_flyer",
     {
-      title: "Create a marketing flyer",
+      title: "Create a flyer automatically (needs a server-side model key)",
       description:
-        "Generate one Instagram-portrait marketing flyer from a plain-language description of a product " +
-        "and what you want people to do. Returns the flyer image plus the one-sentence idea behind it. " +
-        "Takes up to ~3 minutes because several designs compete internally and only a design that passes " +
-        "every quality gate is returned.",
+        "Hands the whole job to the server: it writes the brief, invents the idea and composes the page " +
+        "itself, then returns a flyer that passed every gate. Takes up to ~3 minutes.\n\n" +
+        "REQUIRES ANTHROPIC_API_KEY on the server, and most deployments do not set one — you are a model " +
+        "already, so paying for a second one to do work you can do is usually wrong. If this fails with a " +
+        "configuration error, do NOT retry: use compose_flyer and design it yourself. That is the intended " +
+        "path and needs no key.",
       inputSchema: {
         prompt: z
           .string()

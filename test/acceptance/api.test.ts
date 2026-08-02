@@ -468,6 +468,59 @@ describe("remote MCP", () => {
     expect(names).toContain("export_flyer");
   });
 
+  it("delivers the workflow as server instructions, not as the user's problem", async () => {
+    /*
+     * Without instructions an agent gets a bag of tools and no order, so the
+     * *user* has to write the process into their prompt. Real users say "make
+     * me a flyer for my shop" and stop. Everything needed to get from that to a
+     * finished poster has to arrive with the connection.
+     */
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2025-06-18",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1" },
+        },
+      },
+    });
+    const instructions: string = res.json().result.instructions ?? "";
+    expect(instructions.length, "no instructions sent").toBeGreaterThan(500);
+    // The traps that actually cost real runs.
+    for (const must of [
+      "campaignArchetype",
+      "get_composition_example",
+      "review_flyer",
+      "Never invent facts",
+      "export links",
+    ]) {
+      expect(instructions, `instructions omit ${must}`).toContain(must);
+    }
+  });
+
+  it("warns off the tool that needs a key the deployment may not have", async () => {
+    // ChatGPT fell back to create_flyer, got "ANTHROPIC_API_KEY not configured",
+    // and gave up with no flyer — after doing all the creative work correctly.
+    // The tool has to say so itself and name the path that needs no key.
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+    });
+    const auto = res
+      .json()
+      .result.tools.find((t: { name: string }) => t.name === "create_flyer");
+    expect(auto.description).toContain("ANTHROPIC_API_KEY");
+    expect(auto.description).toContain("compose_flyer");
+  });
+
   it("exposes the agent-driven tools, which need no model key on the server", async () => {
     /*
      * The original tools generate a flyer *for* you and call a language model
