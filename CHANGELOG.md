@@ -62,6 +62,35 @@ because nobody had written down what they look like.
 - **Guide anchoring.** `photo-cluster` was listed first and described twice; the
   section is now neutral and states the repetition failure explicitly.
 
+### Also — the example was teaching the wrong flyer
+
+`get_composition_example` is the highest-leverage text in the system: the
+instructions tell agents to fetch it and copy it, and an agent copies structure
+far more faithfully than it follows prose. There was **one** example — a
+photograph, a paragraph and a button, four elements, lots of paper — and it had
+**no test at all**. That shape is precisely what real output kept coming back
+as.
+
+- **Two examples now**, `photo-led` and `assembled`, with `useWhen`,
+  `elementCount` and `fitsDensity` on each. One example is copied as a
+  template; two are compared as a range.
+- **`test/acceptance/examples.test.ts`** composes both through the real route.
+  It found three bugs immediately, none of which was visible by reading:
+  - **No fixed element count is valid for every assignment.** Quiet tops out at
+    5, rich starts at 6, so the published example was rejected outright by some
+    lineages — the exact "guessed the shape and burned attempts" failure the
+    example exists to prevent, caused by the example. The two are now
+    deliberately different sizes (5 and 6) and cover all three densities
+    between them, and `elementBudgets` is published alongside.
+  - **The assembled example failed Gate G6.** It showed a date and a meeting
+    point with no `sourceStatements` to back them. The gate was right. A
+    published example that quietly fails a gate teaches the shape *and* the
+    mistake, so the test now asserts every code-checked gate passes.
+  - **G6 matches detail values verbatim**, not by meaning — "Sat 17 June, 10am"
+    against a user who said "Saturday the 17th at ten" fails, and should, since
+    paraphrasing a date is how wrong dates get printed. Now stated explicitly
+    in the notes rather than left to be discovered.
+
 ### Known gap
 A small text box straddling a hard edge — half over a dark mark, half over pale
 paper — still takes one ink for the whole box, so neither half is right. Scrims

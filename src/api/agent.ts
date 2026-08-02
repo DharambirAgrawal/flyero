@@ -56,6 +56,12 @@ import type { AssetRef } from "../components/types.js";
 export const COMPOSITION_EXAMPLE = {
   lineage: "<<paste the `lineage` object from request_designers, unchanged>>",
   productName: "Nepal",
+  /* What the user actually said. Every claim on the flyer must trace to a line
+     here — Gate G6 checks it, and this is the field agents most often omit. */
+  sourceStatements: [
+    "We run guided one-week treks in the Kathmandu valley and the ridges above it.",
+    "Mornings are spent at the temples, evenings on the ridgeline.",
+  ],
   idea: "The peak you can see from the city is the one you can walk to.",
   story: [
     "A valley full of temples.",
@@ -100,11 +106,169 @@ export const COMPOSITION_EXAMPLE = {
       whyHere: "The one thing to do.",
       props: {},
     },
+    {
+      id: "who",
+      component: "footer-lockup",
+      role: "brand",
+      whyHere: "Names who is offering the trip.",
+      props: {},
+    },
   ],
   relationships: [],
   gesturePurpose:
     "Explains the single deliberate rule-break your lineage's gesture applies.",
   assetIds: ["<<same assetIds as above>>"],
+  brandColors: [],
+} as const;
+
+/**
+ * A second example, and the reason there are two.
+ *
+ * The instructions tell an agent to fetch an example and copy it, which makes
+ * this text the strongest signal in the whole system — stronger than any prose
+ * in the guide. With one example on offer it stops being a demonstration of the
+ * *shape* and becomes a template of the *flyer*: a photograph, a paragraph and
+ * a button, four elements, lots of paper. That is exactly what real output kept
+ * coming back as, and it is the same failure as describing only seven of
+ * thirty-five components — whatever we show is what gets built.
+ *
+ * So this one is deliberately unlike the other: no photograph at all, a figure
+ * assembled for the occasion, and a fact cluster carrying five things as one
+ * element. Two examples read as a range to choose from; one reads as the
+ * answer.
+ */
+export const COMPOSITION_EXAMPLE_ASSEMBLED = {
+  lineage: "<<paste the `lineage` object from request_designers, unchanged>>",
+  productName: "Kestrel Park",
+  /*
+   * Every fact below traces to one of these lines.
+   *
+   * Without them this example composed and then failed Gate G6 — correctly,
+   * because a date and a meeting point are exactly the kind of thing a model
+   * invents. An example that quietly fails a gate is worse than no example: it
+   * teaches the shape *and* the mistake, and the agent copying it has no idea
+   * why its flyer was rejected. `sourceStatements` is where the user's own
+   * words go, and G6 checks every detail value against them.
+   */
+  sourceStatements: [
+    "We are running a community planting day on Sat 17 June, 10am.",
+    "Meet at Kestrel Park, north gate.",
+    "Bring gloves if you have them and we will have spares.",
+  ],
+  idea: "A patch of scrubland is handed back to the people who live beside it.",
+  story: [
+    "A fenced-off corner nobody uses.",
+    "One Saturday, forty pairs of hands.",
+    "Beds dug, a path laid, a bench.",
+    "It reopens as a garden.",
+  ],
+  copy: {
+    eyebrow: "COMMUNITY PLANTING DAY",
+    headline: "Dig in",
+    body: null,
+    cta: { label: "Come along", url: null, qr: false },
+    details: [
+      { label: "When", value: "Sat 17 June, 10am" },
+      { label: "Where", value: "Kestrel Park, north gate" },
+      { label: "Bring", value: "Gloves if you have them" },
+    ],
+  },
+  elements: [
+    {
+      id: "message",
+      component: "headline-block",
+      role: "message",
+      whyHere: "Two words carry the whole invitation.",
+      props: {},
+    },
+    {
+      /*
+       * The evidence is drawn, not photographed. There is no honest photograph
+       * of a garden that does not exist yet, and a stock picture of somebody
+       * else's garden would fail the cover test while pretending to pass it.
+       */
+      id: "scene",
+      component: "composed-figure",
+      role: "evidence",
+      whyHere: "Shows the garden being made — no photograph of it exists yet.",
+      props: {
+        parts: [
+          {
+            id: "ground",
+            draw: { kind: "shape", form: "blob" },
+            size: "huge",
+            at: { at: "center" },
+            tone: "ground",
+            layer: "behind",
+          },
+          {
+            id: "sun",
+            draw: { kind: "motif", motif: "sun" },
+            size: "small",
+            at: { of: "ground", side: "top-right-of", gap: "tight" },
+            tone: "accent",
+          },
+          {
+            id: "leaf-a",
+            draw: { kind: "motif", motif: "leaf" },
+            size: "medium",
+            at: { of: "ground", side: "on" },
+            tone: "ink",
+            rotate: -14,
+          },
+          {
+            id: "leaf-b",
+            draw: { kind: "motif", motif: "leaf" },
+            size: "small",
+            at: { of: "leaf-a", side: "right-of", gap: "near" },
+            tone: "accent",
+            rotate: 18,
+          },
+          {
+            id: "path",
+            draw: { kind: "shape", form: "squiggle" },
+            size: "large",
+            at: { of: "ground", side: "below", gap: "tight" },
+            tone: "muted",
+          },
+        ],
+      },
+    },
+    {
+      /* Five facts, one element. This is how a page gets full without spending
+         the whole 4-7 budget on single lines of text. */
+      id: "facts",
+      component: "detail-cluster",
+      role: "support",
+      whyHere: "When, where and what to bring — nobody turns up without these.",
+      props: {},
+    },
+    {
+      id: "action",
+      component: "cta-button",
+      role: "cta",
+      whyHere: "The one thing to do.",
+      props: {},
+    },
+    {
+      id: "who",
+      component: "footer-lockup",
+      role: "brand",
+      whyHere: "Says who is organising it.",
+      props: {},
+    },
+    {
+      id: "frame",
+      component: "eyebrow-label",
+      role: "support",
+      whyHere: "Names the kind of event before the two-word headline lands.",
+      props: {},
+    },
+  ],
+  relationships: [],
+  gesturePurpose:
+    "Explains the single deliberate rule-break your lineage's gesture applies.",
+  assetIds: [],
   brandColors: [],
 } as const;
 
@@ -116,11 +280,16 @@ export const COMPOSITION_NOTES = [
   "Each element needs `whyHere` — not `purpose`, not `why`. Gate G3 rejects an element that cannot justify itself.",
   "`role` is singular, one of: evidence | message | support | cta | brand | structure.",
   "You need exactly one `message` and one `cta`, and at least one `evidence`.",
-  "Element count is 4-7, and your campaign archetype may narrow that further — the error says so if it does.",
+  "Element count is 4-7 overall, but your assignment narrows it: quiet 4-5, balanced 5-6, rich 6-7. Check `direction.density` and count before you send — the two examples are different sizes on purpose, because no single count is valid for every assignment.",
   "`assets` goes on the element that displays the image; `assetIds` at the top level lists every asset used.",
   "`props` may only contain keys that component declares. Engine-owned props (positions, scrims, alignment) are rejected.",
   "`copy.cta.url` may be null. Do not invent a web address.",
+  "`sourceStatements` is the user's own words, and Gate G6 checks every `copy.details` value against it. Omit it and any date, place or price you show is treated as invented — which is exactly what it would be. This is the field agents forget most often.",
+  "The check is a literal one: each `details` value must appear verbatim inside one source statement (case and punctuation are ignored, wording is not). Writing \"Sat 17 June, 10am\" when the user said \"Saturday the 17th at ten\" fails, and should — paraphrasing a date is how wrong dates get printed. Quote the user, or put your wording into `sourceStatements` only if that is genuinely what they said.",
   "Never send colours, fonts, sizes or coordinates. They come from the lineage.",
+  "Two examples are returned, not one. Read both before copying either: `photo-led` when there is something real to photograph, `assembled` when there is not, or when the page would otherwise be four things on a lot of paper.",
+  "`composed-figure` places parts by relationship (`{ of: \"sun\", side: \"top-right-of\", gap: \"near\" }`), never by coordinate, and counts as ONE element while carrying up to eight parts. It is the tool for a one-off arrangement and the tool for density.",
+  "Read each component's LOOKS LIKE line before choosing. Picking by name alone is how every flyer ends up built from the same three components.",
 ] as const;
 
 const authoredSchema = z.object({
@@ -478,7 +647,44 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   // ── 2. Compose: author's spec in, rendered and judged flyer out ──────────
   /** The shape of a composition, as something an agent can copy rather than infer. */
   app.get("/v1/schema/composition", async () => ({
+    /*
+     * Two, and they are meant to be read as a pair. `example` is singular and
+     * kept for callers that already read it; `examples` is what a fresh agent
+     * should look at, because one example is copied as a template and two are
+     * compared as a range.
+     */
     example: COMPOSITION_EXAMPLE,
+    examples: [
+      {
+        name: "photo-led",
+        useWhen:
+          "There is a real thing to photograph — a place, a dish, an object, a face. The picture is the evidence.",
+        elementCount: COMPOSITION_EXAMPLE.elements.length,
+        fitsDensity: ["quiet", "balanced"],
+        composition: COMPOSITION_EXAMPLE,
+      },
+      {
+        name: "assembled",
+        useWhen:
+          "Nothing honest to photograph, or the page needs density. Builds its evidence from parts and carries several facts in one element.",
+        elementCount: COMPOSITION_EXAMPLE_ASSEMBLED.elements.length,
+        fitsDensity: ["balanced", "rich"],
+        composition: COMPOSITION_EXAMPLE_ASSEMBLED,
+      },
+    ],
+    /*
+     * Published because no fixed element count is valid for every assignment —
+     * quiet tops out at 5 and rich starts at 6, so any single example is
+     * rejected outright by some lineages. That is precisely the "guessed the
+     * shape and burned fifteen attempts" failure the examples exist to prevent,
+     * reintroduced by the examples themselves. Caught by a test, not by eye.
+     */
+    elementBudgets: {
+      quiet: elementBudgetForDensity("quiet"),
+      balanced: elementBudgetForDensity("balanced"),
+      rich: elementBudgetForDensity("rich"),
+      note: "Read `direction.density` on your assignment and count your elements against this table BEFORE composing. The two examples are deliberately different sizes; add or drop a support element to fit.",
+    },
     notes: COMPOSITION_NOTES,
   }));
 
