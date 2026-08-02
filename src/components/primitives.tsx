@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from "react";
 import { fitText, measureText, metricsFor, wrapText } from "../core/render/fonts.js";
 import type { Theme } from "./types.js";
 import { ensureContrast, mix, withAlpha } from "../creative/color.js";
+import { shadowFor, type LightSource } from "../core/canvas/light.js";
 
 /**
  * Shared drawing primitives. Two rules hold everywhere in here:
@@ -240,6 +241,7 @@ export function Panel({
   radius,
   opacity,
   elevation,
+  light,
 }: {
   name: string;
   x: number;
@@ -252,20 +254,38 @@ export function Panel({
   radius: number;
   opacity?: number;
   elevation?: boolean;
+  /**
+   * The poster's single light. Passed rather than assumed: this used to offset
+   * a black rect by a hardcoded (3, 6) regardless of where anything else was
+   * lit from, which is exactly what makes composited elements look pasted.
+   */
+  light?: LightSource;
 }): ReactElement {
+  const shadow = elevation && light ? shadowFor(light, Math.max(w, h), 0.8) : null;
   return (
     <g id={name} data-name={name}>
-      {elevation ? (
-        <rect
-          x={x + 3}
-          y={y + 6}
-          width={w}
-          height={h}
-          rx={radius}
-          ry={radius}
-          fill="#000000"
-          opacity={0.08}
-        />
+      {shadow ? (
+        <>
+          <defs>
+            <filter id={`sh-${name}`} x="-25%" y="-25%" width="150%" height="150%">
+              <feGaussianBlur stdDeviation={shadow.blur} />
+            </filter>
+          </defs>
+          <rect
+            x={x + shadow.dx}
+            y={y + shadow.dy}
+            width={w}
+            height={h}
+            rx={radius}
+            ry={radius}
+            fill={shadow.fill}
+            filter={`url(#sh-${name})`}
+          />
+        </>
+      ) : elevation ? (
+        // No light supplied: draw nothing rather than an arbitrary shadow that
+        // disagrees with the rest of the page.
+        null
       ) : null}
       <rect
         x={x}

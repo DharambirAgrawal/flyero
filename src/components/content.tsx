@@ -617,6 +617,7 @@ const ctaButton: ComponentModule = {
               fill={accent}
               radius={theme.material.surface.cornerRadius}
               elevation={theme.material.surface.elevation}
+          light={theme.light}
             />
             <FittedLine
               name={`${id}-label`}

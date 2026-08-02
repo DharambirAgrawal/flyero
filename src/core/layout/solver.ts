@@ -12,6 +12,7 @@ import { artDirectionById } from "../../creative/artdirections.js";
 import { markOnDarkFromGround, planGround } from "../decor/ground.js";
 import { planDecorations } from "../decor/decorations.js";
 import type { Decoration, GroundPlan } from "../decor/types.js";
+import { depthForRole } from "../canvas/depth.js";
 import { BUSY_VARIANCE, ToneField } from "../canvas/tone.js";
 
 /**
@@ -534,6 +535,15 @@ export function solveLayout(
   // Must come before any ink decision below.
   const graphics = graphicsById(spec.lineage.graphics);
   const ground = planGround(spec, theme, graphics, boxes);
+
+  // ── 8.42. Depth ───────────────────────────────────────────────────────────
+  // Assigned from role and whether the element is a ground, so the composition
+  // has a front and a back rather than one pane. Everything visual that follows
+  // from depth is derived, never set per element.
+  for (const el of spec.elements) {
+    const box = boxes[el.id];
+    if (box) box.depth = depthForRole(el.role, bleedIds.has(el.id));
+  }
 
   // ── 8.45. The tone field: what is actually on the page ────────────────────
   // Painted in the renderer's z-order, so what it reports is what will be seen.

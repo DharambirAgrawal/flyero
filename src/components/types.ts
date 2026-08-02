@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import type { ZodTypeAny } from "zod";
 import type { Palette } from "../creative/colorlogic.js";
 import type { MaterialValue } from "../creative/materials.js";
+import type { LightSource } from "../core/canvas/light.js";
 import type { TypographyValue } from "../creative/typebehaviors.js";
 import type { FontPair } from "../creative/fontpairs.js";
 import type { TopologyId } from "../creative/types.js";
@@ -17,6 +18,15 @@ export type Box = {
   zIndex: number;
   /** Degrees; only ever non-zero when the signature gesture asks for it. */
   rotate?: number;
+  /**
+   * Where this sits between the far wall (0) and the lens (1).
+   *
+   * Distinct from `zIndex`, which only answers what covers what. Scale, haze,
+   * contrast and blur are all derived from this one number so they cannot
+   * disagree — inconsistency between those cues is what the eye reads as
+   * "pasted on" without being able to name it.
+   */
+  depth?: number;
   /** Set by the layout solver for text-bearing components. */
   fontSize?: number;
   lines?: string[];
@@ -46,6 +56,12 @@ export type Theme = {
   fonts: FontPair;
   material: MaterialValue;
   typography: TypographyValue;
+  /**
+   * One light for the whole poster. Every shadow is derived from it, rather
+   * than each component inventing its own — which is what made composited
+   * elements read as pasted on instead of sharing a scene.
+   */
+  light: LightSource;
 };
 
 export type AssetRef = {

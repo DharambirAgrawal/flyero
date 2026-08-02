@@ -3,6 +3,7 @@ import { FittedLine, Group, inkFor, mutedInkFor } from "./primitives.js";
 import type { AssetRef, ComponentModule } from "./types.js";
 import { focalPreserveAspect } from "./assets.js";
 import { ensureContrast, mix, withAlpha } from "../creative/color.js";
+import { shadowFor } from "../core/canvas/light.js";
 import {
   MOTIFS,
   arcBands,
@@ -234,9 +235,15 @@ const polaroidStack: ComponentModule = {
     const cardW = box.w * 0.74;
     const cardH = Math.min(cardW * 1.16, box.h * 0.9);
     const paper = "#ffffff";
+    const shadow = shadowFor(theme.light, Math.max(cardW, cardH), 1.1);
 
     return (
       <Group name={id}>
+        <defs>
+          <filter id={`psh-${id}`} x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation={shadow.blur} />
+          </filter>
+        </defs>
         {Array.from({ length: count }).map((_, i) => {
           // Drawn back to front; the last print is the one on top.
           const depth = count - 1 - i;
@@ -259,13 +266,15 @@ const polaroidStack: ComponentModule = {
               key={i}
               transform={`rotate(${angle.toFixed(2)} ${(x + cardW / 2).toFixed(2)} ${(y + cardH / 2).toFixed(2)})`}
             >
+              {/* Every print catches the same light, so a stack reads as one
+                  pile of objects rather than several unrelated stickers. */}
               <rect
-                x={x + 3}
-                y={y + 6}
+                x={x + shadow.dx}
+                y={y + shadow.dy}
                 width={cardW}
                 height={cardH}
-                fill="#000000"
-                opacity={0.1}
+                fill={shadow.fill}
+                filter={`url(#psh-${id})`}
               />
               <rect x={x} y={y} width={cardW} height={cardH} fill={paper} />
               <clipPath id={clipId}>

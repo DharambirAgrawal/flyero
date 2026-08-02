@@ -102,6 +102,7 @@ const browserFrame: ComponentModule = {
           strokeWidth={theme.material.surface.strokeWidth}
           radius={radius}
           elevation={theme.material.surface.elevation}
+          light={theme.light}
         />
         <Group name={`${id}-chrome`}>
           <Rule
@@ -216,6 +217,7 @@ const phoneFrame: ComponentModule = {
           strokeWidth={theme.material.surface.strokeWidth * 1.5}
           radius={radius}
           elevation={theme.material.surface.elevation}
+          light={theme.light}
         />
         <rect
           x={box.x + box.w * 0.34}
@@ -317,6 +319,7 @@ const documentCard: ComponentModule = {
           strokeWidth={theme.material.surface.strokeWidth}
           radius={theme.material.surface.cornerRadius}
           elevation={theme.material.surface.elevation}
+          light={theme.light}
         />
         {asset ? (
           <>
@@ -470,6 +473,7 @@ const beforeAfterStack: ComponentModule = {
             stroke="none"
             radius={radius}
             elevation={after && theme.material.surface.elevation}
+            light={theme.light}
           />
           {asset ? (
             <>
@@ -776,6 +780,7 @@ const uiFragment: ComponentModule = {
           strokeWidth={theme.material.surface.strokeWidth * (active ? 1.8 : 1)}
           radius={Math.max(theme.material.surface.cornerRadius, 4)}
           elevation={theme.material.surface.elevation}
+          light={theme.light}
         />
         {state === "resolved" ? (
           <path
@@ -925,6 +930,7 @@ const checklistCard: ComponentModule = {
           strokeWidth={theme.material.surface.strokeWidth}
           radius={theme.material.surface.cornerRadius}
           elevation={theme.material.surface.elevation}
+          light={theme.light}
         />
         {items.map((item, i) => {
           const y = box.y + 18 + i * rowH;
@@ -1052,6 +1058,7 @@ const chatExchange: ComponentModule = {
             strokeWidth={theme.material.surface.strokeWidth * 1.8}
             radius={radius}
             elevation={theme.material.surface.elevation}
+          light={theme.light}
           />
           <TextBlock
             name={`${id}-reply-text`}

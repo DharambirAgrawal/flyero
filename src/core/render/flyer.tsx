@@ -3,6 +3,7 @@ import { getComponent } from "../../components/registry.js";
 import type { AssetRef, Box, Theme } from "../../components/types.js";
 import { Rng } from "../../lib/rng.js";
 import { DecorBand, Ground } from "./ground.js";
+import { depthEffects, FOCAL_DEPTH } from "../canvas/depth.js";
 import type { DesignSpec } from "../compose/spec.js";
 import type { LayoutResult } from "../layout/solver.js";
 
@@ -73,6 +74,16 @@ export function Flyer({
       assets: elementAssets,
       rng: new Rng(`element:${spec.seed}:${el.id}`),
     });
+    /**
+     * Atmosphere, derived from the element's depth.
+     *
+     * Applied as an overlay rather than by recolouring: a photograph would have
+     * to be decoded and re-encoded on every render otherwise, and the whole
+     * point of this engine is that rendering stays a cheap pure function.
+     */
+    const effects = depthEffects(box.depth ?? FOCAL_DEPTH, theme.material.surface.elevation ? 1 : 0.6);
+    const atmosphere = layout.ground.base;
+
     const occluders = occludersFor.get(el.id) ?? [];
     const maskId = occluders.length > 0 ? `weave-${el.id}` : null;
     const wrapped = maskId ? (
@@ -118,7 +129,34 @@ export function Flyer({
         </g>
       );
     }
-    return <g key={el.id}>{wrapped}</g>;
+    const withAtmosphere =
+      effects.haze > 0.02 || effects.blur > 0.4 ? (
+        <>
+          {effects.blur > 0.4 ? (
+            <defs>
+              <filter id={`dof-${el.id}`} x="-10%" y="-10%" width="120%" height="120%">
+                <feGaussianBlur stdDeviation={Math.min(effects.blur, 6).toFixed(2)} />
+              </filter>
+            </defs>
+          ) : null}
+          <g filter={effects.blur > 0.4 ? `url(#dof-${el.id})` : undefined}>{wrapped}</g>
+          {effects.haze > 0.02 ? (
+            <rect
+              x={box.x}
+              y={box.y}
+              width={box.w}
+              height={box.h}
+              fill={atmosphere}
+              opacity={Math.min(0.4, effects.haze).toFixed(3)}
+              pointerEvents="none"
+            />
+          ) : null}
+        </>
+      ) : (
+        wrapped
+      );
+
+    return <g key={el.id}>{withAtmosphere}</g>;
   }
 
   return (

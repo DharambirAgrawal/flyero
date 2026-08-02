@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { BUSY_VARIANCE, ToneField } from "../../src/core/canvas/tone.js";
 import { computeToneMap } from "../../src/store/assets.js";
+import { planLight, shadowFor } from "../../src/core/canvas/light.js";
+import { depthEffects, depthForRole, FOCAL_DEPTH } from "../../src/core/canvas/depth.js";
+import { Rng } from "../../src/lib/rng.js";
 import { fixtureLineages, fixtureSpec } from "../fixtures.js";
 import { solveLayout } from "../../src/core/layout/solver.js";
 import { themeFromSpec } from "../../src/core/render/theme.js";
@@ -144,6 +147,76 @@ describe("the solver publishes the field the gates read", () => {
     const first = solveLayout(spec, theme).tone.describe();
     for (let i = 0; i < 4; i++) {
       expect(solveLayout(spec, theme).tone.describe()).toBe(first);
+    }
+  });
+});
+
+describe("one light, one scene", () => {
+  it("gives every element a shadow from the same direction", () => {
+    // Each component used to invent its own offset — Panel (3,6), polaroid
+    // (3,6), the plate none at all. Disagreeing shadows are the reason
+    // composited elements read as pasted on rather than sharing a world.
+    const light = planLight(new Rng("light:test"), "#222222");
+    const small = shadowFor(light, 100);
+    const large = shadowFor(light, 800);
+    expect(Math.sign(small.dx)).toBe(Math.sign(large.dx));
+    expect(Math.sign(small.dy)).toBe(Math.sign(large.dy));
+    // Bigger objects throw longer, softer shadows under the same light.
+    expect(Math.abs(large.dx)).toBeGreaterThan(Math.abs(small.dx));
+    expect(large.blur).toBeGreaterThan(small.blur);
+  });
+
+  it("lights every poster from above", () => {
+    // Lit from below or head-on is dramatic and nearly always wrong on a
+    // poster; every convincing one is lit from above and slightly to a side.
+    for (let i = 0; i < 40; i++) {
+      const light = planLight(new Rng(`light:${i}`), "#333333");
+      expect(light.elevation).toBeGreaterThan(30);
+      const fromAbove = light.azimuth > 290 || light.azimuth < 70;
+      expect(fromAbove, `azimuth ${light.azimuth}`).toBe(true);
+    }
+  });
+
+  it("never casts a pure black shadow", () => {
+    // Pure black punches a hole through the page instead of sitting in it.
+    const light = planLight(new Rng("light:ink"), "#2a3b1f");
+    expect(light.tint).not.toBe("#000000");
+  });
+});
+
+describe("depth is one number, everything else follows", () => {
+  it("moves scale, blur, haze and contrast together", () => {
+    const far = depthEffects(0.1);
+    const focal = depthEffects(FOCAL_DEPTH);
+    const near = depthEffects(0.95);
+
+    // Sharp at the focal plane, softer either side — foreground blur is the cue
+    // a flat collage never produces by accident.
+    expect(focal.blur).toBe(0);
+    expect(far.blur).toBeGreaterThan(0);
+    expect(near.blur).toBeGreaterThan(0);
+
+    // Distance shrinks, hazes and flattens — all at once, never independently.
+    expect(far.scale).toBeLessThan(near.scale);
+    expect(far.haze).toBeGreaterThan(focal.haze);
+    expect(far.contrast).toBeLessThan(1);
+    expect(near.haze).toBe(0);
+  });
+
+  it("puts grounds behind, subject on the focal plane, type in front", () => {
+    expect(depthForRole("evidence", true)).toBeLessThan(depthForRole("evidence", false));
+    expect(depthForRole("evidence", false)).toBeLessThan(depthForRole("message", false));
+    expect(depthForRole("structure", false)).toBeLessThan(depthForRole("cta", false));
+  });
+
+  it("is assigned to every element by the solver", () => {
+    const spec = fixtureSpec(fixtureLineages("DEPTH-1", 1)[0]!);
+    const layout = solveLayout(spec, themeFromSpec(spec));
+    for (const el of spec.elements) {
+      const d = layout.boxes[el.id]?.depth;
+      expect(d, `${el.id} has no depth`).toBeDefined();
+      expect(d!).toBeGreaterThanOrEqual(0);
+      expect(d!).toBeLessThanOrEqual(1);
     }
   });
 });
