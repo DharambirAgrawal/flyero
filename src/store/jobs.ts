@@ -168,6 +168,20 @@ export function getProcessLog(jobId: string, revision: number): unknown | null {
   return row ? JSON.parse(row.log) : null;
 }
 
+/**
+ * Recent flyers for a key, newest first.
+ *
+ * Added because a flyer could be created and then be unfindable: the id lived
+ * only in a chat transcript, and if the image never reached the reader there
+ * was no way back to it. A job store you cannot enumerate is a job store that
+ * loses work.
+ */
+export function listJobs(apiKey: string, limit = 20): JobRow[] {
+  return getDb()
+    .prepare("SELECT * FROM jobs WHERE api_key = ? ORDER BY created_at DESC LIMIT ?")
+    .all(apiKey, limit) as JobRow[];
+}
+
 export function countActiveJobs(apiKey: string): number {
   const row = getDb()
     .prepare(

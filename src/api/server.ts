@@ -8,6 +8,7 @@ import { PROFILE_SPACE, newJobSeed } from "../core/studio/sampler.js";
 import { VETO_COUNT } from "../creative/compatibility.js";
 import { availableFamilies } from "../core/render/fonts.js";
 import { createAsset, getAsset, createDerivedAsset } from "../store/assets.js";
+import { listJobs } from "../store/jobs.js";
 import { rasterize } from "../core/render/index.js";
 import { fetchCandidate, imageProvider } from "../core/images/search.js";
 import { SKILL_INDEX, getSkill } from "./skills.js";
@@ -129,8 +130,21 @@ export function buildServer(): FastifyInstance {
      * carrying a key leaks through history, logs and screen shares — so it is
      * allowed *only* on /mcp, and the REST surface stays header-only.
      */
-    const viaQuery =
-      request.url.startsWith("/mcp") ? (request.query as { key?: string })?.key ?? "" : "";
+    /**
+     * Export links accept the key too, so they can be *clicked*.
+     *
+     * MCP returns the rendered flyer as an inline image, which the model sees —
+     * but a chat UI does not necessarily show tool-result images to the person
+     * reading. Three separate runs ended with the agent saying "here's the
+     * flyer" and the user seeing nothing. A link they can open is the only
+     * reliable delivery, and a link cannot carry an Authorization header.
+     *
+     * Same trade-off as /mcp, and the same limit: everything else stays
+     * header-only.
+     */
+    const queryKeyAllowed =
+      request.url.startsWith("/mcp") || /^\/v1\/flyers\/[^/]+\/export/.test(request.url);
+    const viaQuery = queryKeyAllowed ? (request.query as { key?: string })?.key ?? "" : "";
     const token = bearer || viaQuery;
     if (!token || !config.apiKeys.includes(token)) {
       return fail(reply, 401, "unauthorized", "Provide a valid Bearer key from API_KEYS");
@@ -501,9 +515,20 @@ export function buildServer(): FastifyInstance {
     },
   );
 
+  /** Recent flyers, so one can be found again after the fact. */
+  app.get("/v1/flyers", async (request) => ({
+    flyers: listJobs(request.apiKey, 20).map((j) => ({
+      flyerId: j.id,
+      status: j.status,
+      idea: j.idea,
+      createdAt: j.created_at,
+      png: `/v1/flyers/${j.id}/export?format=png`,
+    })),
+  }));
+
   app.get<{
     Params: { jobId: string };
-    Querystring: { format?: string; revision?: string; scale?: string };
+    Querystring: { format?: string; revision?: string; scale?: string; key?: string };
   }>(
     "/v1/flyers/:jobId/export",
     async (request, reply) => {

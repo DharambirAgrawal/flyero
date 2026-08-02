@@ -55,6 +55,18 @@ async function api(path: string, init: RequestInit = {}): Promise<Json> {
   return body;
 }
 
+/**
+ * A link the person reading can actually open.
+ *
+ * The inline image goes to the model; a chat UI does not necessarily render
+ * tool-result images to the user. Three runs ended with an agent announcing a
+ * finished flyer that nobody could see. The key is embedded because a clicked
+ * link carries no headers — the same trade-off already accepted for /mcp.
+ */
+function shareUrl(flyerId: string, format: "png" | "svg"): string {
+  return `${BASE}/v1/flyers/${flyerId}/export?format=${format}&key=${encodeURIComponent(config.flyeroApiKey)}`;
+}
+
 async function apiBinary(path: string): Promise<Buffer> {
   const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
   if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
@@ -562,7 +574,20 @@ export function buildMcpServer(): McpServer {
         body: JSON.stringify(composition),
       });
       const preview = out.flyerId ? await previewContent(out.flyerId) : [];
-      return { content: [{ type: "text", text: JSON.stringify(out, null, 2) }, ...preview] };
+      const links = out.flyerId
+        ? [
+            {
+              type: "text" as const,
+              text:
+                `SHOW THESE TO THE USER — the preview above is for your eyes only:\n` +
+                `PNG: ${shareUrl(out.flyerId, "png")}\n` +
+                `SVG: ${shareUrl(out.flyerId, "svg")}`,
+            },
+          ]
+        : [];
+      return {
+        content: [{ type: "text", text: JSON.stringify(out, null, 2) }, ...preview, ...links],
+      };
     },
   );
 
@@ -673,10 +698,10 @@ export function buildMcpServer(): McpServer {
             type: "text" as const,
             text: [
               outputPath ? `Full resolution written to ${outputPath}.` : "",
-              `Full-resolution PNG: ${BASE}/v1/flyers/${flyerId}/export?format=png`,
-              `Editable SVG:        ${BASE}/v1/flyers/${flyerId}/export?format=svg`,
-              "Both need your API key as an Authorization: Bearer header.",
-              "The image above is a preview — full size is too large to send inline.",
+              "SHOW THESE LINKS TO THE USER — the inline preview above is for you,",
+              "and a chat UI does not always render tool-result images to the reader.",
+              `PNG: ${shareUrl(flyerId, "png")}`,
+              `SVG: ${shareUrl(flyerId, "svg")}`,
             ]
               .filter(Boolean)
               .join("\n"),
