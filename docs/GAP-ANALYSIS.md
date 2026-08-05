@@ -426,6 +426,72 @@ plate, or a set of aligned ones); an evidence cutout overlapped that plate; and
 the brand lockup drew light-on-light because `footer-lockup` picks ink without
 consulting the tone field — the fourth component to do this.
 
+### 2026-08-05 — a real agent run, watched end to end: what actually broke
+
+Drove a full session as an external agent (Claude via the MCP connector) on
+a genuinely different brief — "Luma Journal," a kawaii-scrapbook journaling
+app — using the new motif/frame/format work from earlier today. The agent's
+*process* was good: it read the guide, evaluated all four sampled designers
+against the brief instead of grabbing the first one, resampled when none fit,
+caught its own "this reads like a mandala, not a doodle" mistake mid-session
+and reworked it, and verified with the judge tool before calling it done.
+The *output* still fell well short of the four references. Traced each gap
+to a specific cause rather than leaving it as a vibe:
+
+**1. The agent could never reach `kawaii-doodle` — the wobbly-frame language
+added earlier today.** It picked `crafted-collage` as the closest existing
+match for "hand-drawn collage," which is a reasonable read of what it could
+see. But `crafted-collage`'s `graphics` list is
+`["paper-collage", "sticker-sheet", "organic-blobs"]` — `kawaii-doodle` was
+only wired into `botanical-celebration`. Same failure this file has already
+named once (`GAP-ANALYSIS.md`, 2026-08-01: "half the agent's fault, half a
+reachability problem") — an option nobody can reach might as well not exist.
+**Open**: wire `kawaii-doodle`/`festive-scene` into `crafted-collage` too.
+
+**2. No colour-logic generator produces a genuine multi-hue pastel palette.**
+Checked all ten in `src/creative/colorlogic.ts` — every one is single-accent,
+duotone, or one saturated field. Even a run that *does* reach `kawaii-doodle`
+cannot currently land on the soft pink/lavender/mint mix "kawaii" implies.
+**Open**: a pastel/multi-accent generator is a real gap, not a sampling miss.
+
+**3. Motifs rendered as flat single-colour silhouettes — a real product gap,
+not a taste difference.** The reference posters' balloons and gifts have
+visible sheen and shading; ours were flat icon marks. Traced this to
+`figure.tsx`: `case "photo"` already used the flyer's one light
+(`shadowFor`, `src/core/canvas/light.ts`) for a contact shadow; `case
+"motif"`/`case "shape"` did not — pure omission, the mechanism already
+existed. **Closed today**: both cases now take an opt-in `shaded: boolean`
+(default false, so nothing existing changes) that adds a highlight-to-shadow
+radial gradient keyed off the same light plus a contact shadow. Deliberately
+*not* raster stickers or AI-generated images — considered both and rejected:
+neither is recolourable (this needs to be, since the whole point is an agent
+picking a theme accent and the object matching it), a pre-lit raster sticker
+fights the single-light system instead of joining it, and a bundled icon/
+sticker pack is exactly what `shapes.ts`'s own header already rejects for
+licence and house-style reasons. **Open**: nothing currently *chooses*
+`shaded: true` — no graphic language or skill guidance points an agent at it
+yet, so it's reachable but not yet surfaced any better than the 28 invisible
+components were before their `visual` field landed.
+
+**4. The "Dear Diary" speech bubble rendered as bare floating text, no bubble
+shape.** Not yet root-caused — didn't have the exact composed-figure JSON the
+agent sent, and guessing would be worse than saying so. **Open**: reproduce
+with a `speech-bubble` motif part paired with a `word` part and see whether
+the gap is in the engine or in how an agent is guided to pair the two.
+
+**On asset realism generally** — the question of whether decorative marks
+should ever be raster (licensed sticker packs, or AI-generated PNGs) rather
+than vector: decided **no for now**, vector + shading instead, for the three
+reasons in point 3. Revisit only if an explicit, scoped need shows up that
+shading genuinely cannot reach (e.g. a specific photographic texture no
+gradient can fake) — not as a default upgrade path.
+
+**Contributing more motifs**: `MOTIF_DATA` in `shapes.ts` is the place —
+single-tone path marks, theme-recoloured at render time, same convention as
+the ones already there. That's different from an *asset* (a logo or a
+supplied full-colour image via `POST /v1/assets`), which embeds as-is and is
+not theme-recoloured. Know which one you're adding before you add it.
+
 ## Working order
 
 1. **Coverage floor.** Measure ink/object coverage of the canvas; make it a
@@ -434,10 +500,15 @@ consulting the tone field — the fourth component to do this.
    the ground, with type over it and a legibility scrim — the single biggest
    visual change.
 3. **Commit the palette.** Make saturated grounds the common case for
-   photo-led and campaign briefs, not a rare roll.
+   photo-led and campaign briefs, not a rare roll — and add a genuine pastel
+   multi-accent generator, which does not exist in any form yet (2026-08-05).
 4. **Text clusters.** One element carrying several small lines, so the canvas
    can hold 12+ text objects inside a 4–7 element budget.
 5. **Type in shapes**, **frames**, **scene illustration** — in that order.
+6. **Reachability sweep (2026-08-05).** Wire `kawaii-doodle`/`festive-scene`
+   into more art directions (`crafted-collage` at minimum); surface `shaded`
+   motifs somewhere an agent is actually told about them; root-cause the
+   speech-bubble-with-no-shape render.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

@@ -3,7 +3,7 @@ import { FittedLine, Group, inkFor, mutedInkFor } from "./primitives.js";
 import type { ComponentModule, RenderContext, Theme } from "./types.js";
 import { focalPreserveAspect } from "./assets.js";
 import { mix, withAlpha } from "../creative/color.js";
-import { shadowFor } from "../core/canvas/light.js";
+import { shadowFor, type LightSource } from "../core/canvas/light.js";
 import { resolveParts, type PartInput, type PlacedPart } from "../core/layout/anchors.js";
 import {
   MOTIF_NAMES,
@@ -84,6 +84,15 @@ const partSchema = z.object({
     z.object({
       kind: z.literal("motif"),
       motif: z.enum(MOTIF_NAMES as [MotifName, ...MotifName[]]),
+      /**
+       * Renders with a highlight-to-shadow gradient keyed off the flyer's one
+       * light plus a contact shadow, instead of a flat single-colour fill —
+       * the difference between a rendered sticker (a balloon, a gift) and a
+       * flat icon mark. Leave off for anything meant to read as a graphic
+       * mark rather than an object (badges, Memphis shapes, small scattered
+       * accents) — shading everything looks busier, not more real.
+       */
+      shaded: z.boolean().default(false),
     }),
     z.object({
       kind: z.literal("shape"),
@@ -91,6 +100,8 @@ const partSchema = z.object({
       /** Outline instead of fill. A page of solid blobs reads as clip art. */
       outline: z.boolean().default(false),
       sides: z.number().int().min(3).max(12).optional(),
+      /** Same rendered-object treatment as a motif's `shaded` — ignored for `outline` and the open forms (squiggle, wave). */
+      shaded: z.boolean().default(false),
     }),
     z.object({
       kind: z.literal("photo"),
@@ -270,6 +281,38 @@ function colourFor(tone: FigurePart["tone"], theme: Theme, box: { onDark?: boole
   }
 }
 
+/**
+ * A highlight-to-shadow radial gradient over the same base colour, offset
+ * toward the flyer's one light — the mechanism that lets a "shaded" motif
+ * agree with every photo and panel's shadow instead of inventing its own
+ * lighting. Base colour stays the single source of truth (still just `fill`),
+ * so recolouring a shaded motif is still one prop change, not a new asset.
+ */
+function sheenGradient(
+  id: string,
+  base: string,
+  light: LightSource,
+): { node: React.ReactElement; fill: string } {
+  const rad = ((light.azimuth - 90) * Math.PI) / 180;
+  // Mirrors `shadowFor`'s sign convention: the shadow falls at
+  // (-cos(rad), sin(rad)); the light — and so the highlight — sits opposite.
+  const cx = 50 + Math.cos(rad) * 30;
+  const cy = 50 - Math.sin(rad) * 30;
+  const highlight = mix(base, "#ffffff", 0.4);
+  const core = mix(base, "#ffffff", 0.08);
+  const shade = mix(base, "#000000", 0.28);
+  return {
+    node: (
+      <radialGradient id={id} cx={`${cx}%`} cy={`${cy}%`} r="85%">
+        <stop offset="0%" stopColor={highlight} />
+        <stop offset="45%" stopColor={core} />
+        <stop offset="100%" stopColor={shade} />
+      </radialGradient>
+    ),
+    fill: `url(#${id})`,
+  };
+}
+
 /** The path for a shape part, drawn to fill its resolved rect. */
 function shapePath(
   form: (typeof SHAPE_FORMS)[number],
@@ -330,6 +373,26 @@ function renderPart(
     case "motif": {
       const motif = MOTIFS[part.draw.motif];
       const size = Math.min(rect.w, rect.h);
+      if (part.draw.shaded) {
+        const sheen = sheenGradient(`sheen-${key}`, fill, theme.light);
+        const shadow = shadowFor(theme.light, size, 0.5);
+        return (
+          <g key={key} data-name={key} transform={spin}>
+            <defs>{sheen.node}</defs>
+            {/* The shadow's translate must sit outside the motif's own 0-100
+                scale group, or the offset — computed in canvas px — would be
+                scaled down with it. */}
+            <g transform={`translate(${shadow.dx} ${shadow.dy})`}>
+              <g transform={motifTransform(rect.x, rect.y, size, 0)}>
+                <path d={motif.d} fill={shadow.fill} fillRule="evenodd" />
+              </g>
+            </g>
+            <g transform={motifTransform(rect.x, rect.y, size, 0)}>
+              <path d={motif.d} fill={sheen.fill} fillRule="evenodd" />
+            </g>
+          </g>
+        );
+      }
       return (
         <g key={key} data-name={key} transform={spin}>
           <g transform={motifTransform(rect.x, rect.y, size, 0)}>
@@ -343,6 +406,17 @@ function renderPart(
       const d = shapePath(part.draw.form, rect, part.draw.sides ?? 6, rng);
       const stroke = Math.max(2, Math.min(rect.w, rect.h) * 0.05);
       const open = part.draw.form === "squiggle" || part.draw.form === "wave";
+      if (part.draw.shaded && !part.draw.outline && !open) {
+        const sheen = sheenGradient(`sheen-${key}`, fill, theme.light);
+        const shadow = shadowFor(theme.light, Math.min(rect.w, rect.h), 0.5);
+        return (
+          <g key={key} data-name={key} transform={spin}>
+            <defs>{sheen.node}</defs>
+            <path d={d} transform={`translate(${shadow.dx} ${shadow.dy})`} fill={shadow.fill} />
+            <path d={d} fill={sheen.fill} />
+          </g>
+        );
+      }
       return (
         <path
           key={key}

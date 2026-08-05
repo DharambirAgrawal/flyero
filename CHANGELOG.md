@@ -6,6 +6,53 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — Shaded motifs, and a live agent run that found four real gaps
+
+Drove a real MCP session end to end (external agent, real brief) against
+today's earlier motif/frame/format work to see how it actually held up, not
+just how it rendered in isolation. Full trace in `docs/GAP-ANALYSIS.md`
+2026-08-05 — summary here per AGENTS.md.
+
+### Added
+- **`shaded: boolean` on `composed-figure`'s `motif` and `shape` parts**
+  (`src/components/figure.tsx`), default `false` so nothing existing changes.
+  When set, renders a highlight-to-shadow radial gradient keyed off the
+  flyer's one light (`src/core/canvas/light.ts`, already used by photos and
+  panels, just never wired into motifs/shapes) plus a matching contact
+  shadow, instead of a flat single-colour fill. Turns a flat balloon/gift
+  silhouette into something that reads as a rendered object sitting in the
+  same lit scene as everything else — and because the gradient is derived
+  from the part's own `fill` at render time, recolouring it is still one
+  prop, not a new asset.
+
+### Decisions recorded
+- **Considered and rejected raster stickers (licensed packs) and
+  AI-generated sticker images** as the fix for "flat-looking decoration,"
+  in favour of vector shading. Neither raster option is recolourable, a
+  pre-lit raster asset fights the single-light system instead of joining it,
+  and a bundled sticker pack is exactly what `shapes.ts`'s own header already
+  rejects (licence, house style). Vector shading was the only option that
+  actually satisfies "an agent can adjust its colour" and "it blends with
+  everything else," which is what was actually asked for. Full reasoning in
+  `docs/GAP-ANALYSIS.md`.
+- Confirmed and documented the motif/asset distinction for future
+  contributions: `MOTIF_DATA` entries are theme-recoloured at render time;
+  uploaded assets (logos, images via `POST /v1/assets`) are not and never
+  will be by this mechanism.
+
+### Found, not yet fixed (tracked in `docs/GAP-ANALYSIS.md`'s Working order)
+- `kawaii-doodle`/`festive-scene` are reachable from only one art direction
+  (`botanical-celebration`) — an agent reading "hand-drawn collage" reasonably
+  lands on `crafted-collage` instead and never sees them.
+- No colour-logic generator produces a genuine multi-hue pastel palette.
+- Nothing yet points an agent at the new `shaded` option — it exists but
+  isn't surfaced, the same reachability failure the 2026-08-02 `visual`-field
+  fix already happened once.
+- A `speech-bubble` motif part rendered as bare text with no bubble shape in
+  the live run — not yet root-caused.
+
+---
+
 ## 2026-08-05 — Multi-format support (L1, pulled forward)
 
 User directly asked for size-awareness — the agent choosing among several
