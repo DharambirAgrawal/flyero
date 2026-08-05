@@ -102,6 +102,32 @@ component says. A balloon in the corner, a stamp with a price in it, three pins
 walking down the page — these are wanted once each, so no component will ever
 exist for them.
 
+## Scattered small text is a device, not a mistake
+
+Real posters constantly break a date or a day into loose fragments tucked
+around the big type — "7/10" sitting on the headline, "SATURDAY" rotated
+beside it — instead of one tidy eyebrow line above everything. That is a
+\`composed-figure\` with \`draw: { kind: "word" }\` parts: each is a short
+word or number, placed relative to another part (\`at: { of: "headline",
+side: "top-right-of" }\`) and optionally tilted a few degrees with \`rotate\`.
+Several small \`word\` parts anchored around your evidence or near the
+headline read as *designed*, the way one plain support line never does — use
+this instead of defaulting to an eyebrow whenever the brief has a date, a
+day, a price or a short stat that wants to feel handwritten-in rather than
+typeset-in-a-row.
+
+For a figure that dominates the page (a number is the whole point — "26",
+"50% OFF", "Day 3") reach for \`big-numeral\` directly instead of composing
+one: it is a real component, not something you need to build from parts.
+
+A \`word\` part also takes \`role: "accent"\` — a name or short phrase set in
+the lineage's script/handwritten register instead of the plain display font
+("HAPPY BIRTHDAY" in bold caps, "Samira!" beside it in flowing script). Only
+some font pairs define this register on purpose, so ask for it where it fits
+the brief (a name, a signature, an aside) and it will render in the display
+font instead when the assigned pair has no accent — never a forced or ugly
+combination, just a graceful no-op.
+
 ## Density without clutter
 
 The canvas should feel used. But you have 4-7 elements and Gate G3 counts them,

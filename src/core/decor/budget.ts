@@ -72,6 +72,7 @@ export const OVER_ALLOWED: ReadonlySet<DecorForm> = new Set<DecorForm>([
   "squiggle",
   "tape",
   "badge",
+  "bunting-string",
 ]);
 
 /**
@@ -127,4 +128,6 @@ export const INK_FACTOR: Record<DecorForm, number> = {
   motif: 0.45,
   tape: 0.9,
   badge: 0.55,
+  // Mostly the sagging cord plus small triangular pennants, not a filled band.
+  "bunting-string": 0.22,
 };

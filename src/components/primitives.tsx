@@ -82,6 +82,8 @@ export type TextBlockProps = {
   theme: Theme;
   fill: string;
   weight?: number;
+  /** Bypasses `familyFor(theme, role)` — see the same param on `FittedLine`. */
+  family?: string;
   tracking?: number;
   lineHeight?: number;
   align?: "start" | "middle" | "end";
@@ -107,7 +109,7 @@ export function TextBlock(props: TextBlockProps): ReactElement {
     uppercase = false,
     opacity,
   } = props;
-  const family = familyFor(theme, role);
+  const family = props.family ?? familyFor(theme, role);
   const weight = props.weight ?? weightFor(theme, role);
   const tracking = props.tracking ?? 0;
   const lineHeight = props.lineHeight ?? 1.1;
@@ -178,6 +180,7 @@ export function FittedLine({
   theme,
   fill,
   weight,
+  family: familyOverride,
   tracking = 0,
   align = "start",
   uppercase = false,
@@ -194,13 +197,15 @@ export function FittedLine({
   theme: Theme;
   fill: string;
   weight?: number;
+  /** Bypasses `familyFor(theme, role)` — for the rare case a caller needs a specific family the role lookup can't name (a font pair's optional `accent` register). */
+  family?: string;
   tracking?: number;
   align?: "start" | "middle" | "end";
   uppercase?: boolean;
   opacity?: number;
 }): ReactElement {
   const content = uppercase ? text.toUpperCase() : text;
-  const family = familyFor(theme, role);
+  const family = familyOverride ?? familyFor(theme, role);
   const w = weight ?? weightFor(theme, role);
   let size = maxSize;
   while (size > minSize && measureText(content, { family, weight: w, size, tracking }) > maxWidth) {
@@ -219,6 +224,7 @@ export function FittedLine({
       theme={theme}
       fill={fill}
       weight={w}
+      family={family}
       tracking={tracking}
       align={align}
       opacity={opacity}

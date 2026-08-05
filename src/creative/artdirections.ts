@@ -123,7 +123,7 @@ export const ART_DIRECTIONS: readonly ArtDirection[] = [
     topologies: ["framed-centre", "radial-field", "banded-masthead", "off-center-hero"],
     typography: ["quiet-with-one-loud-word", "stacked-contrast", "editorial-annotated"],
     materials: ["soft-industrial", "ink-on-cream", "printed-halftone"],
-    colorLogic: ["warm-neutral-cool-accent", "tinted-ground", "saturated-field"],
+    colorLogic: ["warm-neutral-cool-accent", "tinted-ground", "saturated-field", "soft-pastel-multi"],
     gestures: ["one-rotated-element", "hero-overlaps-eyebrow", "intentional-crop-of-hero"],
     graphics: ["botanical-frame", "organic-blobs", "sticker-sheet", "kawaii-doodle", "festive-scene"],
     preferredComponents: ["polaroid-stack", "torn-photo"],

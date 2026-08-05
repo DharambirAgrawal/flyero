@@ -280,6 +280,56 @@ export function ribbonPath(x: number, y: number, w: number, h: number, notch = h
 }
 
 /**
+ * A hanging string of pennants — the party-bunting banner draped across the
+ * top of an event poster. Not a new drawing technique: the cord is a sampled
+ * sag curve like `dashedRoutePath` bows between two points, and each pennant
+ * is the same swallow-tail-free triangle shape used elsewhere. Returned as
+ * separate pieces (the cord to stroke, one triangle per pennant to fill,
+ * each with its own alternating index) because a cord and a filled pennant
+ * need different paint — one `d` string forcing one fill/stroke would have
+ * to compromise on both.
+ *
+ * The cord's sag and the pennants' drop are budgeted as fixed fractions of
+ * `rect.h` (40% / 60%) rather than derived from the pennant width, so the
+ * whole shape is *guaranteed* to fit inside `rect` — deliberately, since the
+ * caller uses this same rect as the keep-out bbox before any of this geometry
+ * exists. A bbox that understates its own ink is exactly the bug a full-page
+ * frame decoration had; this shape budgets its way out of repeating it.
+ */
+export function buntingStringPath(
+  rect: Rect,
+  count: number,
+): { cord: string; pennants: { d: string; index: number }[] } {
+  const { x, y, w, h } = rect;
+  const sag = h * 0.4;
+  const dropBudget = h * 0.6;
+  const pennantW = Math.min((w / count) * 0.6, dropBudget / 1.15);
+  const anchors: Point[] = Array.from({ length: count + 1 }, (_, i) => {
+    const t = i / count;
+    return { x: x + t * w, y: y + Math.sin(t * Math.PI) * sag };
+  });
+  const cord = polyline(anchors, false);
+  const pennants = Array.from({ length: count }, (_, i) => {
+    const a = anchors[i]!;
+    const b = anchors[i + 1]!;
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2;
+    return {
+      d: polyline(
+        [
+          { x: mx - pennantW / 2, y: my },
+          { x: mx + pennantW / 2, y: my },
+          { x: mx, y: my + pennantW * 1.15 },
+        ],
+        true,
+      ),
+      index: i,
+    };
+  });
+  return { cord, pennants };
+}
+
+/**
  * A rectangle with one ragged edge, as if torn from paper. `edge` names the
  * side that tears; the other three stay straight so the shape still butts
  * cleanly against a layout box.
@@ -766,6 +816,24 @@ const MOTIF_DATA = {
   /** Three sparkles at different sizes, scattered like a doodled margin note — one motif, not three placements. */
   "sparkle-doodle": {
     d: `${sparklePath(50, 52, 22)} ${sparklePath(80, 26, 10)} ${sparklePath(18, 76, 8)}`,
+  },
+
+  /** Conical party hat, wavy brim, pom-pom tip — sketched line art. */
+  "party-hat": {
+    d:
+      "M 50 8 L 20 85 L 80 85 Z " +
+      `${wavePath(20, 85, 60, 4, 8)} ` +
+      `${ellipsePath(50, 8, 6, 6)}`,
+    stroke: true,
+  },
+
+  /** Boxed gift with a ribbon cross and bow, drawn as line art rather than filled — see `gift` for the solid version. */
+  "gift-outline": {
+    d:
+      `${roundedRectPath({ x: 25, y: 40, w: 50, h: 50 }, 4)} ` +
+      "M 50 40 L 50 90 M 25 65 L 75 65 " +
+      "M 50 40 Q 35 25 50 25 Q 65 25 50 40",
+    stroke: true,
   },
 } as const;
 

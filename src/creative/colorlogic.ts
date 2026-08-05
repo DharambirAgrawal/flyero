@@ -6,6 +6,14 @@ export type Palette = {
   bg: string;
   fg: string;
   accent: string;
+  /**
+   * A second, related accent — analogous in hue to `accent`, not a clash.
+   * Exists for compositions that need more than one colour of *emphasis* in
+   * the same family (a balloon cluster, a multi-pennant bunting string)
+   * without becoming a second unrelated palette. Never the only accent
+   * anything is required to use; treat `accent` as the primary always.
+   */
+  accent2: string;
   muted: string;
 };
 
@@ -71,15 +79,33 @@ function brandAccent(p: Hsl): string {
 }
 
 /**
+ * `accent2` derived from `accent` alone — a fixed hue rotation, not a fresh
+ * random draw — so it stays visibly *related* to the accent every generator
+ * already computed carefully (brand colour, banned-band avoidance, the lot)
+ * rather than risking a second independent roll landing somewhere that
+ * clashes with everything else. Lightness nudges toward the opposite end of
+ * the accent's own lightness so the two stay distinguishable next to each
+ * other, not just in hue.
+ */
+function relatedAccent(accent: string): string {
+  const a = toHsl(accent);
+  const h2 = (a.h + 36) % 360;
+  const l2 = clamp(a.l + (a.l > 0.5 ? -0.14 : 0.14), 0.16, 0.82);
+  return hsl(h2, a.s, l2);
+}
+
+/**
  * Every generator returns through here, so a palette is legible by construction
  * rather than by later critique. The accent is held to the large-text threshold
  * because it carries CTA labels, rules and marks — never body copy.
  */
 function finish(bg: string, fg: string, accent: string, muted: string): Palette {
+  const resolvedAccent = ensureContrast(accent, bg, true);
   return {
     bg,
     fg: ensureContrast(fg, bg),
-    accent: ensureContrast(accent, bg, true),
+    accent: resolvedAccent,
+    accent2: ensureContrast(relatedAccent(resolvedAccent), bg, true),
     muted: ensureContrast(muted, bg, true),
   };
 }
@@ -273,6 +299,43 @@ export const COLOR_LOGIC: readonly ColorLogicValue[] = [
         ? hsl(s2.h, clamp(s2.s, 0.6, 0.92), clamp(s2.l, 0.22, 0.34))
         : hsl((h + rng.range(150, 210)) % 360, rng.range(0.65, 0.88), rng.range(0.24, 0.34));
       return finish(bg, fg, accent, mix(fg, bg, 0.38));
+    },
+  },
+  {
+    id: "soft-pastel-multi",
+    brief:
+      "Multiple soft pastel hues rather than one hard accent — a gentle warm-white ground, rose or lavender marks, nothing saturated or dark. The kawaii/celebration register.",
+    adventurousness: 2,
+    generate: (rng, brand) => {
+      const p = brandPrimary(brand);
+      /**
+       * Not `baseHue()`'s full range. A pastel only reads as "soft and
+       * pretty" rather than "washed-out and muddy" in specific hue families —
+       * pink, lavender, soft blue, mint. Yellow-green and orange desaturate
+       * into khaki/olive once `ensureContrast` darkens them for AA text, which
+       * is exactly the muddy result this logic exists to avoid. Chosen over
+       * `baseHue()`'s bands rather than reusing them for that reason.
+       */
+      const pastelBands: Array<[number, number]> = [
+        [340, 376], // pink
+        [260, 300], // lavender
+        [190, 225], // soft blue
+        [150, 180], // mint
+      ];
+      const h = p?.h ?? rng.range(...rng.pick(pastelBands)) % 360;
+      // A near-white ground, but never fully desaturated — a true pastel page
+      // still carries a whisper of hue, which is what separates it from the
+      // "document" white every near-neutral logic already produces.
+      const bg = hsl(h, rng.range(0.14, 0.24), rng.range(0.94, 0.97));
+      const fg = hsl(h, rng.range(0.22, 0.34), rng.range(0.2, 0.28));
+      // Pastel is moderate saturation at *high* lightness, not full chroma —
+      // `finish` will darken this via ensureContrast if the ground is too
+      // close in lightness to clear AA, which lands it at "dusty" rather than
+      // "pale," and that is still the right family, just not washed out.
+      const accent = p
+        ? hsl(p.h, clamp(p.s * 0.55, 0.32, 0.55), clamp(p.l, 0.6, 0.74))
+        : hsl(h, rng.range(0.42, 0.58), rng.range(0.64, 0.74));
+      return finish(bg, fg, accent, mix(fg, bg, 0.5));
     },
   },
 ] as const;

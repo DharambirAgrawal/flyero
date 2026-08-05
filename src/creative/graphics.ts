@@ -180,9 +180,10 @@ export const GRAPHICS: readonly GraphicsValue[] = [
   {
     id: "festive-scene",
     brief:
-      "A celebration in full colour: balloons and a wrapped gift anchoring a corner, confetti drifting around them — the party-invitation register.",
+      "A celebration in full colour: a bunting banner overhead, balloons and a wrapped gift anchoring a corner, confetti drifting around them — the party-invitation register.",
     grounds: ["flat", "gradient-wash"],
     slots: [
+      { form: "bunting-string", layer: "over", zone: "banner", weight: "solid", scale: [0.55, 0.8] },
       {
         form: "motif",
         layer: "over",
@@ -200,6 +201,19 @@ export const GRAPHICS: readonly GraphicsValue[] = [
         motifs: ["confetti", "star"],
       },
       { form: "tape", layer: "over", zone: "corner", weight: "solid", scale: [0.12, 0.2] },
+      // A large, barely-there echo behind everything — the ghost balloon
+      // silhouette a photo sits in front of on a real party invite. `wash`
+      // weight is exempt from the keep-out/tone checks (it's faint enough
+      // that "under a headline" is invisible, not wrong), which is what
+      // makes a mark this large safe to place at all.
+      {
+        form: "motif",
+        layer: "under",
+        zone: "corner",
+        weight: "wash",
+        scale: [0.4, 0.6],
+        motifs: ["balloon", "flower"],
+      },
     ],
     adventurousness: 3,
   },

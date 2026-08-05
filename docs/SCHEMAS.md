@@ -125,8 +125,8 @@ type DesignSpec = {
   story: [string, string, string, string]; // problem → acting → payoff → CTA
   canvas: { w: number; h: number; safe: number }; // must match a Format in src/creative/formats.ts (portrait-4x5 1080x1350 safe:64 / square-1x1 1080x1080 safe:56 / story-9x16 1080x1920 safe:72)
   brand: {
-    colors: { bg: string; fg: string; accent: string; muted: string };
-    fonts: { display: string; body: string; mono?: string | null };
+    colors: { bg: string; fg: string; accent: string; accent2: string; muted: string }; // accent2 added 2026-08-05: a hue-related second accent, for multi-colour clusters — never the only accent anything is required to use
+    fonts: { display: string; body: string; mono?: string | null }; // font pairs may also carry an optional accent/accentWeight (script/handwritten register) — see src/creative/fontpairs.ts
   };
   /** Exact user-supplied statements retained so Gate G6 can verify without the Brief. */
   provenance: { userStatements: string[] };

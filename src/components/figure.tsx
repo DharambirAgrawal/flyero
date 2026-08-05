@@ -65,7 +65,7 @@ const SHAPE_FORMS = [
   "torn",
 ] as const;
 
-const TONES = ["ink", "accent", "muted", "paper", "ground"] as const;
+const TONES = ["ink", "accent", "accent2", "muted", "paper", "ground"] as const;
 
 const partSchema = z.object({
   id: z
@@ -112,6 +112,14 @@ const partSchema = z.object({
     z.object({
       kind: z.literal("word"),
       text: z.string().min(1).max(24),
+      /**
+       * "accent" reaches for the flyer's script/handwritten register — the
+       * flowing "Samira!" beside a bold "HAPPY BIRTHDAY" — instead of the
+       * plain display font every other word uses. Falls back to display when
+       * this lineage's font pair has no accent defined; not every pair does,
+       * on purpose, so this can never produce an ugly forced pairing.
+       */
+      role: z.enum(["display", "accent"]).default("display"),
     }),
   ]),
 
@@ -272,6 +280,8 @@ function colourFor(tone: FigurePart["tone"], theme: Theme, box: { onDark?: boole
       return inkFor(theme, box);
     case "accent":
       return theme.palette.accent;
+    case "accent2":
+      return theme.palette.accent2;
     case "muted":
       return mutedInkFor(theme, box);
     case "paper":
@@ -499,7 +509,8 @@ function renderPart(
       );
     }
 
-    case "word":
+    case "word": {
+      const wantsAccent = part.draw.role === "accent" && Boolean(theme.fonts.accent);
       return (
         <g key={key} data-name={key} transform={spin}>
           <FittedLine
@@ -511,12 +522,15 @@ function renderPart(
             maxSize={rect.h * 0.9}
             minSize={Math.max(10, rect.h * 0.3)}
             role="display"
+            family={wantsAccent ? theme.fonts.accent : undefined}
+            weight={wantsAccent ? theme.fonts.accentWeight : undefined}
             theme={theme}
             fill={fill}
             align="middle"
           />
         </g>
       );
+    }
   }
 }
 

@@ -6,6 +6,91 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — The six gaps from the two-reference review, closed
+
+Direct follow-through on the "AVERY TURNS 26" / "HAPPY BIRTHDAY Samira!"
+review earlier the same day: two capabilities that already existed just
+weren't being reached, four genuinely didn't exist. All six addressed.
+
+### Added
+- **Bunting/pennant string** — `buntingStringPath` (`shapes.ts`) plus a new
+  `bunting-string` `DecorForm`. Budgets its cord-sag and pennant-drop as
+  fixed fractions of its own rect height (40% / 60%) so the declared bbox
+  always matches the true ink extent — the first version derived the split
+  from pennant width instead and could draw pennants past its own bbox,
+  which is the same class of bug a full-page frame decoration already hit
+  once. Needed a new `"banner"` `DecorZone` too: the existing `"edge"` zone
+  returns a *square* region sized off one `size` value, which is the wrong
+  shape for a wide short band and collided with whatever sits at the top of
+  the page on almost every attempt. Wired into `festive-scene`.
+- **`accent2` on `Palette`** (`colorlogic.ts`) — every generator now returns
+  a second, hue-related accent (fixed +36° rotation off the resolved accent,
+  lightness nudged for separation), computed once in the shared `finish()`
+  so none of the 10 generators needed individual changes. Exposed to
+  `composed-figure` via a new `"accent2"` tone. This is what makes a
+  genuine multi-colour balloon cluster possible — previously every palette
+  had exactly one accent, so "shaded" balloons could only ever be one colour.
+- **`soft-pastel-multi` colour logic** — a genuine pastel palette (previously
+  every one of the 10 generators was single-accent, duotone, or one
+  saturated field; none produced a soft multi-hue page). Deliberately
+  restricted to specific hue bands (pink, lavender, soft blue, mint) rather
+  than reusing `baseHue()`'s wider range: a first version using the general
+  range landed on a yellow-green base that `ensureContrast` darkened into
+  khaki/olive, not pastel — some hues read as "soft" once darkened for AA
+  text contrast and some read as "muddy," and that has to be chosen for, not
+  left to chance. Wired into `botanical-celebration`.
+- **`role: "accent"` on `composed-figure`'s `word` parts**, plus `accent`/
+  `accentWeight` on `FontPair` (set on `anton-inter` and `bungee-inter`,
+  pointing at the already-downloaded Great Vibes script face — no new font
+  fetch needed). Lets a composition mix a bold display headline with a
+  flowing script word ("HAPPY BIRTHDAY" + "Samira!") instead of every line
+  on the page sharing one register. Falls back to the display font when a
+  pair defines no accent, so it can never force an ugly combination.
+- **Background "ghost" texture** — no new mechanism needed, `weight: "wash"`
+  motifs already existed and are already exempt from keep-out/tone checks.
+  Verified the effect (a large, barely-there shape behind the composition)
+  actually reads correctly at scale, then wired a real one into
+  `festive-scene`. Confirms the plan-mode assumption from earlier in the day
+  ("probably reachable already, lower confidence, would need to actually
+  test") — it needed testing, then five minutes of wiring, not new code.
+- Skills guidance for the two already-existing-but-unused capabilities:
+  scattering rotated `word` fragments around a headline instead of a plain
+  eyebrow, and reaching for `big-numeral` directly for a page-dominating
+  figure. Same reachability lesson as the 2026-08-02 `visual`-field fix —
+  a capability nobody is told about might as well not exist.
+
+### Fixed
+- **`FittedLine` computed a font-family override and then never passed it to
+  the `TextBlock` it renders through** — `TextBlock` re-derived its own
+  family from `role` independently, silently discarding the override. Found
+  while verifying the `role: "accent"` word feature above: the accent word
+  rendered in the *display* font, not the script one, even though the
+  override was correctly resolved one level up. `family` is now threaded
+  through both `FittedLine` and `TextBlockProps`. This bug would have
+  silently defeated the plate/band pill-shape work from earlier in the day
+  too, had that path gone through `FittedLine` — it doesn't, so it didn't,
+  but the fix is the same class of "computed the right thing, dropped it on
+  the way to the renderer" issue found twice today.
+
+### Found, not fixed (recorded, not silently absorbed)
+- `runGates`'s "contrast" mechanical check fails intermittently (~2 of 7
+  sampled) whenever a `gradient-wash` ground is drawn — pre-existing,
+  confirmed on `organic-blobs` (untouched this session) at the same seeds,
+  not something today's work introduced. Likely checks `accent` against
+  `theme.palette.bg` rather than the gradient's actual darkest rendered
+  stop. Not fixed here — found while gate-auditing the bunting work, out of
+  scope for this pass, added to `docs/GAP-ANALYSIS.md`'s Working order.
+
+### Verification
+- All 12 graphics × 14 topologies (168 combinations) checked for mechanical
+  gate failures, contrast excluded (see above) — clean.
+- Bunting, multi-colour clusters, pastel palette, mixed type register, and
+  the background wash each rendered and visually confirmed, not just
+  gate-checked.
+- Full suite green (`npm test`).
+
+---
+
 ## 2026-08-05 — Checked two free sticker sources, kept neither; added line-art motifs instead
 
 ### Decisions recorded

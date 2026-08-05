@@ -119,7 +119,8 @@ export type ColorLogicId =
   | "monochrome-with-signal"
   | "tinted-ground"
   | "saturated-field"
-  | "colour-block-duo";
+  | "colour-block-duo"
+  | "soft-pastel-multi";
 
 export type GestureId =
   | "element-escapes-canvas"

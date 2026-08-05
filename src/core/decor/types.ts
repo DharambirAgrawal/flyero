@@ -103,7 +103,8 @@ export type DecorForm =
   | "polygon"
   | "motif"
   | "tape"
-  | "badge";
+  | "badge"
+  | "bunting-string";
 
 export type DecorLayer = "under" | "over";
 
@@ -163,7 +164,7 @@ export type Decoration = {
 // ── Placement ───────────────────────────────────────────────────────────────
 
 /** Where on the canvas a slot wants to sit. */
-export type DecorZone = "corner" | "edge" | "field" | "gap" | "behind-message";
+export type DecorZone = "corner" | "edge" | "field" | "gap" | "behind-message" | "banner";
 
 /** A graphic language's declarative request for one mark. */
 export type DecorSlot = {

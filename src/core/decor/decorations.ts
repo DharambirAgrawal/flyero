@@ -16,6 +16,7 @@ import {
   MOTIF_NAMES,
   arcBands,
   blobPath,
+  buntingStringPath,
   burstPath,
   checkerTile,
   dashedRoutePath,
@@ -34,6 +35,7 @@ import {
 } from "../../components/shapes.js";
 import type { Box, Theme } from "../../components/types.js";
 import type { GraphicsValue } from "../../creative/graphics.js";
+import { mix } from "../../creative/color.js";
 import { Rng } from "../../lib/rng.js";
 import type { DesignSpec } from "../compose/spec.js";
 import {
@@ -131,6 +133,22 @@ function placeFor(slot: DecorSlot, rng: Rng, canvas: { w: number; h: number }, b
   const size = canvas.w * rng.range(slot.scale[0], slot.scale[1]);
 
   if (slot.zone === "field") return { x: 0, y: 0, w: canvas.w, h: canvas.h };
+
+  // A wide, short band across the top — what a hanging bunting string or
+  // any future top-of-page banner actually needs. "edge" gives a *square*
+  // region sized off `size` alone, which is the wrong shape for this and,
+  // being nearly as tall as it is wide, collided with whatever sits at the
+  // top or bottom of the page on almost every attempt.
+  if (slot.zone === "banner") {
+    const w = canvas.w * rng.range(slot.scale[0], slot.scale[1]);
+    // Capped in absolute px, not just proportionally: content above the safe
+    // rect (an eyebrow, typically) sits as close as `canvas.safe - PAD_TEXT`
+    // to the true edge, so this has to stay shorter than that regardless of
+    // how wide the banner is. Mostly bled into the top margin on purpose —
+    // bunting reads as hanging from the very top edge, above any text.
+    const h = Math.min(w * 0.09, 46);
+    return { x: (canvas.w - w) / 2, y: -h * 0.28, w, h };
+  }
 
   if (slot.zone === "corner") {
     // Anchored to a corner and allowed to run off it, which is what stops a
@@ -286,6 +304,22 @@ function nodesFor(
           rotate: mid.angle,
           fill: ink,
         },
+      ];
+    }
+
+    case "bunting-string": {
+      const count = rng.int(5, 8);
+      const { cord, pennants } = buntingStringPath(rect, count);
+      const tint = mix(ink, "#ffffff", 0.3);
+      return [
+        { t: "path", d: cord, stroke: ink, sw: Math.max(2, rect.w * 0.004) },
+        ...pennants.map((p) => ({
+          t: "path" as const,
+          d: p.d,
+          // Alternating tint rather than a flat repeat — a string of pennants
+          // that are all one solid colour reads as a bar chart, not bunting.
+          fill: p.index % 2 === 0 ? ink : tint,
+        })),
       ];
     }
 

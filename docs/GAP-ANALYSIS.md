@@ -533,15 +533,23 @@ automated against a site whose terms forbid it — and it lands as an *asset*
    the ground, with type over it and a legibility scrim — the single biggest
    visual change.
 3. **Commit the palette.** Make saturated grounds the common case for
-   photo-led and campaign briefs, not a rare roll — and add a genuine pastel
-   multi-accent generator, which does not exist in any form yet (2026-08-05).
+   photo-led and campaign briefs, not a rare roll. The pastel-generator gap
+   named here is **closed (2026-08-05)** — `soft-pastel-multi` in
+   `colorlogic.ts`, wired into `botanical-celebration`.
 4. **Text clusters.** One element carrying several small lines, so the canvas
    can hold 12+ text objects inside a 4–7 element budget.
 5. **Type in shapes**, **frames**, **scene illustration** — in that order.
-6. **Reachability sweep (2026-08-05).** Wire `kawaii-doodle`/`festive-scene`
-   into more art directions (`crafted-collage` at minimum); surface `shaded`
-   motifs somewhere an agent is actually told about them; root-cause the
-   speech-bubble-with-no-shape render.
+6. **Reachability sweep.** `kawaii-doodle`/`festive-scene` are still only
+   reachable from `botanical-celebration` — wire into `crafted-collage` too.
+   `word` fragments and `big-numeral` are surfaced in skills.ts now
+   (2026-08-05); `shaded` motifs are still not mentioned anywhere an agent
+   would read. The speech-bubble-with-no-shape render from the Luma Journal
+   session is still not root-caused.
+7. **`runGates` "contrast" mechanical check fails intermittently against a
+   `gradient-wash` ground** (2026-08-05) — confirmed on `organic-blobs`, a
+   pre-existing gap, not caused by that day's work. Likely checks `accent`
+   against `theme.palette.bg` rather than the gradient's actual darkest
+   rendered stop. Not investigated further yet.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

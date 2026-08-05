@@ -11,6 +11,17 @@ export type FontPair = {
   body: string;
   /** Mono family for technical labels; falls back to body when absent. */
   mono?: string;
+  /**
+   * A second, deliberately different register — a script or handwritten
+   * family a `word` part in `composed-figure` can opt into, so a composition
+   * can mix a bold display headline with a flowing name/accent word ("HAPPY
+   * BIRTHDAY" + "Samira!") without every headline in the flyer switching to
+   * script. Only defined on pairs where it was chosen on purpose to sit next
+   * to that pair's display font; absent everywhere else, and callers must
+   * fall back to `display` when it's missing rather than assume it exists.
+   */
+  accent?: string;
+  accentWeight?: number;
   /** Weights the renderer is allowed to request for each role. */
   weights: { display: number; body: number; label: number };
   materials: MaterialId[];
@@ -107,6 +118,8 @@ export const FONT_PAIRS: readonly FontPair[] = [
     body: "Inter",
     // Anton ships one weight; asking for 900 would silently fall back.
     weights: { display: 400, body: 400, label: 600 },
+    accent: "Great Vibes",
+    accentWeight: 400,
     materials: ["printed-halftone", "soft-industrial", "chromatic-glass"],
     typography: ["compressed-monumental", "masked-by-subject", "stacked-contrast"],
   },
@@ -157,6 +170,8 @@ export const FONT_PAIRS: readonly FontPair[] = [
     body: "Inter",
     // Bungee ships one weight; asking for another would silently fall back.
     weights: { display: 400, body: 400, label: 600 },
+    accent: "Great Vibes",
+    accentWeight: 400,
     materials: ["printed-halftone", "ink-on-cream"],
     typography: ["compressed-monumental", "stacked-contrast", "baseline-broken"],
   },

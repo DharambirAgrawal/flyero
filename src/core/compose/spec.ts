@@ -140,6 +140,7 @@ export const brandSchema = z.object({
     bg: z.string(),
     fg: z.string(),
     accent: z.string(),
+    accent2: z.string(),
     muted: z.string(),
   }),
   fonts: z.object({
