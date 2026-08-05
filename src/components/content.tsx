@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import { FittedLine, Group, Panel, Rule, TextBlock, textBlockHeight, fitText, inkFor, measureText, metricsFor, mutedInkFor } from "./primitives.js";
 import type { ComponentModule } from "./types.js";
 import { ensureContrast, mix, withAlpha } from "../creative/color.js";
-import { arcGuideId, arcTextPath } from "./shapes.js";
+import { arcGuideId, arcTextPath, ribbonPath, roundedRectPath } from "./shapes.js";
 
 /** Content components: the words. Eight modules, each professional on its own. */
 
@@ -33,6 +33,13 @@ const headlineBlock: ComponentModule = {
      * <text> and preserves the SVG editability guarantee.
      */
     treatment: z.enum(["plain", "outline", "shadow", "arch", "plate", "band"]).default("plain"),
+    /**
+     * The block `plate`/`band` draws the type on. Ignored by every other
+     * treatment. `pill` and `ribbon` are what "the word sits inside an oval /
+     * banner" references (a vintage stamp, a Y2K sticker bar) actually need —
+     * `plate`'s rectangle alone could not reach that register.
+     */
+    plateShape: z.enum(["rect", "pill", "ribbon"]).default("rect"),
   }),
   intrinsicHeight: (props, theme, width) => {
     const size = Math.min(140, width * 0.16) * theme.typography.headlineScale;
@@ -41,10 +48,11 @@ const headlineBlock: ComponentModule = {
     });
   },
   render: ({ id, box, theme, copy, props }) => {
-    const { align, loudWord, treatment } = props as {
+    const { align, loudWord, treatment, plateShape } = props as {
       align: "start" | "middle" | "end";
       loudWord: string | null;
       treatment: "plain" | "outline" | "shadow" | "arch" | "plate" | "band";
+      plateShape: "rect" | "pill" | "ribbon";
     };
     const size = box.fontSize ?? 96;
     const lines = box.lines ?? [copy.headline];
@@ -190,13 +198,16 @@ const headlineBlock: ComponentModule = {
       const weight = theme.fonts.weights.display;
       const block = ensureContrast(theme.palette.accent, theme.palette.bg, true);
       const ink = ensureContrast("#ffffff", block) === "#ffffff" ? "#ffffff" : theme.palette.bg;
-      const padX = size * 0.22;
+      // A ribbon's swallow-tail notches eat into the sides, so text needs more
+      // clearance there than a plain rect or a pill (whose curve only costs
+      // space near the very top/bottom of the line, not beside the glyphs).
+      const padX = size * (plateShape === "ribbon" ? 0.34 : 0.22);
       const padY = size * 0.12;
       const lh = theme.typography.lineHeight;
       // The plate is sized to the *ink*, not to the line box. Using
       // size * lineHeight made the block far taller than the letters and hung
       // the descenders out below its bottom edge.
-      const { ascent, descent } = metricsFor({
+      const { descent } = metricsFor({
         family,
         weight,
         size,
@@ -208,35 +219,53 @@ const headlineBlock: ComponentModule = {
       // tall as the letters themselves. Cap height is ~0.72 of the em for the
       // faces in this library, and that is what the eye reads as the top edge.
       const capHeight = size * 0.72;
-      const plateH = capHeight + descent + padY * 2;
+      const perLineH = size * lh;
+
+      // One plate behind the whole block, not one per line: sizing a block to
+      // each line's own width and stacking them produced a staircase on any
+      // wrapped headline, since wrapped lines are rarely the same width.
+      const w =
+        treatment === "band"
+          ? box.w
+          : Math.max(
+              ...lines.map(
+                (line) => measureText(line, { family, weight, size, tracking: theme.typography.tracking }) + padX * 2,
+              ),
+            );
+      const h = (lines.length - 1) * perLineH + capHeight + descent + padY * 2;
+      const x = align === "end" ? box.x + box.w - w : align === "middle" ? box.x + (box.w - w) / 2 : box.x;
+      const y = box.y;
+      const anchorX = align === "end" ? x + w - padX : align === "middle" ? x + w / 2 : x + padX;
+      const textAnchor = align === "end" ? "end" : align === "middle" ? "middle" : "start";
+      const plateNode =
+        plateShape === "pill" ? (
+          <path d={roundedRectPath({ x, y, w, h }, h / 2)} fill={block} />
+        ) : plateShape === "ribbon" ? (
+          <path d={ribbonPath(x, y, w, h)} fill={block} />
+        ) : (
+          <rect x={x} y={y} width={w} height={h} fill={block} />
+        );
 
       return (
         <Group name={id}>
-          {lines.map((line, i) => {
-            const w =
-              treatment === "band"
-                ? box.w
-                : measureText(line, { family, weight, size, tracking: theme.typography.tracking }) + padX * 2;
-            const y = box.y + i * size * lh;
-            const x = align === "end" ? box.x + box.w - w : align === "middle" ? box.x + (box.w - w) / 2 : box.x;
-            return (
-              <Group key={i} name={`${id}-line-${i + 1}`}>
-                <rect x={x} y={y} width={w} height={plateH} fill={block} />
-                <text
-                  x={x + padX}
-                  y={y + padY + capHeight}
-                  fill={ink}
-                  fontFamily={family}
-                  fontSize={size}
-                  fontWeight={weight}
-                  letterSpacing={theme.typography.tracking * size}
-                  xmlSpace="preserve"
-                >
-                  {line}
-                </text>
-              </Group>
-            );
-          })}
+          {plateNode}
+          {lines.map((line, i) => (
+            <text
+              key={i}
+              data-name={`${id}-line-${i + 1}`}
+              x={anchorX}
+              y={y + i * perLineH + padY + capHeight}
+              textAnchor={textAnchor}
+              fill={ink}
+              fontFamily={family}
+              fontSize={size}
+              fontWeight={weight}
+              letterSpacing={theme.typography.tracking * size}
+              xmlSpace="preserve"
+            >
+              {line}
+            </text>
+          ))}
         </Group>
       );
     }

@@ -59,7 +59,7 @@ MCP server (6 tools from `API.md` §7, stdio), returning preview images so calli
 
 | Phase | What | Trigger |
 |---|---|---|
-| L1 | Story (1080×1920) + A4 formats — re-layout recipes over the same spec | Milestone 6 users ask for them (they will) |
+| L1 | ~~Story (1080×1920) + A4 formats~~ — **done 2026-08-05** (Story + Square; A4 still open), pulled forward by a direct user request rather than through Milestone 6. See `CHANGELOG.md` 2026-08-05 "Multi-format support". | Milestone 6 users ask for them (they will) |
 | L2 | Project memory — lineage fingerprints per project so a returning user's campaign stays fresh | A real user generates 5+ flyers for one product and notices repetition |
 | L3 | Motion compiler (Remotion) — gestures become animations, components already carry motion affordances | Side-by-side win published and static demand proven |
 | L4 | Deck compiler — story arc → 5 slides | Same as L3 |

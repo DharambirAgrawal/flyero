@@ -41,6 +41,7 @@ function migrate(database: Database.Database): void {
       prompt       TEXT NOT NULL,
       runs         INTEGER NOT NULL,
       risk         TEXT NOT NULL,
+      format       TEXT NOT NULL DEFAULT 'portrait-4x5',
       created_at   TEXT NOT NULL
     );
 
@@ -53,6 +54,7 @@ function migrate(database: Database.Database): void {
       prompt         TEXT NOT NULL,
       product_name   TEXT,
       risk           TEXT NOT NULL,
+      format         TEXT NOT NULL DEFAULT 'portrait-4x5',
       brand          TEXT,
       asset_ids      TEXT NOT NULL DEFAULT '[]',
       callback_url   TEXT,
@@ -130,6 +132,17 @@ function migrate(database: Database.Database): void {
   }
   if (!names.has("author")) {
     database.exec("ALTER TABLE assets ADD COLUMN author TEXT");
+  }
+
+  // Format (canvas size) was added after `jobs`/`batches` shipped — default
+  // existing rows to the size every job before this change actually rendered at.
+  const jobCols = database.prepare("PRAGMA table_info(jobs)").all() as Array<{ name: string }>;
+  if (!jobCols.some((c) => c.name === "format")) {
+    database.exec("ALTER TABLE jobs ADD COLUMN format TEXT NOT NULL DEFAULT 'portrait-4x5'");
+  }
+  const batchCols = database.prepare("PRAGMA table_info(batches)").all() as Array<{ name: string }>;
+  if (!batchCols.some((c) => c.name === "format")) {
+    database.exec("ALTER TABLE batches ADD COLUMN format TEXT NOT NULL DEFAULT 'portrait-4x5'");
   }
 }
 

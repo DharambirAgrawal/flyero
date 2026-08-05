@@ -6,6 +6,138 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — Multi-format support (L1, pulled forward)
+
+User directly asked for size-awareness — the agent choosing among several
+canvas dimensions, not just the one fixed portrait — in the same request that
+prompted the motif/frame work above. `docs/ROADMAP.md` had gated this behind
+"Milestone 6 users ask for them" (L1); recording here, per AGENTS.md, that the
+trigger fired directly instead of through that milestone. `docs/ROADMAP.md`
+L1 row updated to point at this entry.
+
+### Added
+- **`src/creative/formats.ts`** — a `Format` dimension (`{id, w, h, safe, label}`),
+  not a Studio Sampler dimension (format is chosen by the caller, not sampled
+  per lineage). Three to start: `portrait-4x5` (1080×1350, the original,
+  still the default everywhere), `square-1x1` (1080×1080), `story-9x16`
+  (1080×1920).
+- **`format` threaded end to end**: `POST /v1/flyers`, `POST /v1/batches`,
+  `POST /v1/flyers/compose` (agent-native path), the `create_flyer` /
+  `create_flyer_batch` / `request_designers` MCP tools, and a new
+  `GET /v1/formats` for discovery. Every entry point defaults to
+  `portrait-4x5` when omitted, so no existing caller's behavior changes.
+  `jobs`/`batches` gained a `format` column (additive `ALTER TABLE`
+  migration in `src/store/db.ts`, same pattern as the existing asset-transform
+  columns — an existing local `data/flyero.db` upgrades in place).
+- `src/core/compose/spec.ts`'s canvas schema now validates `w`/`h` against
+  `isKnownCanvasSize` instead of a hardcoded `z.literal(1080)/z.literal(1350)`.
+
+### Fixed
+- **`type-poster`'s headline could overflow the canvas on a shorter format.**
+  The recipe's `headlineCeiling: 0.24` sizes off canvas *width*, which is
+  1080 in every format here, but the solver lets the headline box grow past
+  its nominal slot height to fit the text (`solver.ts` §3, by design — the
+  box grows rather than the text always shrinking to a fixed slot). That
+  read fine against the tall portrait canvas it was tuned against and
+  visibly clipped on `square-1x1`'s shorter one at 4 lines near ceiling.
+  Capped to `0.19`/3 lines — verified against all 14 topologies on all 3
+  formats (mechanical gates + a structural off-canvas-box check) after.
+
+### Verification
+- Every topology recipe rendered at every format and eyeballed (normalized
+  0–1 rects mostly port automatically, as `ARCHITECTURE.md` intended — only
+  `type-poster` needed a change). `story-9x16` needed none — extra vertical
+  room only helps. The five pre-existing intentional bleed topologies
+  (`split-editorial`, `oversized-anchor`, `layered-depth-stack`,
+  `off-center-hero`, `asymmetric-two-column`) show the same boxes running
+  past the canvas edge in all three formats, confirming that's by design
+  (`recipe.bleed`), not new breakage.
+- `runGates` mechanical checks (overflow, WCAG-AA contrast, safe margins,
+  banned-list) pass across the full 3-format × 14-topology product.
+- Full suite green (`npm test`).
+
+### Decisions recorded
+- `assembleSpec`'s 4th parameter is the resolved `{w, h, safe}`, not a
+  `FormatId` — a revision must reuse the *stored* spec's own canvas exactly,
+  and re-deriving a `FormatId` from stored dimensions to look it back up
+  would be a lossy round-trip for no reason. Fresh composition resolves a
+  `FormatId` to that shape via `formatById` at the call site instead.
+- Deferred: auditing every graphic language's `grounds`/`slots` scale ranges
+  per format (the new `wobble-frame`/`scallop-frame` insets, decor `scale`
+  fractions, etc. are all width-relative and looked fine in this pass's
+  renders, but weren't exhaustively swept the way topology recipes were).
+
+---
+
+## 2026-08-05 — A thicker motif/frame vocabulary, and a real onDark bug it exposed
+
+User feedback, with four reference posters (a halftone vintage bazaar flyer, a
+Y2K/Memphis grid, a kawaii doodle scrapbook page, a festive birthday card):
+the range of decoration was too thin to reach any of them. Investigation
+(`docs/GAP-ANALYSIS.md`'s own "Working order") confirmed the gap was real —
+11 motif icons, one rectangular frame/plate shape — not imagined.
+
+### Added
+- **11 new hand-authored motifs** in `src/components/shapes.ts` (`star`,
+  `heart`, `flower`, `lightning`, `balloon`, `gift`, `bunting`, `confetti`,
+  `speech-bubble`, `rainbow`, `smiley`), same pattern as the existing 11: pure
+  path math, no bundled icon set. `flower`/`rainbow` reuse `ellipsePath`/
+  `archPath` rather than inventing new construction.
+- **Two new frame ground kinds** (`wobble-frame`, `scallop-frame` in
+  `src/core/decor/ground.ts`), modeled directly on the existing `block-frame`:
+  a ring region (outer path minus inner path, evenodd), just with the outer
+  edge drawn by two new path generators (`wobblyFramePath`,
+  `scallopedFramePath` in `shapes.ts`) instead of a rounded rect. Framing the
+  whole page turned out to belong with ground, not decor — a ring's bbox is
+  nearly the whole canvas, which is structurally incompatible with the
+  decor-item keep-out/budget system (tried first; see Fixed).
+- **`plateShape` on `headline-block`** (`rect` / `pill` / `ribbon`) — the
+  `plate`/`band` treatment can now set type inside an oval or a banner, not
+  only a rectangle.
+- **Two new graphic languages**, `kawaii-doodle` and `festive-scene`, plus
+  extended `halftone-pop` (optional `scallop-frame` ground) and
+  `geometric-memphis` (a `star`/`lightning`/`flower`/`smiley` motif slot) —
+  wired into `botanical-celebration`'s art direction so the sampler can
+  actually reach them, per the 2026-08-02 lesson that an unreachable option
+  might as well not exist.
+
+### Fixed
+- **The `plate` headline treatment drew one background block per line**, so a
+  wrapped headline came back as a staircase of different-width rectangles
+  instead of one plate hugging the block. Rewritten to size one plate to the
+  widest line and set every line's `text-anchor` against it.
+- **A ring ground region's bbox lies about its own coverage, and two separate
+  systems believed it.** `GroundRegion.bbox` is a ring's *outer* rect —
+  necessary for the `region()`/`markOnDarkFromGround` overlap math generally,
+  but for a ring shape that outer rect is nearly the whole canvas even though
+  the actual ink is a thin band at the very edge. Two consumers took that bbox
+  at face value: `markOnDarkFromGround`'s per-box coverage check, and (the
+  real culprit, found only by rendering and looking) the solver's tone field
+  (`solver.ts`'s `tone.paintFlat(region.bbox, region.fill, 0.9)`), which
+  tinted the *entire* interior at 90% opacity for any ring, flipping ordinary
+  headlines to white on a light page. This was latent in the pre-existing
+  `block-frame` ground kind too, just apparently never rendered and eyeballed
+  closely enough to notice. Fixed with `GroundRegion.excludeFromCoverage`,
+  set on ring regions, checked at both call sites.
+- Confirmed via first attempt at a fix, which was wrong: capping a decor-item
+  "frame" DecorForm's inset at the canvas safe margin does not keep it away
+  from content — a *smaller* inset sits closer to the true edge and is safer;
+  a larger one moves the line inward, toward content. Abandoned that
+  DecorForm approach entirely in favor of the ground-ring approach above,
+  which sidesteps the keep-out system rather than fighting it.
+
+### Decisions recorded
+- A full-page frame is architecturally a ground concern, not a decoration
+  item: ground is drawn first, exempt from the per-item keep-out/budget
+  caps, and a ring's true ink can't be expressed as the one `Rect` a
+  `Decoration.bbox` requires. `block-frame` had already established this
+  pattern; the new kinds extend it rather than inventing a competing one.
+- Deferred: multi-size/format support (`docs/ROADMAP.md` L1) — a separate,
+  larger change (new `Format` dimension, REST/MCP surface, per-format recipe
+  audit) tracked as the next piece of this same request, not folded in here.
+
+---
+
 ## 2026-08-02 — Twenty-eight invisible components, and components the agent builds itself
 
 User feedback on real output: the flyers repeat. "It kept that on side that

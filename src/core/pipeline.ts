@@ -23,6 +23,7 @@ import type { CallContext } from "../llm/index.js";
 import type { AssetRef } from "../components/types.js";
 import type { DesignSpec, Lineage } from "./compose/spec.js";
 import type { LayoutResult } from "./layout/solver.js";
+import { DEFAULT_FORMAT, FORMAT_IDS, type FormatId } from "../creative/formats.js";
 
 /**
  * The pipeline. Stages 1–10 wired together, with the internal competition that
@@ -80,6 +81,7 @@ async function buildCandidate(
     assets: AssetRecord[];
     budget: VisionBudget;
     allowVisionCritique: boolean;
+    format: FormatId;
   },
   ctx: CallContext,
 ): Promise<CandidateOutcome> {
@@ -90,7 +92,7 @@ async function buildCandidate(
   );
 
   const composed = await compose(
-    { brief: input.brief, idea, lineage: input.lineage },
+    { brief: input.brief, idea, lineage: input.lineage, format: input.format },
     { ...ctx, stage: "compose" },
   );
 
@@ -182,6 +184,9 @@ export async function runJob(jobId: string): Promise<void> {
 
     const assets = getAssets(JSON.parse(job.asset_ids) as string[]);
     const brand = job.brand ? (JSON.parse(job.brand) as { colors?: string[]; tone?: string[] }) : null;
+    const jobFormat = (FORMAT_IDS as string[]).includes(job.format)
+      ? (job.format as FormatId)
+      : DEFAULT_FORMAT;
 
     setStage(jobId, "brief");
     const brief = await buildBrief({ prompt: job.prompt, assets, brand }, ctx);
@@ -208,7 +213,7 @@ export async function runJob(jobId: string): Promise<void> {
       const settled = await Promise.allSettled(
         lineages.map((lineage) =>
           buildCandidate(
-            { brief, lineage, assets, budget, allowVisionCritique },
+            { brief, lineage, assets, budget, allowVisionCritique, format: jobFormat },
             { ...ctx, stage: "idea" },
           ),
         ),

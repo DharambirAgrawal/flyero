@@ -75,7 +75,9 @@ export type GraphicsId =
   | "dashed-cartography"
   | "botanical-frame"
   | "sticker-sheet"
-  | "geometric-memphis";
+  | "geometric-memphis"
+  | "kawaii-doodle"
+  | "festive-scene";
 
 /**
  * What kind of communication the flyer is doing.

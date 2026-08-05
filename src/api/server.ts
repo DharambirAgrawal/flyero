@@ -6,6 +6,7 @@ import { config, type Risk } from "../config.js";
 import { COMPONENT_COUNT } from "../components/registry.js";
 import { PROFILE_SPACE, newJobSeed } from "../core/studio/sampler.js";
 import { VETO_COUNT } from "../creative/compatibility.js";
+import { DEFAULT_FORMAT, FORMAT_IDS, FORMATS, type FormatId } from "../creative/formats.js";
 import { availableFamilies } from "../core/render/fonts.js";
 import { createAsset, getAsset, getAssets, assetDataUri, createDerivedAsset } from "../store/assets.js";
 import { listJobs } from "../store/jobs.js";
@@ -59,6 +60,8 @@ function fail(reply: FastifyReply, status: number, code: ErrorCode, message: str
 
 const riskSchema = z.enum(["safe", "studio", "experimental"]);
 
+const formatSchema = z.enum(FORMAT_IDS as [FormatId, ...FormatId[]]);
+
 const createFlyerSchema = z.object({
   prompt: z.string().min(3).max(2000),
   assetIds: z.array(z.string()).max(6).optional(),
@@ -69,6 +72,8 @@ const createFlyerSchema = z.object({
     })
     .optional(),
   risk: riskSchema.optional(),
+  /** Canvas size. Defaults to the original Instagram portrait. See GET /v1/formats. */
+  format: formatSchema.optional(),
   callbackUrl: z.string().url().optional(),
   debug: z.boolean().optional(),
 });
@@ -77,6 +82,7 @@ const batchSchema = z.object({
   prompt: z.string().min(3).max(2000),
   runs: z.number().int().min(1).max(20),
   risk: riskSchema.optional(),
+  format: formatSchema.optional(),
 });
 
 const reviseSchema = z.object({
@@ -416,6 +422,7 @@ export function buildServer(): FastifyInstance {
       apiKey: request.apiKey,
       prompt: body.prompt,
       risk: (body.risk ?? config.defaultRisk) as Risk,
+      format: body.format ?? DEFAULT_FORMAT,
       jobSeed: newJobSeed(),
       assetIds: body.assetIds ?? [],
       brand: body.brand ?? null,
@@ -430,6 +437,9 @@ export function buildServer(): FastifyInstance {
       estimatedSeconds: Math.min(config.jobTimeoutSeconds, 120),
     });
   });
+
+  // Discoverable canvas sizes, so a caller doesn't have to know the enum values up front.
+  app.get("/v1/formats", async () => ({ formats: FORMATS, default: DEFAULT_FORMAT }));
 
   app.get<{ Params: { jobId: string } }>("/v1/flyers/:jobId", async (request, reply) => {
     const job = getJob(request.params.jobId);
@@ -629,9 +639,10 @@ export function buildServer(): FastifyInstance {
     }
     const { prompt, runs } = parsed.data;
     const risk = (parsed.data.risk ?? config.defaultRisk) as Risk;
+    const format = parsed.data.format ?? DEFAULT_FORMAT;
 
     const batchId = `bat_${ulid()}`;
-    createBatch({ id: batchId, apiKey: request.apiKey, prompt, runs, risk });
+    createBatch({ id: batchId, apiKey: request.apiKey, prompt, runs, risk, format });
 
     const jobIds: string[] = [];
     for (let i = 0; i < runs; i++) {
@@ -642,6 +653,7 @@ export function buildServer(): FastifyInstance {
         apiKey: request.apiKey,
         prompt,
         risk,
+        format,
         jobSeed: newJobSeed(),
         assetIds: [],
         brand: null,

@@ -118,9 +118,14 @@ than it was before the vocabulary existed.
 
 ### 3. Canvas size as a decision
 
-The canvas is fixed at 1080×1350. A poster, an A4 flyer, a story and a square
-post are different objects with different type scales and margins. The archetype
-should choose the format, and recipes should be expressed relative to it.
+**Partially done (2026-08-05, see `CHANGELOG.md`).** `src/creative/formats.ts`
+now defines a `Format` dimension (`portrait-4x5`, `square-1x1`, `story-9x16`),
+threaded through every entry point (REST, MCP, the agent-native path), and
+every topology recipe already renders correctly across all three — normalized
+0–1 rects mostly port for free, per the plan below. Still open: the
+*archetype* does not choose the format automatically — the caller passes
+`format` explicitly (default `portrait-4x5`), so "poster vs. story vs. square"
+is a caller decision, not yet a brief-driven one. A4 is not built.
 
 ### 4. Parametric primitives with knobs
 

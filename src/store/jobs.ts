@@ -1,5 +1,6 @@
 import { getDb, nowIso } from "./db.js";
 import type { Risk } from "../config.js";
+import { DEFAULT_FORMAT } from "../creative/formats.js";
 import type { DesignSpec, Lineage } from "../core/compose/spec.js";
 import type { GateResult } from "../core/gates/index.js";
 import type { LayoutResult } from "../core/layout/solver.js";
@@ -34,6 +35,7 @@ export type JobRow = {
   prompt: string;
   product_name: string | null;
   risk: Risk;
+  format: string;
   brand: string | null;
   asset_ids: string;
   callback_url: string | null;
@@ -57,6 +59,7 @@ export type CreateJobInput = {
   apiKey: string;
   prompt: string;
   risk: Risk;
+  format?: string;
   jobSeed: string;
   assetIds: string[];
   brand: unknown;
@@ -68,9 +71,9 @@ export function createJob(input: CreateJobInput): void {
   const ts = nowIso();
   getDb()
     .prepare(
-      `INSERT INTO jobs (id, api_key, batch_id, status, stage, prompt, risk, brand, asset_ids,
+      `INSERT INTO jobs (id, api_key, batch_id, status, stage, prompt, risk, format, brand, asset_ids,
                          callback_url, job_seed, revision, created_at, updated_at)
-       VALUES (@id, @apiKey, @batchId, 'queued', NULL, @prompt, @risk, @brand, @assetIds,
+       VALUES (@id, @apiKey, @batchId, 'queued', NULL, @prompt, @risk, @format, @brand, @assetIds,
                @callbackUrl, @jobSeed, 0, @ts, @ts)`,
     )
     .run({
@@ -79,6 +82,7 @@ export function createJob(input: CreateJobInput): void {
       batchId: input.batchId,
       prompt: input.prompt,
       risk: input.risk,
+      format: input.format ?? DEFAULT_FORMAT,
       brand: input.brand ? JSON.stringify(input.brand) : null,
       assetIds: JSON.stringify(input.assetIds),
       callbackUrl: input.callbackUrl,
@@ -237,12 +241,21 @@ export function createBatch(input: {
   prompt: string;
   runs: number;
   risk: Risk;
+  format?: string;
 }): void {
   getDb()
     .prepare(
-      "INSERT INTO batches (id, api_key, prompt, runs, risk, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO batches (id, api_key, prompt, runs, risk, format, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
-    .run(input.id, input.apiKey, input.prompt, input.runs, input.risk, nowIso());
+    .run(
+      input.id,
+      input.apiKey,
+      input.prompt,
+      input.runs,
+      input.risk,
+      input.format ?? DEFAULT_FORMAT,
+      nowIso(),
+    );
 }
 
 export type BatchRow = {
@@ -251,6 +264,7 @@ export type BatchRow = {
   prompt: string;
   runs: number;
   risk: Risk;
+  format: string;
   created_at: string;
 };
 

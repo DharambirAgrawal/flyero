@@ -6,20 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm install && npm run fonts   # fonts are a one-time download into assets/fonts/
-npm test                       # all 62 tests; runs with no API key and never spends money
+npm test                       # full suite; runs with no API key and never spends money
 npm run test:unit              # solver, sampler, gates, colour
 npm run test:golden            # determinism + SVG editability
 npm run test:acceptance        # REST surface end to end
 npx vitest run test/unit/layout.test.ts          # one file
 npx vitest run -t "caps a justified overlap"     # one test by name
-npm run build                  # tsc --noEmit
+npm run typecheck              # tsc --noEmit (build also runs this, then fonts)
+npm run dev                    # REST API on PORT, tsx watch mode
 npm start                      # REST API on PORT
 npm run mcp                    # MCP server over stdio
 npm run smoke -- "your prompt" # LIVE run against real models — the only thing that costs money
 npm run sheet -- SEED 8        # offline contact sheet of N sampled designers, no model calls
+npm run sheet:graphics         # offline contact sheet focused on graphics/decor variety
+npm run sheet:figures          # offline renders used for docs figures
+npm run diversity              # DR-1 diversity measurement across repeated runs, no model calls
+npm run prune                  # garbage-collect old job/object-store data
 ```
 
-`npm run sheet` is the fastest way to see whether a change helped or hurt: it renders one flyer per sampled lineage from a fixture spec, so composition quality is visible without a single model call.
+`npm run sheet` is the fastest way to see whether a change helped or hurt: it renders one flyer per sampled lineage from a fixture spec, so composition quality is visible without a single model call. `docs/GAP-ANALYSIS.md` is the live working document for closing the gap against real human-designed references (currently: coverage/density, palette commitment, image-as-ground) — read it before touching layout, decor, or the canvas/light/tone model, and update it as items close rather than only relying on `CHANGELOG.md`.
 
 ## Repository state
 
@@ -53,7 +58,16 @@ The 3 candidates run **in parallel** through stages 3–8; sequential blows the 
 
 Key data contracts (`docs/SCHEMAS.md`): `Brief`, `Lineage`, `DesignSpec`, `LayoutResult`, `CriticFix`, `GateResult`, `TopologyRecipe`. Implement each as a zod schema; if a field isn't in SCHEMAS.md, update that doc in the same change rather than inventing it in code.
 
-Planned layout (`docs/ARCHITECTURE.md` §8): `src/api/`, `src/mcp/`, `src/core/{brief,studio,idea,compose,layout,render,critic,revise,gates,export}/`, `src/components/` (component library, each with a manifest), `src/creative/` (dimension data + `banned.ts` + `fontpairs.ts`), `src/llm/`, `src/store/`; tests in `test/{unit,golden,acceptance}/`.
+Base layout (`docs/ARCHITECTURE.md` §8): `src/api/`, `src/mcp/`, `src/core/{brief,studio,idea,compose,layout,render,critic,revise,gates,export}/`, `src/components/` (component library, each with a manifest), `src/creative/` (dimension data + `banned.ts` + `fontpairs.ts`), `src/llm/`, `src/store/`; tests in `test/{unit,golden,acceptance}/`. The doc's §8 tree predates a few modules that now exist alongside it and are worth knowing before touching visual quality:
+
+- `src/core/canvas/{depth,light,tone}.ts` — the depth/lighting model (`depth.ts`'s header explains why: scale, haze, contrast and blur must all derive from one continuous depth value per element, not be styled independently, or the eye reads "pasted").
+- `src/core/decor/{decorations,budget,ground,ink,ids}.ts` — ornament placement, run *after* layout is final so it never draws over type; deterministic rejection sampling with a fixed attempt budget and a per-slot RNG stream (no unbounded loops, no cross-slot coupling).
+- `src/core/images/{search,transform}.ts` — the stock-photo provider interface (behind `ImageProvider`, currently Pexels) and image transforms; this is what lets Gate G2 (cover test) pass for physical products.
+- `src/core/select/index.ts` — the comparative jury that runs after the gatekeeper: among passing candidates it picks the most-authored one (LLM jury) rather than the safest score, falling back to a deterministic least-revised pick if vision budget is exhausted.
+
+There are two entry points into composition, not one:
+1. The full LLM pipeline (`POST /v1/flyers`) — stages 1–10 as described above.
+2. An **agent-native path** (`src/api/agent.ts`, `guide.ts`, `skills.ts`) — `GET /v1/guide`, `GET /v1/skills`, `POST /v1/studio/assignments`, `GET /v1/schema/composition`, `POST /v1/flyers/compose` — where an external agent (e.g. Claude via MCP) samples its own lineage, picks components directly from the visible library (`manifestsFor`/`componentPropsSchema` in `src/components/registry.ts`), and submits an authored spec that `assembleSpec` (`src/core/compose/assemble.ts`) turns into a `DesignSpec` before it hits the same deterministic layout/render/gate pipeline. `skills.ts` deliberately ships no colour/font/measurement advice — that would defeat the Studio Sampler's diversity-by-construction mechanism (law 2).
 
 ## The laws (from AGENTS.md — a violation means the change is wrong)
 

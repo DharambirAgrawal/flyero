@@ -18,6 +18,7 @@ import { colorLogicById } from "../creative/colorlogic.js";
 import { gestureById } from "../creative/gestures.js";
 import { graphicsById } from "../creative/graphics.js";
 import { artDirectionById, elementBudgetForDensity } from "../creative/artdirections.js";
+import { DEFAULT_FORMAT, FORMAT_IDS, formatById, type FormatId } from "../creative/formats.js";
 import { recipeFor } from "../core/layout/recipes.js";
 import { componentPropsSchema, engineOwnedPropsFor, manifestsFor } from "../components/registry.js";
 import { runGates, failedGateIds, visionVerdictSchema } from "../core/gates/index.js";
@@ -294,6 +295,12 @@ export const COMPOSITION_NOTES = [
 
 const authoredSchema = z.object({
   lineage: lineageSchema,
+  /**
+   * Canvas size. Omit when recomposing an existing `flyerId` to keep its
+   * current canvas; omit with no `flyerId` for the original Instagram
+   * portrait. Only set this to actually change format.
+   */
+  format: z.enum(FORMAT_IDS as [FormatId, ...FormatId[]]).optional(),
   productName: z.string().min(1).max(60),
   campaignArchetype: z
     .enum([
@@ -423,6 +430,8 @@ const patchSchema = z.object({
 const assignmentSchema = z.object({
   runs: z.number().int().min(1).max(6).default(3),
   risk: z.enum(["safe", "studio", "experimental"]).optional(),
+  /** Canvas size for the flyer(s) this assignment is for; pass the same value to POST /v1/flyers/compose. */
+  format: z.enum(FORMAT_IDS as [FormatId, ...FormatId[]]).default(DEFAULT_FORMAT),
   campaignArchetype: z
     .enum([
       "product-promotion",
@@ -614,7 +623,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     if (!parsed.success) {
       return fail(reply, 400, "invalid_request", "Invalid assignment request", parsed.error.issues);
     }
-    const { runs, brandColors, campaignArchetype } = parsed.data;
+    const { runs, brandColors, campaignArchetype, format } = parsed.data;
     const risk = (parsed.data.risk ?? config.defaultRisk) as Risk;
     const jobSeed = parsed.data.jobSeed ?? newJobSeed();
     const { lineages } = sampleLineages({ jobSeed, count: runs, risk, campaignArchetype });
@@ -622,6 +631,10 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     return {
       jobSeed,
       risk,
+      // Echoed so the agent can carry it unchanged into POST /v1/flyers/compose
+      // — the sampler itself doesn't vary by format, only the canvas does.
+      canvas: formatById(format),
+
       /**
        * Stated in the response because not stating it cost a real run 27 draws.
        *
@@ -720,6 +733,20 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       );
     }
 
+    // Resolve canvas: an explicit `format` always wins; recomposing an
+    // existing flyer without one keeps its current canvas rather than
+    // silently resetting to the default portrait; a brand-new flyer with
+    // neither gets the default.
+    let canvas: { w: number; h: number; safe: number } | undefined = body.format
+      ? formatById(body.format)
+      : undefined;
+    if (!canvas && body.flyerId) {
+      const existingJob = getJob(body.flyerId);
+      const prevRevision = existingJob ? getRevision(existingJob.id, existingJob.revision) : null;
+      if (prevRevision) canvas = (JSON.parse(prevRevision.spec) as DesignSpec).canvas;
+    }
+    canvas ??= formatById(DEFAULT_FORMAT);
+
     const assembled = assembleSpec(
       body.lineage,
       {
@@ -734,6 +761,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
         gesturePurpose: body.gesturePurpose,
       } as AuthoredSpec,
       body.brandColors,
+      canvas,
     );
 
     if (!assembled.ok) {
@@ -856,7 +884,8 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     // nothing — that changes the design out from under the author.
     const storedBrand = job.brand ? (JSON.parse(job.brand) as { colors?: string[] }) : null;
     const brandColors = patch.brandColors ?? storedBrand?.colors ?? [];
-    const assembled = assembleSpec(current.lineage, authored, brandColors);
+    // A patch never changes the canvas — reuse the flyer's own stored size.
+    const assembled = assembleSpec(current.lineage, authored, brandColors, current.canvas);
     if (!assembled.ok) {
       return reply.status(422).send({
         error: {

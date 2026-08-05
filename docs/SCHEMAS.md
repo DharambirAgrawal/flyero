@@ -123,7 +123,7 @@ type DesignSpec = {
   campaignArchetype: Brief["archetype"]; // defaults to product-promotion
   idea: string;                 // one sentence (Gate G1)
   story: [string, string, string, string]; // problem → acting → payoff → CTA
-  canvas: { w: 1080; h: 1350; safe: number }; // safe default 64
+  canvas: { w: number; h: number; safe: number }; // must match a Format in src/creative/formats.ts (portrait-4x5 1080x1350 safe:64 / square-1x1 1080x1080 safe:56 / story-9x16 1080x1920 safe:72)
   brand: {
     colors: { bg: string; fg: string; accent: string; muted: string };
     fonts: { display: string; body: string; mono?: string | null };

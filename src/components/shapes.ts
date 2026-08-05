@@ -589,6 +589,39 @@ function sunRays(inner: number, outer: number, width: number, count: number): st
   return d.trim();
 }
 
+/**
+ * Six overlapping petal circles around a centre disc. `nonzero` (the default
+ * fill rule) unions same-direction loops rather than punching holes, so this
+ * reads as one solid daisy silhouette — the doodle/Memphis flower every
+ * scrapbook and Y2K reference scatters across the page.
+ */
+function flowerPath(petals = 6, petalR = 20, ringR = 22, centerR = 14): string {
+  let d = "";
+  for (let i = 0; i < petals; i++) {
+    const a = (i / petals) * TAU;
+    d += `${ellipsePath(50 + Math.cos(a) * ringR, 50 + Math.sin(a) * ringR, petalR, petalR)} `;
+  }
+  return d.trim() + " " + ellipsePath(50, 50, centerR, centerR);
+}
+
+/**
+ * Nested bottom-anchored half-discs. With `evenodd`, each ring alternates
+ * filled/gap as it crosses one more boundary than the ring outside it, so six
+ * concentric arches drawn this way render as three solid bands over a hollow
+ * centre — a rainbow, built from the same `archPath` the photo-frame arch
+ * uses, not a new primitive.
+ */
+function rainbowPath(bands = 6, outerW = 96, step = 16): string {
+  let d = "";
+  for (let i = 0; i < bands; i++) {
+    const w = outerW - i * step;
+    if (w <= 0) break;
+    const h = w / 2;
+    d += `${archPath({ x: 50 - w / 2, y: 96 - h, w, h })} `;
+  }
+  return d.trim();
+}
+
 const MOTIF_DATA = {
   /** Paper dart nosing due right, with the swallow-tail notch. */
   plane: { d: "M 98 50 L 4 10 L 28 50 L 4 90 Z" },
@@ -640,6 +673,64 @@ const MOTIF_DATA = {
   compass: {
     d:
       "M 50 2 L 60 40 L 98 50 L 60 60 L 50 98 L 40 60 L 2 50 L 40 40 Z",
+  },
+
+  /** Five-point star, built from the same generator that draws price bursts. */
+  star: { d: starPath(50, 50, 46, 20, 5) },
+
+  /** Two lobes meeting at a point — the classic silhouette, cubic throughout. */
+  heart: {
+    d: "M 50 88 C 20 65 5 45 5 28 C 5 10 25 2 50 20 C 75 2 95 10 95 28 C 95 45 80 65 50 88 Z",
+  },
+
+  /** Six-petal daisy — the doodle/Memphis flower mark. */
+  flower: { d: flowerPath() },
+
+  /** Angular bolt, authored rather than generated: no generator reuse would be simpler. */
+  lightning: { d: "M 58 2 L 18 54 L 42 54 L 34 98 L 84 40 L 56 40 Z" },
+
+  /** Balloon: an ellipse body, a knot, no string — the string is a stroke, not a fill. */
+  balloon: { d: `${ellipsePath(50, 42, 30, 36)} M 42 76 L 58 76 L 50 88 Z` },
+
+  /**
+   * Gift box: a solid rounded package plus a bow, deliberately with no
+   * ribbon line — a thin `evenodd` cutout through a single-fill silhouette
+   * reads as a checkerboard at motif scale, not a ribbon, once tried and
+   * rejected. A plain wrapped box with a bow is still unambiguous, including
+   * at the small sizes a scattered motif actually renders at.
+   */
+  gift: {
+    d:
+      `${roundedRectPath({ x: 14, y: 44, w: 72, h: 52 }, 6)} ` +
+      `${roundedRectPath({ x: 44, y: 36, w: 12, h: 12 }, 3)} ` +
+      `${ellipsePath(36, 26, 15, 12)} ${ellipsePath(64, 26, 15, 12)}`,
+  },
+
+  /** One pennant — the unit a bunting string or a Memphis edge repeats. */
+  bunting: { d: "M 15 8 L 85 8 L 50 95 Z" },
+
+  /** One rounded sprinkle — a single confetti piece, meant to be scattered. */
+  confetti: { d: roundedRectPath({ x: 30, y: 38, w: 40, h: 24 }, 8) },
+
+  /** Rounded rect plus a tail, both same winding — the tail simply extends it. */
+  "speech-bubble": {
+    d:
+      `${roundedRectPath({ x: 5, y: 8, w: 90, h: 64 }, 18)} ` +
+      polyline([{ x: 25, y: 70 }, { x: 45, y: 70 }, { x: 18, y: 96 }], true),
+  },
+
+  /** Three concentric bands over a hollow centre — see `rainbowPath`. */
+  rainbow: { d: rainbowPath(), fillRule: "evenodd" as const },
+
+  /**
+   * Face with two eyes and a mouth cut through it via `evenodd` — the same
+   * cutout technique as `gift`'s ribbons, so the ground reads as the features.
+   */
+  smiley: {
+    d:
+      `${ellipsePath(50, 50, 46, 46)} ${ellipsePath(34, 40, 6, 6)} ${ellipsePath(66, 40, 6, 6)} ` +
+      "M 30 58 Q 50 80 70 58 Q 50 68 30 58 Z",
+    fillRule: "evenodd" as const,
   },
 } as const;
 
@@ -745,6 +836,90 @@ export function figurePath(cx: number, baseY: number, height: number): string {
     ` M ${n(cx + bodyW * 0.12)} ${n(hipY)} L ${n(cx + bodyW * 0.4)} ${n(hipY)}` +
     ` L ${n(cx + bodyW * 0.44)} ${n(baseY)} L ${n(cx + bodyW * 0.16)} ${n(baseY)} Z`
   );
+}
+
+// ---------------------------------------------------------------------------
+// Frames
+// ---------------------------------------------------------------------------
+
+/**
+ * A rectangle with a jittered perimeter — the hand-drawn wobble every
+ * scrapbook/kawaii reference draws its border with. Same construction as
+ * `tornEdgePath` (walk the edge, jitter perpendicular to it) generalised to
+ * all four sides and closed into one loop, then splined like `blobPath`
+ * rather than left polygonal, so the wobble reads as a pen line, not a
+ * jagged tear.
+ */
+export function wobblyFramePath(
+  rect: Rect,
+  rng: Pick<Rng, "float">,
+  opts: { amplitude?: number; perSide?: number } = {},
+): string {
+  const { x, y, w, h } = rect;
+  const amplitude = opts.amplitude ?? Math.max(3, Math.min(w, h) * 0.012);
+  const perSide = Math.max(3, opts.perSide ?? 6);
+  const corners: Point[] = [
+    { x, y },
+    { x: x + w, y },
+    { x: x + w, y: y + h },
+    { x, y: y + h },
+  ];
+  const pts: Point[] = [];
+  for (let side = 0; side < 4; side++) {
+    const from = corners[side]!;
+    const to = corners[(side + 1) % 4]!;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const len = Math.max(1, Math.hypot(dx, dy));
+    const nx = -dy / len;
+    const ny = dx / len;
+    for (let i = 0; i < perSide; i++) {
+      const t = i / perSide;
+      const jitter = (rng.float() - 0.5) * 2 * amplitude;
+      pts.push({ x: from.x + dx * t + nx * jitter, y: from.y + dy * t + ny * jitter });
+    }
+  }
+  return closedSpline(pts);
+}
+
+/**
+ * A rectangle's perimeter with small rounded bumps at even intervals — the
+ * stamp/seal edge `scallopedCirclePath` draws, carried around a rectangle so
+ * it can wrap a whole page rather than sit inside one badge.
+ */
+export function scallopedFramePath(rect: Rect, bumpR: number, spacing: number): string {
+  const { x, y, w, h } = rect;
+  const perimeter = 2 * (w + h);
+  const count = Math.max(8, Math.round(perimeter / Math.max(1, spacing)));
+  const pts: Point[] = [];
+  for (let i = 0; i < count; i++) {
+    const t = ((i / count) * perimeter) % perimeter;
+    let px: number, py: number, nx: number, ny: number;
+    if (t < w) {
+      px = x + t;
+      py = y;
+      nx = 0;
+      ny = -1;
+    } else if (t < w + h) {
+      px = x + w;
+      py = y + (t - w);
+      nx = 1;
+      ny = 0;
+    } else if (t < 2 * w + h) {
+      px = x + w - (t - w - h);
+      py = y + h;
+      nx = 0;
+      ny = 1;
+    } else {
+      px = x;
+      py = y + h - (t - 2 * w - h);
+      nx = -1;
+      ny = 0;
+    }
+    const bump = i % 2 === 0 ? bumpR : 0;
+    pts.push({ x: px + nx * bump, y: py + ny * bump });
+  }
+  return closedSpline(pts);
 }
 
 /** Water: stacked shallow waves, for a shoreline or a river band. */

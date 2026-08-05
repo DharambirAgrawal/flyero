@@ -7,7 +7,7 @@ import { gestureById } from "../../creative/gestures.js";
 import { graphicsById } from "../../creative/graphics.js";
 import { artDirectionById, elementBudgetForDensity } from "../../creative/artdirections.js";
 import { typographyById } from "../../creative/typebehaviors.js";
-import { CANVAS } from "../../config.js";
+import { DEFAULT_FORMAT, formatById, type FormatId } from "../../creative/formats.js";
 import { paletteFor } from "../render/theme.js";
 import { fontPairById } from "../../creative/fontpairs.js";
 import { safeParseSpec, type DesignSpec, type Lineage } from "./spec.js";
@@ -158,6 +158,8 @@ export type ComposeInput = {
   idea: IdeaResult;
   lineage: Lineage;
   fixes?: string[];
+  /** Defaults to the original portrait format so every existing caller is unaffected. */
+  format?: FormatId;
 };
 
 const SYSTEM = `You are the composer for a flyer studio. You translate an idea into a structure:
@@ -264,6 +266,7 @@ export async function compose(
 ): Promise<ComposeResult> {
   const palette = paletteFor(input.lineage, input.brief.assets.flatMap((a) => a.palette));
   const fonts = fontPairById(input.lineage.fontPair);
+  const { w, h, safe } = formatById(input.format ?? DEFAULT_FORMAT);
   let errors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -306,7 +309,7 @@ Fix exactly these problems and return the whole structure again.`
       campaignArchetype: input.brief.archetype,
       idea: input.idea.idea,
       story: input.idea.story,
-      canvas: { ...CANVAS },
+      canvas: { w, h, safe },
       brand: {
         colors: palette,
         fonts: { display: fonts.display, body: fonts.body, mono: fonts.mono ?? null },

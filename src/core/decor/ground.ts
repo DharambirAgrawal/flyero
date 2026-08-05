@@ -20,7 +20,9 @@ import {
   halftoneTile,
   polyline,
   roundedRectPath,
+  scallopedFramePath,
   stripeTile,
+  wobblyFramePath,
   type Tile,
 } from "../../components/shapes.js";
 import type { Box, Theme } from "../../components/types.js";
@@ -61,6 +63,11 @@ function snapSeamY(y: number, blockers: Rect[], canvasH: number): number {
 
 function region(d: string | null, fill: string, bbox: Rect): GroundRegion {
   return { d, fill, isDark: isDarkFill(fill), bbox };
+}
+
+/** A perimeter ring's ink never legitimately reaches the content the safe margin protects — see `GroundRegion.excludeFromCoverage`. */
+function ringRegion(d: string, fill: string, bbox: Rect): GroundRegion {
+  return { d, fill, isDark: isDarkFill(fill), bbox, excludeFromCoverage: true };
 }
 
 /** Converts the material's texture name into a tiled pattern. */
@@ -162,8 +169,47 @@ export function planGround(
       2,
     );
     plan.regions.push(
-      region(`${outer} ${inner}`, deeper, { x: inset, y: inset, w: w - inset * 2, h: h - inset * 2 }),
+      ringRegion(`${outer} ${inner}`, deeper, { x: inset, y: inset, w: w - inset * 2, h: h - inset * 2 }),
     );
+    return plan;
+  }
+
+  if (kind === "wobble-frame") {
+    // Same ring construction as `block-frame` — an outer path with an inner
+    // one punched out via the renderer's evenodd fill — but the outer edge is
+    // the hand-drawn wobble path instead of a rounded rect, which is what the
+    // scrapbook/kawaii references actually draw their border with. The inner
+    // edge gets its own independent wobble (a separate `rng.derive` stream)
+    // rather than a plain rect, so the ring's thickness itself reads as
+    // hand-drawn rather than a machined band with a wobbly outer lip.
+    const inset = Math.round(spec.canvas.safe * rng.range(0.35, 0.6));
+    const band = Math.max(8, Math.round(w * 0.014));
+    const outerRect = { x: inset, y: inset, w: w - inset * 2, h: h - inset * 2 };
+    const innerRect = {
+      x: inset + band,
+      y: inset + band,
+      w: w - (inset + band) * 2,
+      h: h - (inset + band) * 2,
+    };
+    const outer = wobblyFramePath(outerRect, rng.derive("wobble-outer"), { amplitude: band * 0.35 });
+    const inner = wobblyFramePath(innerRect, rng.derive("wobble-inner"), { amplitude: band * 0.35 });
+    plan.regions.push(ringRegion(`${outer} ${inner}`, deeper, outerRect));
+    return plan;
+  }
+
+  if (kind === "scallop-frame") {
+    const inset = Math.round(spec.canvas.safe * rng.range(0.3, 0.55));
+    const band = Math.max(10, Math.round(w * 0.016));
+    const outerRect = { x: inset, y: inset, w: w - inset * 2, h: h - inset * 2 };
+    const innerRect = {
+      x: inset + band,
+      y: inset + band,
+      w: w - (inset + band) * 2,
+      h: h - (inset + band) * 2,
+    };
+    const outer = scallopedFramePath(outerRect, band * 0.4, Math.max(24, w * 0.045));
+    const inner = roundedRectPath(innerRect, 2);
+    plan.regions.push(ringRegion(`${outer} ${inner}`, deeper, outerRect));
     return plan;
   }
 
@@ -203,7 +249,7 @@ export function planGround(
  */
 export function markOnDarkFromGround(ground: GroundPlan, boxes: Record<string, Box>): void {
   const baseIsDark = isDarkFill(ground.base);
-  const dark = ground.regions.filter((r) => r.isDark);
+  const dark = ground.regions.filter((r) => r.isDark && !r.excludeFromCoverage);
   if (!baseIsDark && dark.length === 0) return;
 
   for (const box of Object.values(boxes)) {

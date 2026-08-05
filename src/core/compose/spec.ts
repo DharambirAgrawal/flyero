@@ -8,6 +8,7 @@ import { COLOR_LOGIC_IDS } from "../../creative/colorlogic.js";
 import { GESTURE_IDS, gestureById } from "../../creative/gestures.js";
 import { GRAPHICS_IDS } from "../../creative/graphics.js";
 import { ART_DIRECTION_IDS } from "../../creative/artdirections.js";
+import { isKnownCanvasSize } from "../../creative/formats.js";
 
 /**
  * Data contracts from docs/SCHEMAS.md. These are law: the Composer's output is
@@ -167,11 +168,15 @@ export const designSpecSchema = z
     idea: z.string().min(10).max(140),
     /** Four beats interpreted through the campaign archetype chosen in the brief. */
     story: z.tuple([z.string(), z.string(), z.string(), z.string()]),
-    canvas: z.object({
-      w: z.literal(1080),
-      h: z.literal(1350),
-      safe: z.number().int().min(32).max(120),
-    }),
+    canvas: z
+      .object({
+        w: z.number().int(),
+        h: z.number().int(),
+        safe: z.number().int().min(32).max(120),
+      })
+      .refine((c) => isKnownCanvasSize(c.w, c.h), {
+        message: "canvas w/h must match a known Format (see src/creative/formats.ts)",
+      }),
     brand: brandSchema,
     /**
      * Exact user-supplied statements copied from the Brief. Revisions retain

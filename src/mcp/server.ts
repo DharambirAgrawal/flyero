@@ -4,6 +4,7 @@ import { z } from "zod";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { config } from "../config.js";
+import { FORMAT_IDS, type FormatId } from "../creative/formats.js";
 
 /**
  * MCP server — a thin adapter over the REST core (AGENTS.md law 6).
@@ -236,12 +237,16 @@ export function buildMcpServer(): McpServer {
           .enum(["safe", "studio", "experimental"])
           .optional()
           .describe("How adventurous the design may be. Default: studio."),
+        format: z
+          .enum(FORMAT_IDS as [FormatId, ...FormatId[]])
+          .optional()
+          .describe("Canvas size. Default: portrait-4x5 (Instagram feed post, 1080×1350)."),
       },
     },
-    async ({ prompt, assetIds, risk }) => {
+    async ({ prompt, assetIds, risk, format }) => {
       const created = await api("/v1/flyers", {
         method: "POST",
-        body: JSON.stringify({ prompt, assetIds, risk }),
+        body: JSON.stringify({ prompt, assetIds, risk, format }),
       });
       const job = await pollJob(created.jobId);
       return {
@@ -437,12 +442,16 @@ export function buildMcpServer(): McpServer {
         prompt: z.string(),
         runs: z.number().int().min(2).max(10),
         risk: z.enum(["safe", "studio", "experimental"]).optional(),
+        format: z
+          .enum(FORMAT_IDS as [FormatId, ...FormatId[]])
+          .optional()
+          .describe("Canvas size, shared by every run in the batch. Default: portrait-4x5."),
       },
     },
-    async ({ prompt, runs, risk }) => {
+    async ({ prompt, runs, risk, format }) => {
       const batch = await api("/v1/batches", {
         method: "POST",
-        body: JSON.stringify({ prompt, runs, risk }),
+        body: JSON.stringify({ prompt, runs, risk, format }),
       });
       const deadline = Date.now() + config.jobTimeoutSeconds * 1000 * 2;
       let view = await api(`/v1/batches/${batch.batchId}`);
@@ -547,6 +556,13 @@ export function buildMcpServer(): McpServer {
           .describe("What kind of flyer this is. Strongly recommended."),
         risk: z.enum(["safe", "studio", "experimental"]).optional(),
         jobSeed: z.string().optional().describe("Reuse to get the same designers again."),
+        format: z
+          .enum(FORMAT_IDS as [FormatId, ...FormatId[]])
+          .optional()
+          .describe(
+            "Canvas size for the flyer(s) you'll compose from this assignment. Default: portrait-4x5. " +
+              "Pass the same value again to compose_flyer.",
+          ),
       },
     },
     async (args) => ({

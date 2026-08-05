@@ -1,4 +1,4 @@
-import { CANVAS } from "../../config.js";
+import { DEFAULT_FORMAT, formatById } from "../../creative/formats.js";
 import { fontPairById } from "../../creative/fontpairs.js";
 import { paletteFor } from "../render/theme.js";
 import { safeParseSpec, type DesignSpec, type Lineage, type SpecParseResult } from "./spec.js";
@@ -55,9 +55,17 @@ export function assembleSpec(
   lineage: Lineage,
   authored: AuthoredSpec,
   brandColors: string[] = [],
+  /**
+   * Defaults to the original portrait format. A revision must pass the
+   * *stored* spec's own `canvas` here, not a `FormatId` re-resolved from
+   * scratch — the caller already has the exact values and re-deriving them
+   * would be a lossy round-trip for no reason.
+   */
+  canvas: { w: number; h: number; safe: number } = formatById(DEFAULT_FORMAT),
 ): SpecParseResult {
   const palette = paletteFor(lineage, brandColors);
   const fonts = fontPairById(lineage.fontPair);
+  const { w, h, safe } = canvas;
 
   return safeParseSpec({
     specVersion: "1.0",
@@ -67,7 +75,7 @@ export function assembleSpec(
     campaignArchetype: authored.campaignArchetype ?? "product-promotion",
     idea: authored.idea,
     story: authored.story,
-    canvas: { ...CANVAS },
+    canvas: { w, h, safe },
     brand: {
       colors: palette,
       fonts: { display: fonts.display, body: fonts.body, mono: fonts.mono ?? null },

@@ -552,7 +552,14 @@ export function solveLayout(
   // ── 8.45. The tone field: what is actually on the page ────────────────────
   // Painted in the renderer's z-order, so what it reports is what will be seen.
   const tone = new ToneField(spec.canvas, ground.base);
-  for (const region of ground.regions) tone.paintFlat(region.bbox, region.fill, region.d ? 0.9 : 0.75);
+  for (const region of ground.regions) {
+    // A ring region's bbox is its outer rect, not its ink — see
+    // `GroundRegion.excludeFromCoverage`. Painting the whole bbox at the
+    // ring's opacity would tint the entire interior the field reports content
+    // as sitting on, when only a thin band at the very edge is actually inked.
+    if (region.excludeFromCoverage) continue;
+    tone.paintFlat(region.bbox, region.fill, region.d ? 0.9 : 0.75);
+  }
   if (ground.gradient) tone.paintFlat({ x: 0, y: 0, ...spec.canvas }, ground.gradient.from, 0.5);
   // Ground-covering plates contribute their measured brightness, not a guess.
   for (const el of spec.elements) {

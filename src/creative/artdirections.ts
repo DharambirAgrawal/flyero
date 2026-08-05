@@ -125,7 +125,7 @@ export const ART_DIRECTIONS: readonly ArtDirection[] = [
     materials: ["soft-industrial", "ink-on-cream", "printed-halftone"],
     colorLogic: ["warm-neutral-cool-accent", "tinted-ground", "saturated-field"],
     gestures: ["one-rotated-element", "hero-overlaps-eyebrow", "intentional-crop-of-hero"],
-    graphics: ["botanical-frame", "organic-blobs", "sticker-sheet"],
+    graphics: ["botanical-frame", "organic-blobs", "sticker-sheet", "kawaii-doodle", "festive-scene"],
     preferredComponents: ["polaroid-stack", "torn-photo"],
   },
   {

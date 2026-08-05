@@ -32,7 +32,9 @@ export type GroundKind =
   | "arch-field"
   | "gradient-wash"
   | "pattern-tile"
-  | "block-frame";
+  | "block-frame"
+  | "wobble-frame"
+  | "scallop-frame";
 
 export type GroundRegion = {
   /** Path in canvas coordinates; `null` means the full canvas. */
@@ -42,6 +44,18 @@ export type GroundRegion = {
   isDark: boolean;
   /** Axis-aligned bounds, used for O(1) coverage against a layout box. */
   bbox: Rect;
+  /**
+   * A ring region's `bbox` is its outer rect — nearly the whole canvas — even
+   * though its ink is a thin band the safe margin keeps content clear of. Two
+   * downstream consumers treat `bbox` as a coverage proxy and both would be
+   * lied to by that: `markOnDarkFromGround`'s per-box overlap check (a
+   * headline sitting well inside a dark ring's bbox reads as "covered" and
+   * flips to white on a page that is actually light there), and the tone
+   * field's `paintFlat` in the solver (which would tint the whole bbox at the
+   * ring's opacity, not just the ring itself). Ring regions set this so both
+   * skip it instead of lying about coverage.
+   */
+  excludeFromCoverage?: boolean;
 };
 
 export type TexturePlan = {

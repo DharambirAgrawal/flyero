@@ -70,8 +70,8 @@ export const GRAPHICS: readonly GraphicsValue[] = [
   {
     id: "halftone-pop",
     brief:
-      "Comic-print energy: dot fields, a starburst badge, heavy flat ink and visible printing structure.",
-    grounds: ["pattern-tile", "pattern-tile", "flat"],
+      "Comic-print energy: dot fields, a starburst badge, heavy flat ink, visible printing structure and — sometimes — a stamp-edge border ring, the vintage offset-print poster.",
+    grounds: ["pattern-tile", "pattern-tile", "flat", "scallop-frame"],
     slots: [
       { form: "halftone-field", layer: "under", zone: "field", weight: "wash", scale: [1, 1] },
       { form: "burst", layer: "under", zone: "corner", weight: "solid", scale: [0.2, 0.32] },
@@ -142,12 +142,64 @@ export const GRAPHICS: readonly GraphicsValue[] = [
   {
     id: "geometric-memphis",
     brief:
-      "Eighties Memphis: hard polygons, checkerboards and loose squiggles in clashing flat colour.",
+      "Eighties Memphis / Y2K: hard polygons, checkerboards, loose squiggles and a scattered novelty mark (a star, a bolt, a smiley) in clashing flat colour.",
     grounds: ["split-diagonal", "split-diagonal", "flat"],
     slots: [
       { form: "checker-field", layer: "under", zone: "corner", weight: "wash", scale: [0.3, 0.5] },
       { form: "polygon", layer: "under", zone: "edge", weight: "tint", scale: [0.18, 0.32] },
       { form: "squiggle", layer: "over", zone: "gap", weight: "solid", scale: [0.22, 0.38] },
+      {
+        form: "motif",
+        layer: "over",
+        zone: "gap",
+        weight: "solid",
+        scale: [0.08, 0.14],
+        motifs: ["star", "lightning", "flower", "smiley"],
+      },
+    ],
+    adventurousness: 3,
+  },
+  {
+    id: "kawaii-doodle",
+    brief:
+      "Hand-drawn scrapbook page: a wobbly ink border around the whole composition, doodled flowers and stars scattered like a diary margin, everything a little imperfect on purpose.",
+    grounds: ["wobble-frame", "wobble-frame", "flat"],
+    slots: [
+      {
+        form: "motif",
+        layer: "over",
+        zone: "gap",
+        weight: "tint",
+        scale: [0.07, 0.13],
+        motifs: ["flower", "star", "heart", "rainbow"],
+      },
+      { form: "squiggle", layer: "over", zone: "gap", weight: "solid", scale: [0.14, 0.24] },
+    ],
+    adventurousness: 3,
+  },
+  {
+    id: "festive-scene",
+    brief:
+      "A celebration in full colour: balloons and a wrapped gift anchoring a corner, confetti drifting around them — the party-invitation register.",
+    grounds: ["flat", "gradient-wash"],
+    slots: [
+      {
+        form: "motif",
+        layer: "over",
+        zone: "corner",
+        weight: "solid",
+        scale: [0.14, 0.22],
+        motifs: ["balloon", "gift"],
+      },
+      {
+        form: "motif",
+        layer: "over",
+        zone: "gap",
+        weight: "tint",
+        scale: [0.05, 0.09],
+        motifs: ["confetti", "star"],
+      },
+      { form: "tape", layer: "over", zone: "corner", weight: "solid", scale: [0.12, 0.2] },
     ],
     adventurousness: 3,
   },

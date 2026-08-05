@@ -285,8 +285,12 @@ const RECIPES: Record<TopologyId, RecipeBody> = {
     bleed: [],
     align: {},
     // Deliberately far above the others: this topology exists to set type big.
-    headlineCeiling: 0.24,
-    headlineMaxLines: 4,
+    // Capped below the old 0.24: the headline box is allowed to grow past its
+    // nominal slot height to fit the text (see solver.ts §3), which read fine
+    // against the tall portrait format this was tuned against but overflowed
+    // the safe rect on square-1x1's shorter canvas at 4 lines near ceiling.
+    headlineCeiling: 0.19,
+    headlineMaxLines: 3,
     notes: "Type dominates; the image is a footnote.",
   },
 
