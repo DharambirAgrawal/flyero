@@ -244,7 +244,12 @@ describe("motifs", () => {
     for (const name of MOTIF_NAMES) {
       const motif = MOTIFS[name];
       expect(motif.d, name).toMatch(PATH_CHARS);
-      expect(motif.d.trim().endsWith("Z"), name).toBe(true);
+      // A filled motif with an open last subpath would leak a straight seam
+      // across its interior. A `stroke` motif has no fill to leak — it's
+      // line art, and open strokes (a candle, a bow's tail) are the point.
+      if (!motif.stroke) {
+        expect(motif.d.trim().endsWith("Z"), name).toBe(true);
+      }
       expect(numbersIn(motif.d).every(Number.isFinite), name).toBe(true);
     }
   });

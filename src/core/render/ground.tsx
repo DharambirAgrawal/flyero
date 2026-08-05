@@ -115,7 +115,16 @@ function Node({ node, index }: { node: DecorNode; index: number }): ReactElement
       const motif = MOTIFS[node.name];
       return (
         <g key={index} transform={motifTransform(node.x, node.y, node.size, node.rotate)}>
-          <path d={motif.d} fill={node.fill} fillRule={motif.fillRule} opacity={node.op} />
+          <path
+            d={motif.d}
+            fill={motif.stroke ? "none" : node.fill}
+            stroke={motif.stroke ? node.fill : undefined}
+            strokeWidth={motif.stroke ? 2.5 : undefined}
+            strokeLinecap={motif.stroke ? "round" : undefined}
+            strokeLinejoin={motif.stroke ? "round" : undefined}
+            fillRule={motif.fillRule}
+            opacity={node.op}
+          />
         </g>
       );
     }

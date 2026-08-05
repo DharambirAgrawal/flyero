@@ -492,6 +492,39 @@ the ones already there. That's different from an *asset* (a logo or a
 supplied full-colour image via `POST /v1/assets`), which embeds as-is and is
 not theme-recoloured. Know which one you're adding before you add it.
 
+### 2026-08-05 — checked two free asset sources; decided against both, for now
+
+The user pointed at real templates' illustrated stickers (a sketched
+birthday cake, a hand-drawn bow, a smiley/sparkle/thumbs-up sticker set) and
+asked whether free, downloadable, keep-able versions of that register exist —
+same "download once, check in, reproducible from a clean clone" pattern
+`npm run fonts` already uses. Checked two real sources rather than assuming:
+
+- **OpenMoji** — CC BY-SA 4.0, ~4,500 icons, official bulk download via
+  GitHub releases (safe to automate), and it ships a single-tone "Black"
+  variant that would be as recolourable as a hand-authored motif. The real
+  cost: CC BY-SA requires attribution + share-alike, and this codebase
+  already tracks attribution data for Pexels photos
+  (`author`/`source_url`/`source` on `assets`) but doesn't currently *display*
+  it anywhere on an exported flyer — meaning that gap is real today, quietly,
+  even before OpenMoji enters the picture.
+- **unDraw** — a much better license (no attribution required, explicit
+  permission to recolour and modify, commercial use fine) — but their terms
+  explicitly prohibit automated/bulk scraping and redistributing packs. A
+  fonts-style bulk-downloader script would violate that even though the
+  assets themselves are free.
+
+**Decided: skip attribution-required bulk sources entirely.** Not a partial
+"track it but don't show it" compromise — that would repeat the same silent
+gap the Pexels integration already has. The library keeps growing by
+hand-authored `MOTIF_DATA` entries (mine or a delegated AI's, same convention
+as everything already there — see the prompt template in this session's
+transcript, or ask for it again). If a genuinely illustrated, non-attribution
+piece is wanted later, it has to be hand-picked one at a time by a human
+browsing (or an agent using an actual browser, not a scraper) — never
+automated against a site whose terms forbid it — and it lands as an *asset*
+(`POST /v1/assets`, embedded as-is, not theme-recoloured), not a motif.
+
 ## Working order
 
 1. **Coverage floor.** Measure ink/object coverage of the canvas; make it a

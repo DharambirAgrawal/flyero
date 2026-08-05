@@ -6,6 +6,40 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — Checked two free sticker sources, kept neither; added line-art motifs instead
+
+### Decisions recorded
+- **Checked OpenMoji (CC BY-SA 4.0, official bulk download, ~4,500 icons
+  including a recolourable single-tone variant) and unDraw (excellent
+  license, but explicitly forbids automated/bulk downloading) as sources for
+  richer decorative stickers.** Decided against bulk-importing either:
+  OpenMoji's attribution+share-alike requirement has no display mechanism
+  anywhere in the product today (the same gap already exists silently for
+  Pexels photo attribution), and unDraw can't be automated without violating
+  its terms. The library keeps growing by hand-authored `MOTIF_DATA` entries
+  instead — same convention as everything already there. Full reasoning in
+  `docs/GAP-ANALYSIS.md`.
+
+### Added
+- **`Motif.stroke`** (`src/components/shapes.ts`) — a motif can now be
+  line art (outline, no fill) instead of a filled silhouette, wired into
+  both render paths that draw motifs (`src/core/render/ground.tsx` for
+  decoration, `src/components/figure.tsx` for composed-figure parts).
+  Filled motifs are unaffected; a `shaded` composed-figure part is ignored
+  for a stroke motif, since a gradient sheen has nothing to fill.
+- **Three new motifs** using it: `cake` (two-tier, three lit candles),
+  `bow` (two loops, a knot, notched tails), `sparkle-doodle` (a scattered
+  three-sparkle cluster) — the hand-drawn sketch register the doodle/
+  scrapbook references use, which a filled silhouette can't reach.
+
+### Fixed
+- `test/unit/shapes.test.ts`'s "every motif is a well-formed path" check
+  required every motif's `d` to end in `Z` (closed) — true for a filled
+  shape, wrong for line art with legitimately open subpaths (an open candle
+  stroke, a bow's tail). Exempted `stroke` motifs from that specific check.
+
+---
+
 ## 2026-08-05 — Shaded motifs, and a live agent run that found four real gaps
 
 Drove a real MCP session end to end (external agent, real brief) against

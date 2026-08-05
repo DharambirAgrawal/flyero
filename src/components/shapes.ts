@@ -559,8 +559,12 @@ export function archPath(rect: Rect): string {
  * a build step and a house style that is not ours.
  *
  * `fillRule: "evenodd"` where a subpath punches a hole (the pin, the camera).
+ * `stroke: true` draws it as an outline instead of a fill — the hand-drawn
+ * line-art register (a sketched cake, a bow) that a filled silhouette cannot
+ * reach; callers must check it, since a stroked path with no fill would
+ * otherwise render as nothing.
  */
-export type Motif = { d: string; fillRule?: "evenodd" };
+export type Motif = { d: string; fillRule?: "evenodd"; stroke?: boolean };
 
 /**
  * Directional motifs — ones that point somewhere — are all authored pointing
@@ -731,6 +735,37 @@ const MOTIF_DATA = {
       `${ellipsePath(50, 50, 46, 46)} ${ellipsePath(34, 40, 6, 6)} ${ellipsePath(66, 40, 6, 6)} ` +
       "M 30 58 Q 50 80 70 58 Q 50 68 30 58 Z",
     fillRule: "evenodd" as const,
+  },
+
+  /**
+   * Sketched two-tier cake with three candles — hand-drawn line art, not a
+   * filled silhouette. `stroke: true` is what makes that possible: the tiers
+   * are closed rounded rects, the icing is an open wave, the candles and
+   * flames are open strokes, and none of it needs a fill to read.
+   */
+  cake: {
+    d:
+      `${roundedRectPath({ x: 14, y: 62, w: 72, h: 30 }, 6)} ` +
+      `${roundedRectPath({ x: 28, y: 42, w: 44, h: 24 }, 5)} ` +
+      `${wavePath(14, 62, 72, 4, 18)} ` +
+      "M 36 42 L 36 26 M 50 42 L 50 22 M 64 42 L 64 26 " +
+      "M 36 26 Q 33 19 36 14 Q 39 19 36 26 " +
+      "M 50 22 Q 47 15 50 10 Q 53 15 50 22 " +
+      "M 64 26 Q 61 19 64 14 Q 67 19 64 26",
+    stroke: true,
+  },
+
+  /** Two loop ellipses, a knot and two V-notched tails — the corner-bow line-art mark. */
+  bow: {
+    d:
+      `${ellipsePath(30, 42, 20, 14)} ${ellipsePath(70, 42, 20, 14)} ${ellipsePath(50, 42, 8, 8)} ` +
+      "M 44 48 L 34 92 L 46 78 M 56 48 L 66 92 L 54 78",
+    stroke: true,
+  },
+
+  /** Three sparkles at different sizes, scattered like a doodled margin note — one motif, not three placements. */
+  "sparkle-doodle": {
+    d: `${sparklePath(50, 52, 22)} ${sparklePath(80, 26, 10)} ${sparklePath(18, 76, 8)}`,
   },
 } as const;
 

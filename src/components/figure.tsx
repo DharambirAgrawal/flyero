@@ -373,6 +373,24 @@ function renderPart(
     case "motif": {
       const motif = MOTIFS[part.draw.motif];
       const size = Math.min(rect.w, rect.h);
+      // Line art has no fill to shade — a gradient sheen on a sketched cake
+      // would contradict the register it's drawn in, so `shaded` is ignored.
+      if (motif.stroke) {
+        return (
+          <g key={key} data-name={key} transform={spin}>
+            <g transform={motifTransform(rect.x, rect.y, size, 0)}>
+              <path
+                d={motif.d}
+                fill="none"
+                stroke={fill}
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </g>
+          </g>
+        );
+      }
       if (part.draw.shaded) {
         const sheen = sheenGradient(`sheen-${key}`, fill, theme.light);
         const shadow = shadowFor(theme.light, size, 0.5);
