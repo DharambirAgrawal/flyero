@@ -6,6 +6,48 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — Coverage floor gate, gradient-wash contrast fix, reachability sweep
+
+Closed the five open items `docs/GAP-ANALYSIS.md` was tracking under
+"Working order", plus two more found while closing them.
+
+### Added
+- **`mechanical.coverage`** (`src/core/canvas/coverage.ts`), GAP-ANALYSIS.md's
+  own top-priority item: nothing previously caught a flyer that cleared G3's
+  4-7 element count and every colour check while still reading as an empty
+  page — a headline, a CTA pill and two small motifs on a flat background.
+  Grid-based canvas coverage (element boxes + decoration bboxes, ground
+  exempt, same convention as `decor/budget.ts`'s ink cap), floor 0.32,
+  calibrated against 40 fixture-sampled designers.
+
+### Fixed
+- **Gradient-wash contrast blind spot.** The blanket palette check compared
+  accent/muted/fg against the flat page colour, not a gradient wash's
+  actually-darker stop (derived from accent itself, not guaranteed lighter
+  than base). Fixed in `gates/index.ts` and `ground.ts` (`docs/GAP-ANALYSIS.md`
+  item 7). Surfaced a real ink bug in the photo-hero scrim decision
+  (`solver.ts`, item 8) and a deeper, still-open ring keep-out gap
+  (`scallop-frame`, item 8) — recorded, not papered over.
+- **A real-estate flyer's hero photo rendering as an unrecognisable blur**,
+  found testing real prompts end to end. The guide's own image-prep table
+  steered straight into the `bg-plate-blur` preset (sigma 12, meant for pure
+  atmosphere) for a subject photo that needed to stay recognisable for Gate
+  G2; `photo-hero`'s built-in scrim was the right tool and was documented two
+  sections later in the same guide, easy to miss. Rewrote the table and the
+  preset's catalogue description (`docs/GAP-ANALYSIS.md` item 9).
+- **Reachability.** `kawaii-doodle`/`festive-scene` wired into
+  `crafted-collage`'s graphics pool, not just `botanical-celebration`.
+  `shaded` motif/shape parts documented in the composition skill (item 6).
+
+### Investigated, confirmed not a live bug
+- The speech-bubble-with-no-shape render from an earlier live session: the
+  motif renders correctly in isolation across flat/shaded/three sizes
+  (now permanent coverage in `scripts/sheet-figures.ts`). Matches the
+  already-documented failure class of an LLM-authored `composed-figure` part
+  passing a bad parameter, not a defect in the shape data.
+
+---
+
 ## 2026-08-05 — Postgres-backed store for production (job/asset data survives redeploys)
 
 Render's filesystem is ephemeral and `render.yaml` provisions no persistent
