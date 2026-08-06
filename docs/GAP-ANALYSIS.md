@@ -617,6 +617,20 @@ automated against a site whose terms forbid it — and it lands as an *asset*
    the subject becomes unrecognisable and fails Gate G2 — and point at
    `photo-hero`'s scrim as the correct tool whenever the photo *is* the
    evidence, which for a listing, a venue or a product it almost always is.
+10. **Found 2026-08-05, same review: `headline-block`'s `plate`/`band`
+    treatment — type reversed out of a solid colour block, the single device
+    nearly every reference poster uses and the exact "box behind text" gap
+    real user feedback named — was fully built (plate hugs each line, band
+    runs full width, `plateShape` offers rect/pill/ribbon) and completely
+    invisible.** `headline-block`'s own `visual.reads` line, the "LOOKS LIKE"
+    text every agent reads from the component catalogue, said only "two or
+    three lines of very large type" — no mention that `props.treatment` could
+    draw a block at all. Same failure class as the 2026-08-02 fix that made
+    28 other components reachable, just for a prop instead of a whole
+    component. Closed by rewriting the `visual.reads` line. Still open: how
+    often the *deterministic* sampler itself reaches for `treatment: "plate"`
+    versus leaving it at the `"plain"` default is not yet measured — this fix
+    only guarantees an *agent* composing by hand now knows the option exists.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before
