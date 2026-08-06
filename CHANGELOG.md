@@ -6,6 +6,38 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — Motif library expansion: 12 hand-authored vector marks
+
+Expanded Flyero's hand-authored decorative motif library (`src/components/shapes.ts`) with 12 new vector marks spanning food, retail, music, celebration, symbols, travel, and awards.
+
+### Added
+- **12 new motifs** (`src/components/shapes.ts`):
+  - `coffee-cup`: line-art coffee mug with dual wavy steam lines.
+  - `bell`: line-art ringing bell with clapper droplet and top hanger loop.
+  - `music-note`: line-art double eighth note pair connected by top beam.
+  - `crown`: line-art five-pointed regal crown with base band and peak jewels.
+  - `tag`: retail price tag silhouette with punched circular hole (`fillRule: "evenodd"`).
+  - `trophy`: line-art victory cup trophy with handles and pedestal.
+  - `peace-sign`: line-art circular peace symbol with vertical and diagonal arms.
+  - `drink-cocktail`: line-art martini glass with stem, base, and olive toothpick garnish.
+  - `donut`: ring donut shape with center hole punched through (`fillRule: "evenodd"`).
+  - `palette`: artist color palette silhouette with thumbhole cutout (`fillRule: "evenodd"`).
+  - `anchor`: line-art maritime anchor with top ring, shank, stock, and flukes.
+  - `clover`: line-art four-leaf clover doodle with heart-shaped lobes and curving stem.
+
+### Fixed (found while verifying by render, before push)
+- 11 of 12 rendered correctly on the first check. `palette` did not: its
+  thumbhole was spliced into the *middle* of the body's own path string
+  rather than appended as an independent closed subpath after it, which
+  breaks one closed shape into a self-intersecting one — it rendered as a
+  blob with a stray diagonal slash through it, not a checkerboard-style
+  failure but a real one all the same. Rebuilt as a plain oval body plus
+  five independent hole subpaths (one thumbhole, four paint-daubs) —
+  every hole an `evenodd` motif punches must be its own separate closed
+  subpath after the body's, never inserted inside it.
+
+---
+
 ## 2026-08-05 — The six gaps from the two-reference review, closed
 
 Direct follow-through on the "AVERY TURNS 26" / "HAPPY BIRTHDAY Samira!"

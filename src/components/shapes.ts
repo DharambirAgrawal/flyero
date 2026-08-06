@@ -835,6 +835,123 @@ const MOTIF_DATA = {
       "M 50 40 Q 35 25 50 25 Q 65 25 50 40",
     stroke: true,
   },
+
+  /** Coffee mug with curved steam lines rising from the top rim — sketched line art. */
+  "coffee-cup": {
+    d:
+      `${roundedRectPath({ x: 24, y: 36, w: 42, h: 48 }, 6)} ` +
+      "M 66 46 Q 84 46 84 60 Q 84 74 66 74 " +
+      `${wavePath(30, 22, 30, 4, 10)} ${wavePath(34, 12, 22, 3, 8)}`,
+    stroke: true,
+  },
+
+  /** Flare-bottomed ringing bell with top hanger loop and clapper hanging below. */
+  bell: {
+    d:
+      `${ellipsePath(50, 14, 6, 6)} ` +
+      "M 32 68 C 32 40 40 24 50 24 C 60 24 68 40 68 68 L 78 76 L 22 76 Z " +
+      "M 22 76 Q 50 83 78 76 " +
+      `${ellipsePath(50, 84, 7, 7)}`,
+    stroke: true,
+  },
+
+  /** Twin eighth notes linked by a thick horizontal beam — classic musical notation doodle. */
+  "music-note": {
+    d:
+      `${ellipsePath(25, 75, 10, 7)} ${ellipsePath(65, 65, 10, 7)} ` +
+      "M 35 73 L 35 22 L 75 12 L 75 63 M 35 34 L 75 24",
+    stroke: true,
+  },
+
+  /** Five-pointed regal crown with jewel circles capping each peak and a rounded base band. */
+  crown: {
+    d:
+      `${roundedRectPath({ x: 15, y: 72, w: 70, h: 14 }, 3)} ` +
+      "M 15 72 L 15 35 L 32 55 L 50 20 L 68 55 L 85 35 L 85 72 Z " +
+      `${ellipsePath(15, 30, 4, 4)} ${ellipsePath(50, 15, 4, 4)} ${ellipsePath(85, 30, 4, 4)}`,
+    stroke: true,
+  },
+
+  /** Slanted retail price tag with a punched circular hole near its angled top corner. */
+  tag: {
+    d:
+      "M 30 10 L 70 10 L 90 30 L 90 85 A 5 5 0 0 1 85 90 L 15 90 A 5 5 0 0 1 10 85 L 10 30 Z " +
+      `${ellipsePath(50, 24, 6, 6)}`,
+    fillRule: "evenodd",
+  },
+
+  /** Victory cup trophy with curved side handles on a stepped rectangular pedestal. */
+  trophy: {
+    d:
+      `${roundedRectPath({ x: 26, y: 78, w: 48, h: 14 }, 3)} ` +
+      "M 44 64 L 44 78 M 56 64 L 56 78 " +
+      "M 22 16 H 78 V 36 Q 78 64 50 64 Q 22 64 22 36 Z " +
+      "M 22 24 Q 8 24 8 38 Q 8 52 24 50 M 78 24 Q 92 24 92 38 Q 92 52 76 50",
+    stroke: true,
+  },
+
+  /** Circular peace emblem with a vertical center line and two downward diagonal arms. */
+  "peace-sign": {
+    d:
+      `${ellipsePath(50, 50, 42, 42)} ` +
+      "M 50 8 L 50 92 M 50 50 L 20 80 M 50 50 L 80 80",
+    stroke: true,
+  },
+
+  /** V-shaped martini glass with long stem, wide base, and an olive-on-toothpick garnish. */
+  "drink-cocktail": {
+    d:
+      "M 16 18 L 50 58 L 84 18 Z " +
+      "M 50 58 L 50 86 M 30 86 L 70 86 " +
+      "M 62 8 L 38 38 " +
+      `${ellipsePath(60, 12, 5, 5)}`,
+    stroke: true,
+  },
+
+  /** Ring donut shape with a central hole punched through a rounded circular outer pastry. */
+  donut: {
+    d: `${ellipsePath(50, 50, 44, 44)} ${ellipsePath(50, 50, 18, 18)}`,
+    fillRule: "evenodd",
+  },
+
+  /**
+   * Artist palette: a plain oval body, a larger thumbhole punched near the
+   * bottom-right edge, and four small paint-daub holes scattered across the
+   * top. An earlier draft tried to cut a thumb notch into the outline itself
+   * by splicing a hole path into the middle of the body's own path string —
+   * that breaks a single closed subpath into a self-intersecting mess (it
+   * rendered as a blob with a stray diagonal slash through it). Every hole
+   * here is its own independent closed subpath after the body, which is the
+   * only way `evenodd` punches a clean hole rather than corrupting the shape
+   * it is supposedly punched into.
+   */
+  palette: {
+    d:
+      `${ellipsePath(48, 46, 44, 38)} ` +
+      `${ellipsePath(70, 74, 9, 8)} ` +
+      `${ellipsePath(26, 30, 6, 6)} ${ellipsePath(46, 18, 6, 6)} ${ellipsePath(66, 28, 6, 6)} ${ellipsePath(78, 50, 6, 6)}`,
+    fillRule: "evenodd",
+  },
+
+  /** Maritime anchor featuring a top attachment ring, long shank, horizontal stock, and curved fluke arms. */
+  anchor: {
+    d:
+      `${ellipsePath(50, 14, 7, 7)} ` +
+      "M 50 21 L 50 84 M 22 34 L 78 34 " +
+      "M 20 58 C 20 84 80 84 80 58 M 14 64 L 20 58 L 26 66 M 86 64 L 80 58 L 74 66",
+    stroke: true,
+  },
+
+  /** Four-leaf clover composed of four curved heart-shaped lobes meeting at a central stem. */
+  clover: {
+    d:
+      "M 50 48 Q 32 30 32 18 Q 32 6 50 18 Q 68 6 68 18 Q 68 30 50 48 Z " +
+      "M 50 52 Q 32 70 32 82 Q 32 94 50 82 Q 68 94 68 82 Q 68 70 50 52 Z " +
+      "M 48 50 Q 30 32 18 32 Q 6 32 18 50 Q 6 68 18 68 Q 30 68 48 50 Z " +
+      "M 52 50 Q 70 32 82 32 Q 94 32 82 50 Q 94 68 82 68 Q 70 68 52 50 Z " +
+      "M 50 52 Q 46 74 36 94",
+    stroke: true,
+  },
 } as const;
 
 /**
