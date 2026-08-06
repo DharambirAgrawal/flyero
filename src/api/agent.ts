@@ -528,7 +528,7 @@ async function renderAndRecord(input: {
   author: string;
 }) {
   const { spec, flyerId, revision } = input;
-  const assets = getAssets(input.assetIds);
+  const assets = await getAssets(input.assetIds);
   const refs: AssetRef[] = assets.map((a) => ({
     assetId: a.id,
     href: assetDataUri(a),
@@ -741,8 +741,8 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       ? formatById(body.format)
       : undefined;
     if (!canvas && body.flyerId) {
-      const existingJob = getJob(body.flyerId);
-      const prevRevision = existingJob ? getRevision(existingJob.id, existingJob.revision) : null;
+      const existingJob = await getJob(body.flyerId);
+      const prevRevision = existingJob ? await getRevision(existingJob.id, existingJob.revision) : null;
       if (prevRevision) canvas = (JSON.parse(prevRevision.spec) as DesignSpec).canvas;
     }
     canvas ??= formatById(DEFAULT_FORMAT);
@@ -783,12 +783,12 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     let flyerId = body.flyerId ?? null;
     let revision = 0;
     if (flyerId) {
-      const existing = getJob(flyerId);
+      const existing = await getJob(flyerId);
       if (!existing) return fail(reply, 404, "not_found", `No flyer ${flyerId}`);
       revision = existing.revision + 1;
     } else {
       flyerId = `fly_${ulid()}`;
-      createJob({
+      await createJob({
         id: flyerId,
         apiKey: request.apiKey,
         prompt: body.prompt ?? body.idea,
@@ -814,14 +814,14 @@ export function registerAgentRoutes(app: FastifyInstance): void {
 
   // ── 2b. Patch: change part of a flyer without resending the whole spec ───
   app.patch<{ Params: { flyerId: string } }>("/v1/flyers/:flyerId", async (request, reply) => {
-    const job = getJob(request.params.flyerId);
+    const job = await getJob(request.params.flyerId);
     if (!job) return fail(reply, 404, "not_found", "No such flyer");
 
     const parsed = patchSchema.safeParse(request.body);
     if (!parsed.success) {
       return fail(reply, 400, "invalid_request", "Invalid patch", parsed.error.issues);
     }
-    const row = getRevision(job.id, job.revision);
+    const row = await getRevision(job.id, job.revision);
     if (!row) return fail(reply, 404, "not_found", `No revision ${job.revision}`);
 
     const current = JSON.parse(row.spec);
@@ -902,7 +902,9 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     const previous = JSON.parse(job.asset_ids) as string[];
     const referenced = elements.flatMap((el) => el.assets ?? []);
     const assetIds = Array.from(new Set([...previous, ...referenced]));
-    const missing = assetIds.filter((id) => !getAsset(id));
+    const found = await getAssets(assetIds);
+    const foundIds = new Set(found.map((a) => a.id));
+    const missing = assetIds.filter((id) => !foundIds.has(id));
     if (missing.length > 0) {
       return fail(
         reply,
@@ -911,7 +913,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
         `Unknown assetId(s): ${missing.join(", ")} — upload them via POST /v1/assets first`,
       );
     }
-    updateJob(job.id, { asset_ids: JSON.stringify(assetIds) });
+    await updateJob(job.id, { asset_ids: JSON.stringify(assetIds) });
 
     const result = await renderAndRecord({
       spec: assembled.spec,
@@ -928,7 +930,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   app.post<{ Params: { flyerId: string } }>(
     "/v1/flyers/:flyerId/review",
     async (request, reply) => {
-      const job = getJob(request.params.flyerId);
+      const job = await getJob(request.params.flyerId);
       if (!job) return fail(reply, 404, "not_found", "No such flyer");
 
       const parsed = visionVerdictSchema.safeParse(request.body);
@@ -936,7 +938,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
         return fail(reply, 400, "invalid_request", "Invalid review verdict", parsed.error.issues);
       }
 
-      const row = getRevision(job.id, job.revision);
+      const row = await getRevision(job.id, job.revision);
       if (!row) return fail(reply, 404, "not_found", `No revision ${job.revision}`);
 
       const spec = JSON.parse(row.spec);
@@ -951,8 +953,8 @@ export function registerAgentRoutes(app: FastifyInstance): void {
         { jobId: job.id, apiKey: request.apiKey, stage: "gates" },
       );
 
-      saveRevision({ jobId: job.id, revision: job.revision, spec, layout, gates, instruction: null });
-      updateJob(job.id, {
+      await saveRevision({ jobId: job.id, revision: job.revision, spec, layout, gates, instruction: null });
+      await updateJob(job.id, {
         status: gates.passed ? "done" : "below_bar",
         gates: JSON.stringify(gates),
         below_bar: gates.passed ? 0 : 1,
@@ -982,10 +984,10 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   app.get<{ Params: { flyerId: string }; Querystring: { revision?: string } }>(
     "/v1/flyers/:flyerId/critique",
     async (request, reply) => {
-      const job = getJob(request.params.flyerId);
+      const job = await getJob(request.params.flyerId);
       if (!job) return fail(reply, 404, "not_found", "No such flyer");
       const revision = request.query.revision ? Number(request.query.revision) : job.revision;
-      const row = getRevision(job.id, revision);
+      const row = await getRevision(job.id, revision);
       if (!row) return fail(reply, 404, "not_found", `No revision ${revision}`);
 
       const spec = JSON.parse(row.spec);

@@ -151,7 +151,7 @@ export async function callStructured<T>(
     (usage.input_tokens * price.input) / 1_000_000 +
     (usage.output_tokens * price.output) / 1_000_000;
 
-  recordCost({
+  await recordCost({
     jobId: ctx.jobId,
     apiKey: ctx.apiKey,
     stage: ctx.stage,

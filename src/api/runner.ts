@@ -20,8 +20,8 @@ function pump(): void {
     inFlight.add(task.jobId);
     void task
       .run()
-      .catch((err) => {
-        updateJob(task.jobId, {
+      .catch(async (err) => {
+        await updateJob(task.jobId, {
           status: "failed",
           stage: null,
           error: err instanceof Error ? err.message : String(err),

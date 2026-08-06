@@ -59,6 +59,17 @@ export const config = {
   maxDailyUsd: num("MAX_DAILY_USD", 20),
   costAlertUsdPerFlyer: num("COST_ALERT_USD_PER_FLYER", 1.5),
 
+  /**
+   * When set, the job/asset store uses Postgres (`src/store/db.ts`) instead
+   * of the local SQLite file below — the difference between surviving a
+   * redeploy and not. Render's filesystem is ephemeral and this repo's
+   * render.yaml provisions no persistent disk, so `databasePath` alone is
+   * fine for local dev but loses every row on every production deploy.
+   * Empty by default so `npm test` and local dev keep working with zero
+   * setup — SQLite is not a fallback to feel bad about, it is the correct
+   * choice until there is a real database to point at.
+   */
+  databaseUrl: process.env.DATABASE_URL ?? "",
   databasePath: resolve(str("DATABASE_PATH", "./data/flyero.db")),
   storageDir: resolve(str("STORAGE_DIR", "./data/objects")),
 

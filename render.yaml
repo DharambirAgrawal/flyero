@@ -17,5 +17,12 @@ services:
       # return 503 not_configured and everything else still works.
       - key: PEXELS_API_KEY
         sync: false
+      # Points the job/asset store at Postgres (src/store/db.ts) instead of a
+      # local SQLite file. Required here: this service's filesystem is
+      # ephemeral and no persistent disk is configured below, so without a
+      # real database every row is lost on each redeploy. A Neon (or any
+      # Postgres) connection string, set once in the Render dashboard.
+      - key: DATABASE_URL
+        sync: false
       - key: NODE_ENV
         value: production

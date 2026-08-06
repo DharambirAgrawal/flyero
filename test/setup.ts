@@ -11,6 +11,9 @@ const root = mkdtempSync(join(tmpdir(), "flyero-test-"));
 
 process.env.DATABASE_PATH = join(root, "test.db");
 process.env.STORAGE_DIR = join(root, "objects");
+// Cleared even if the developer's .env sets it for the real Render deploy —
+// tests must never touch the production Neon database.
+process.env.DATABASE_URL = "";
 process.env.API_KEYS = "test_key_1,test_key_2";
 process.env.ANTHROPIC_API_KEY = "";
 process.env.LOG_LEVEL = "silent";

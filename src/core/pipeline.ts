@@ -13,6 +13,7 @@ import { selectPassingCandidate, type SelectionDecision } from "./select/index.j
 import { assetDataUri, getAssets, type AssetRecord } from "../store/assets.js";
 import {
   getJob,
+  getRevision,
   saveProcessLog,
   saveRevision,
   setStage,
@@ -171,7 +172,7 @@ function scoreCandidate(c: CandidateOutcome): number {
 }
 
 export async function runJob(jobId: string): Promise<void> {
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
   if (!job) throw new Error(`Unknown job ${jobId}`);
 
   const ctx: CallContext = { jobId, apiKey: job.api_key, stage: "brief" };
@@ -182,17 +183,17 @@ export async function runJob(jobId: string): Promise<void> {
       throw new Error("ANTHROPIC_API_KEY is not configured — generation cannot run");
     }
 
-    const assets = getAssets(JSON.parse(job.asset_ids) as string[]);
+    const assets = await getAssets(JSON.parse(job.asset_ids) as string[]);
     const brand = job.brand ? (JSON.parse(job.brand) as { colors?: string[]; tone?: string[] }) : null;
     const jobFormat = (FORMAT_IDS as string[]).includes(job.format)
       ? (job.format as FormatId)
       : DEFAULT_FORMAT;
 
-    setStage(jobId, "brief");
+    await setStage(jobId, "brief");
     const brief = await buildBrief({ prompt: job.prompt, assets, brand }, ctx);
-    updateJob(jobId, { product_name: brief.product.name });
+    await updateJob(jobId, { product_name: brief.product.name });
 
-    setStage(jobId, "sample");
+    await setStage(jobId, "sample");
     const initial = sampleLineages({
       jobSeed: job.job_seed,
       count: config.lineagesPerRun,
@@ -207,7 +208,7 @@ export async function runJob(jobId: string): Promise<void> {
 
     const runLineageSet = async (lineages: Lineage[], allowVisionCritique: boolean) => {
       allLineages.push(...lineages);
-      setStage(jobId, "idea");
+      await setStage(jobId, "idea");
       // Candidates within a set run in parallel. A restart is a second bounded
       // set, never an unbounded search and never a history lookup.
       const settled = await Promise.allSettled(
@@ -237,7 +238,7 @@ export async function runJob(jobId: string): Promise<void> {
       budget.remaining > 0
     ) {
       restartCount += 1;
-      setStage(jobId, "sample");
+      await setStage(jobId, "sample");
       const restarted = sampleLineages({
         jobSeed: `${job.job_seed}:restart:${restartCount}`,
         count: config.lineagesPerRun,
@@ -253,7 +254,7 @@ export async function runJob(jobId: string): Promise<void> {
       throw new Error(`every candidate failed — ${failures.join(" | ")}`);
     }
 
-    setStage(jobId, "gates");
+    await setStage(jobId, "gates");
     const ranked = [...candidates].sort((a, b) => scoreCandidate(b) - scoreCandidate(a));
     const passing = candidates.filter((candidate) => candidate.gates.passed);
     let winner: CandidateOutcome;
@@ -282,12 +283,12 @@ export async function runJob(jobId: string): Promise<void> {
     }
     const passed = winner.gates.passed;
 
-    setStage(jobId, "export");
+    await setStage(jobId, "export");
     const revision = job.revision;
     exportFlyer({ jobId, revision, spec: winner.spec, svg: winner.svg, png: winner.png });
     const editability = checkEditability(winner.svg);
 
-    saveRevision({
+    await saveRevision({
       jobId,
       revision,
       spec: winner.spec,
@@ -297,7 +298,7 @@ export async function runJob(jobId: string): Promise<void> {
     });
 
     // The process log is a training asset — every candidate, not just the winner.
-    saveProcessLog(jobId, revision, {
+    await saveProcessLog(jobId, revision, {
       brief,
       lineages: allLineages,
       restartCount,
@@ -320,7 +321,7 @@ export async function runJob(jobId: string): Promise<void> {
       })),
     });
 
-    updateJob(jobId, {
+    await updateJob(jobId, {
       status: passed ? "done" : "below_bar",
       stage: null,
       idea: winner.spec.idea,
@@ -334,35 +335,35 @@ export async function runJob(jobId: string): Promise<void> {
     await notify(jobId);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    updateJob(jobId, { status: "failed", stage: null, error: message });
-    saveProcessLog(jobId, job.revision, { error: message, durationMs: Date.now() - started });
+    await updateJob(jobId, { status: "failed", stage: null, error: message });
+    await saveProcessLog(jobId, job.revision, { error: message, durationMs: Date.now() - started });
     await notify(jobId);
   }
 }
 
 /** Re-runs one revision of an existing flyer against a plain-language instruction. */
 export async function runRevision(jobId: string, instruction: string): Promise<void> {
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
   if (!job) throw new Error(`Unknown job ${jobId}`);
   const ctx: CallContext = { jobId, apiKey: job.api_key, stage: "revise" };
 
   try {
     const previous = job.revision;
-    const row = (await import("../store/jobs.js")).getRevision(jobId, previous);
+    const row = await getRevision(jobId, previous);
     if (!row) throw new Error(`Job ${jobId} has no revision ${previous} to revise`);
 
     const spec = JSON.parse(row.spec) as DesignSpec;
-    const assets = getAssets(JSON.parse(job.asset_ids) as string[]);
+    const assets = await getAssets(JSON.parse(job.asset_ids) as string[]);
     const refs = assetRefs(assets);
 
-    setStage(jobId, "revise");
+    await setStage(jobId, "revise");
     const revised = await reviseSpec({ spec, fixes: [], userInstruction: instruction }, ctx);
 
-    setStage(jobId, "render");
+    await setStage(jobId, "render");
     const render = renderSpec(revised.spec, refs);
     const png = rasterize(render.svg);
 
-    setStage(jobId, "gates");
+    await setStage(jobId, "gates");
     const budget = new VisionBudget(2);
     const gates = await runGates(
       {
@@ -376,15 +377,15 @@ export async function runRevision(jobId: string, instruction: string): Promise<v
 
     const revision = previous + 1;
     exportFlyer({ jobId, revision, spec: revised.spec, svg: render.svg, png });
-    saveRevision({ jobId, revision, spec: revised.spec, layout: render.layout, gates, instruction });
-    saveProcessLog(jobId, revision, {
+    await saveRevision({ jobId, revision, spec: revised.spec, layout: render.layout, gates, instruction });
+    await saveProcessLog(jobId, revision, {
       instruction,
       operations: revised.operations,
       gates,
       layoutWarnings: render.layout.warnings,
     });
 
-    updateJob(jobId, {
+    await updateJob(jobId, {
       status: gates.passed ? "done" : "below_bar",
       stage: null,
       revision,
@@ -397,13 +398,13 @@ export async function runRevision(jobId: string, instruction: string): Promise<v
     await notify(jobId);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    updateJob(jobId, { status: "failed", stage: null, error: message });
+    await updateJob(jobId, { status: "failed", stage: null, error: message });
     await notify(jobId);
   }
 }
 
 async function notify(jobId: string): Promise<void> {
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
   if (!job?.callback_url) return;
   const payload = {
     jobId: job.id,

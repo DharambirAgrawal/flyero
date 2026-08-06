@@ -6,6 +6,64 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — Postgres-backed store for production (job/asset data survives redeploys)
+
+Render's filesystem is ephemeral and `render.yaml` provisions no persistent
+disk, so the SQLite file the store used to write to was wiped on every
+deploy — a live flyer disappeared this way, and every push during this
+session had likely been quietly destroying it further. AGENTS.md law 10 (the
+per-job process log is never deleted) cannot hold against a filesystem that
+gets discarded out from under it. Fixed at the root: the store now runs on
+Postgres in production, not by adding a disk.
+
+### Changed
+- **`src/store/db.ts` — dual backend.** SQLite (`better-sqlite3`) when
+  `DATABASE_URL` is unset — this stays the zero-setup path for local dev and
+  `npm test`. Postgres (`pg`) when it is set — this is production. Every
+  caller writes one dialect of SQL (Postgres-style `$1, $2, ...`
+  placeholders) through `dbRun`/`dbAll`/`dbGet`; for the SQLite path these
+  are translated to `?` by placeholder *number*, not by position, so a query
+  that legitimately reuses the same `$N` twice (`createJob`'s
+  `created_at`/`updated_at`) still binds the right value to each occurrence
+  on both backends.
+- **`src/store/jobs.ts`, `src/store/assets.ts`** — every exported function
+  that touches the database is now `async`; every caller across
+  `src/api/server.ts`, `src/api/agent.ts`, `src/api/runner.ts`,
+  `src/core/pipeline.ts`, and `src/llm/index.ts` now awaits it.
+- **`cost_events.id`** switched from an autoincrement integer to a
+  `ulid()`-generated `TEXT` primary key — the value was never read anywhere,
+  and this lets the same `CREATE TABLE` text run unmodified on both backends
+  instead of branching the DDL per dialect.
+- **`config.ts`** — added `databaseUrl` from `process.env.DATABASE_URL`.
+- **`render.yaml`** — documented `DATABASE_URL` as an expected (`sync:
+  false`) env var, matching how it's actually set in the Render dashboard.
+
+### Fixed (found while verifying against a real Neon database, before push)
+- `test/setup.ts` never cleared `DATABASE_URL`, so with it present in the
+  developer's own `.env` (needed for the manual production test below),
+  `npm test` was silently hitting the real production Neon database instead
+  of an isolated SQLite file — and, run in Vitest's parallel workers, several
+  test files raced each other's `CREATE TABLE IF NOT EXISTS` against it,
+  surfacing as a Postgres `pg_type_typname_nsp_index` unique-constraint
+  violation. Tests must never touch real data (this file's own comment says
+  so); fixed by explicitly setting `DATABASE_URL = ""` in test setup so the
+  isolated per-run SQLite path always wins regardless of what's in `.env`.
+- The `$1, $2, ...` → `?` conversion above was originally position-based
+  (`sql.replace(/\$\d+/g, "?")`), which breaks the moment a query reuses a
+  placeholder number — exactly what `createJob` does for
+  `created_at`/`updated_at` (`..., $11, $11`). Postgres accepts this; SQLite
+  doesn't, since each `?` needs its own bound value, so the run failed with
+  `RangeError: Too few parameter values were provided`. Rewritten to expand
+  params by the placeholder's actual number rather than by scan order.
+
+### Verified
+- `npm test` — 221/221 passing against the isolated SQLite path.
+- A manual round-trip (create → read → update) against the real Neon
+  `DATABASE_URL`, run and then cleaned up by hand, confirms the Postgres path
+  works end to end, not just type-checks.
+
+---
+
 ## 2026-08-05 — Motif library expansion: 12 hand-authored vector marks
 
 Expanded Flyero's hand-authored decorative motif library (`src/components/shapes.ts`) with 12 new vector marks spanning food, retail, music, celebration, symbols, travel, and awards.

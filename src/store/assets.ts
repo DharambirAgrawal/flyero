@@ -2,7 +2,7 @@ import sharp from "sharp";
 import { ulid } from "ulid";
 import { Resvg } from "@resvg/resvg-js";
 import * as z from "zod/v4";
-import { getDb, nowIso } from "./db.js";
+import { dbAll, dbGet, dbRun, nowIso } from "./db.js";
 import { assetKey, extensionFor, getBuffer, putBuffer } from "./objects.js";
 import { imageSize } from "../lib/imagesize.js";
 import { callStructured, type CallContext } from "../llm/index.js";
@@ -274,12 +274,10 @@ export async function createAsset(
   // Measured locally and merged in, so it survives the analysis falling back.
   analysis.toneMap = await computeToneMap(buffer);
 
-  getDb()
-    .prepare(
-      `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?)`,
-    )
-    .run(
+  await dbRun(
+    `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NULL, NULL, $11, $12, $13)`,
+    [
       id,
       input.apiKey,
       input.kind,
@@ -293,7 +291,8 @@ export async function createAsset(
       input.provenance?.source ?? null,
       input.provenance?.sourceUrl ?? null,
       input.provenance?.author ?? null,
-    );
+    ],
+  );
 
   return {
     id,
@@ -344,14 +343,19 @@ function rowToRecord(row: AssetRow): AssetRecord {
   };
 }
 
-export function getAsset(id: string): AssetRecord | null {
-  const row = getDb().prepare("SELECT * FROM assets WHERE id = ?").get(id) as AssetRow | undefined;
-  if (!row) return null;
-  return rowToRecord(row);
+export async function getAsset(id: string): Promise<AssetRecord | null> {
+  const row = await dbGet<AssetRow>("SELECT * FROM assets WHERE id = $1", [id]);
+  return row ? rowToRecord(row) : null;
 }
 
-export function getAssets(ids: string[]): AssetRecord[] {
-  return ids.map(getAsset).filter((a): a is AssetRecord => a !== null);
+export async function getAssets(ids: string[]): Promise<AssetRecord[]> {
+  if (ids.length === 0) return [];
+  // One round trip rather than N, and order preserved to match the caller's
+  // asset_ids list — an IN () query does not promise result order.
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(", ");
+  const rows = await dbAll<AssetRow>(`SELECT * FROM assets WHERE id IN (${placeholders})`, ids);
+  const byId = new Map(rows.map((r) => [r.id, rowToRecord(r)]));
+  return ids.map((id) => byId.get(id)).filter((a): a is AssetRecord => a !== undefined);
 }
 
 /** data: URI so exported SVG is self-contained and opens anywhere. */
@@ -404,12 +408,10 @@ export async function createDerivedAsset(input: {
   // Never carry the parent's luminance grid into a crop/duotone/blur variant.
   analysis = { ...analysis, toneMap: await computeToneMap(input.buffer) };
 
-  getDb()
-    .prepare(
-      `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-    .run(
+  await dbRun(
+    `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+    [
       id,
       input.apiKey,
       input.parent.kind,
@@ -426,7 +428,8 @@ export async function createDerivedAsset(input: {
       input.parent.provenance?.source ?? null,
       input.parent.provenance?.sourceUrl ?? null,
       input.parent.provenance?.author ?? null,
-    );
+    ],
+  );
 
   return {
     id,

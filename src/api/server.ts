@@ -160,14 +160,14 @@ export function buildServer(): FastifyInstance {
   });
 
   // ── Spend and concurrency guards ─────────────────────────────────────────
-  function guard(apiKey: string): { ok: true } | { ok: false; message: string } {
-    if (countActiveJobs(apiKey) >= config.maxConcurrentJobs) {
+  async function guard(apiKey: string): Promise<{ ok: true } | { ok: false; message: string }> {
+    if ((await countActiveJobs(apiKey)) >= config.maxConcurrentJobs) {
       return {
         ok: false,
         message: `MAX_CONCURRENT_JOBS (${config.maxConcurrentJobs}) reached for this key`,
       };
     }
-    const spent = spendToday(apiKey);
+    const spent = await spendToday(apiKey);
     if (spent >= config.maxDailyUsd) {
       return {
         ok: false,
@@ -326,7 +326,7 @@ export function buildServer(): FastifyInstance {
   });
 
   app.get<{ Params: { assetId: string } }>("/v1/assets/:assetId", async (request, reply) => {
-    const asset = getAsset(request.params.assetId);
+    const asset = await getAsset(request.params.assetId);
     if (!asset) return fail(reply, 404, "not_found", "No such asset");
     return {
       assetId: asset.id,
@@ -346,7 +346,7 @@ export function buildServer(): FastifyInstance {
   app.post<{ Params: { assetId: string } }>(
     "/v1/assets/:assetId/transform",
     async (request, reply) => {
-      const source = getAsset(request.params.assetId);
+      const source = await getAsset(request.params.assetId);
       if (!source) return fail(reply, 404, "not_found", "No such asset");
 
       const parsed = transformRequestSchema.safeParse(request.body ?? {});
@@ -397,7 +397,7 @@ export function buildServer(): FastifyInstance {
 
   /** Binary download so agents (and humans) can visually check a prepared image. */
   app.get<{ Params: { assetId: string } }>("/v1/assets/:assetId/file", async (request, reply) => {
-    const asset = getAsset(request.params.assetId);
+    const asset = await getAsset(request.params.assetId);
     if (!asset) return fail(reply, 404, "not_found", "No such asset");
     return reply.type(asset.mime).send(getBuffer(asset.path));
   });
@@ -408,16 +408,16 @@ export function buildServer(): FastifyInstance {
     if (!parsed.success) {
       return fail(reply, 400, "invalid_request", "Invalid request body", parsed.error.issues);
     }
-    const check = guard(request.apiKey);
+    const check = await guard(request.apiKey);
     if (!check.ok) return fail(reply, 429, "rate_limited", check.message);
 
     const body = parsed.data;
     for (const id of body.assetIds ?? []) {
-      if (!getAsset(id)) return fail(reply, 400, "invalid_request", `Unknown assetId ${id}`);
+      if (!(await getAsset(id))) return fail(reply, 400, "invalid_request", `Unknown assetId ${id}`);
     }
 
     const jobId = `fly_${ulid()}`;
-    createJob({
+    await createJob({
       id: jobId,
       apiKey: request.apiKey,
       prompt: body.prompt,
@@ -442,7 +442,7 @@ export function buildServer(): FastifyInstance {
   app.get("/v1/formats", async () => ({ formats: FORMATS, default: DEFAULT_FORMAT }));
 
   app.get<{ Params: { jobId: string } }>("/v1/flyers/:jobId", async (request, reply) => {
-    const job = getJob(request.params.jobId);
+    const job = await getJob(request.params.jobId);
     if (!job) return fail(reply, 404, "not_found", "No such flyer job");
 
     const base = { jobId: job.id, status: job.status };
@@ -498,7 +498,7 @@ export function buildServer(): FastifyInstance {
   });
 
   app.post<{ Params: { jobId: string } }>("/v1/flyers/:jobId/revise", async (request, reply) => {
-    const job = getJob(request.params.jobId);
+    const job = await getJob(request.params.jobId);
     if (!job) return fail(reply, 404, "not_found", "No such flyer job");
     if (job.status === "queued" || job.status === "generating") {
       return fail(reply, 409 as 400, "invalid_request", "This flyer is still generating");
@@ -507,7 +507,7 @@ export function buildServer(): FastifyInstance {
     if (!parsed.success) {
       return fail(reply, 400, "invalid_request", "instruction is required", parsed.error.issues);
     }
-    const check = guard(request.apiKey);
+    const check = await guard(request.apiKey);
     if (!check.ok) return fail(reply, 429, "rate_limited", check.message);
 
     enqueueRevision(job.id, parsed.data.instruction);
@@ -517,10 +517,10 @@ export function buildServer(): FastifyInstance {
   app.get<{ Params: { jobId: string }; Querystring: { revision?: string } }>(
     "/v1/flyers/:jobId/spec",
     async (request, reply) => {
-      const job = getJob(request.params.jobId);
+      const job = await getJob(request.params.jobId);
       if (!job) return fail(reply, 404, "not_found", "No such flyer job");
       const revision = request.query.revision ? Number(request.query.revision) : job.revision;
-      const row = getRevision(job.id, revision);
+      const row = await getRevision(job.id, revision);
       if (!row) return fail(reply, 404, "not_found", `No revision ${revision}`);
       return reply.type("application/json").send(row.spec);
     },
@@ -543,7 +543,7 @@ export function buildServer(): FastifyInstance {
 
   /** Recent flyers, so one can be found again after the fact. */
   app.get("/v1/flyers", async (request) => ({
-    flyers: listJobs(request.apiKey, 20).map((j) => ({
+    flyers: (await listJobs(request.apiKey, 20)).map((j) => ({
       flyerId: j.id,
       status: j.status,
       idea: j.idea,
@@ -558,7 +558,7 @@ export function buildServer(): FastifyInstance {
   }>(
     "/v1/flyers/:jobId/export",
     async (request, reply) => {
-      const job = getJob(request.params.jobId);
+      const job = await getJob(request.params.jobId);
       if (!job) return fail(reply, 404, "not_found", "No such flyer job");
 
       const format = request.query.format ?? "png";
@@ -586,8 +586,8 @@ export function buildServer(): FastifyInstance {
           return fail(reply, 404, "not_found", `No spec for revision ${revision}`);
         }
         const spec = parseSpec(JSON.parse(getText(specPath)));
-        const assets = getAssets(
-          spec.elements.flatMap((el: { assets?: string[] }) => el.assets ?? []),
+        const assets = (
+          await getAssets(spec.elements.flatMap((el: { assets?: string[] }) => el.assets ?? []))
         ).map((a) => ({
           assetId: a.id,
           href: assetDataUri(a),
@@ -642,13 +642,13 @@ export function buildServer(): FastifyInstance {
     const format = parsed.data.format ?? DEFAULT_FORMAT;
 
     const batchId = `bat_${ulid()}`;
-    createBatch({ id: batchId, apiKey: request.apiKey, prompt, runs, risk, format });
+    await createBatch({ id: batchId, apiKey: request.apiKey, prompt, runs, risk, format });
 
     const jobIds: string[] = [];
     for (let i = 0; i < runs; i++) {
       const jobId = `fly_${ulid()}`;
       // Each run gets its own fresh job seed — that independence is what DR-1 measures.
-      createJob({
+      await createJob({
         id: jobId,
         apiKey: request.apiKey,
         prompt,
@@ -668,9 +668,9 @@ export function buildServer(): FastifyInstance {
   });
 
   app.get<{ Params: { batchId: string } }>("/v1/batches/:batchId", async (request, reply) => {
-    const batch = getBatch(request.params.batchId);
+    const batch = await getBatch(request.params.batchId);
     if (!batch) return fail(reply, 404, "not_found", "No such batch");
-    const jobs = jobsInBatch(batch.id);
+    const jobs = await jobsInBatch(batch.id);
     return {
       batchId: batch.id,
       prompt: batch.prompt,
@@ -691,12 +691,13 @@ export function buildServer(): FastifyInstance {
   app.get<{ Params: { jobId: string }; Querystring: { revision?: string } }>(
     "/v1/flyers/:jobId/process",
     async (request, reply) => {
-      const job = getJob(request.params.jobId);
+      const job = await getJob(request.params.jobId);
       if (!job) return fail(reply, 404, "not_found", "No such flyer job");
       const revision = request.query.revision ? Number(request.query.revision) : job.revision;
-      const log = getProcessLog(job.id, revision);
+      const log = await getProcessLog(job.id, revision);
       if (!log) return fail(reply, 404, "not_found", `No process log for revision ${revision}`);
-      return { jobId: job.id, revision, revisions: listRevisions(job.id).map((r) => r.revision), log };
+      const revisions = await listRevisions(job.id);
+      return { jobId: job.id, revision, revisions: revisions.map((r) => r.revision), log };
     },
   );
 
