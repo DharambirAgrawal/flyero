@@ -128,6 +128,17 @@ the brief (a name, a signature, an aside) and it will render in the display
 font instead when the assigned pair has no accent — never a forced or ugly
 combination, just a graceful no-op.
 
+A \`motif\` or \`shape\` part also takes \`shaded: true\` — a highlight-to-
+shadow gradient keyed off the flyer's one light, plus a contact shadow,
+instead of a flat single-colour fill. That is the difference between a
+rendered *object* (a balloon that looks inflated, a gift that looks wrapped,
+a trophy that looks metal) and a flat *icon mark*. Reach for it when the part
+is meant to be seen as a thing sitting on the page, not a graphic symbol —
+and leave it off for badges, Memphis shapes, small scattered accents and
+anything else that should read as a mark: shading everything looks busier,
+not more real, so use it on the one or two parts that are the point of the
+figure, not on every part in it.
+
 ## Density without clutter
 
 The canvas should feel used. But you have 4-7 elements and Gate G3 counts them,

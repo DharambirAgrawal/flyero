@@ -96,7 +96,7 @@ export const ART_DIRECTIONS: readonly ArtDirection[] = [
     materials: ["ink-on-cream", "printed-halftone", "soft-industrial"],
     colorLogic: ["warm-neutral-cool-accent", "paper-and-ink", "colour-block-duo", "two-accent-before-after"],
     gestures: ["one-rotated-element", "element-escapes-canvas", "annotation-breaks-margin"],
-    graphics: ["paper-collage", "sticker-sheet", "organic-blobs"],
+    graphics: ["paper-collage", "sticker-sheet", "organic-blobs", "kawaii-doodle", "festive-scene"],
     preferredComponents: ["polaroid-stack", "torn-photo"],
   },
   {
