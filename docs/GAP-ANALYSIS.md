@@ -545,11 +545,48 @@ automated against a site whose terms forbid it — and it lands as an *asset*
    (2026-08-05); `shaded` motifs are still not mentioned anywhere an agent
    would read. The speech-bubble-with-no-shape render from the Luma Journal
    session is still not root-caused.
-7. **`runGates` "contrast" mechanical check fails intermittently against a
-   `gradient-wash` ground** (2026-08-05) — confirmed on `organic-blobs`, a
-   pre-existing gap, not caused by that day's work. Likely checks `accent`
-   against `theme.palette.bg` rather than the gradient's actual darkest
-   rendered stop. Not investigated further yet.
+7. **`runGates` "contrast" mechanical check failed intermittently against a
+   `gradient-wash` ground.** **Closed (2026-08-05).** Root cause was exactly
+   as suspected: the blanket palette check compared `accent`/`muted`/`fg`
+   against `layout.ground.base` (the flat page colour), but `gradient.from`
+   — painted across most of the canvas for a wash — is derived from `accent`
+   itself (`mix(accent, base, t)`), so it is not guaranteed to be lighter
+   than `base`, and an accent-coloured mark drawn on the wash could land on
+   almost-identical territory to itself. Fixed in two places: `gates/index.ts`
+   now checks against whichever of `base`/`gradient.from` actually renders
+   darker, and `ground.ts`'s `gradient-wash` branch now walks its mix ratio
+   toward `base` until the wash stays legible for the palette's own
+   accent/muted, rather than trusting a fixed 0.62 ratio.
+8. **New, found while verifying #7: `layout.tone.legibleFor` "busy ground"
+   can fail even when contrast passes, for two distinct reasons — one fixed,
+   one still open.**
+   - *Fixed.* The photo-hero full-wash scrim decision (`solver.ts` pass 8.6)
+     computed its `failing` list by checking legibility against a hardcoded
+     `theme.palette.fg`, not the ink the box will actually render in. A box
+     already marked `onDark` by pass 8.55 renders light, so testing it as
+     dark text could both miss real failures and misidentify safe ones.
+     Fixed by checking `inkFor(theme, b, theme.palette.fg)` instead.
+   - *Still open.* A wide text block can be placed by the topology straddling
+     the coloured ring of a `scallop-frame` (or, presumably, `wobbly-frame`)
+     ground — half the block over the ring's `deeper` fill, half over the
+     flat `base` — which the tone field correctly measures as high-variance
+     (busy), because it genuinely is: the background colour changes midway
+     through the text block. `runGates` correctly refuses to pass this, as
+     it should (AGENTS.md law 4). The real fix is upstream: these ring-shaped
+     `GroundKind`s are planned *after* box placement (`ground.ts`'s own
+     header comment), so nothing in the topology solver currently knows to
+     keep a text box from spanning the ring band. Reproducible via the
+     `photo-led` published example: composing it repeatedly against fresh
+     `/v1/studio/assignments` seeds fails `runGates`' contrast check roughly
+     1 run in 5–8, seed `01KZA9D7RBNTX65CYA5N51SM9A` being one instance
+     (`note` element, `body-paragraph`, straddles a `scallop-frame` ring at
+     y≈1055–1205). Needs either a keep-out band for ring `GroundKind`s in the
+     topology solver, or moving ring placement before box placement so it can
+     participate in the existing keep-out machinery `DecorForm`s already use.
+     Not fixed today — a real solver change, not a quick patch — but this is
+     why `test/acceptance/examples.test.ts`'s `photo-led` case can still
+     occasionally fail on an unlucky seed; that is the product correctly
+     catching a real defect, not a flaky test to silence.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

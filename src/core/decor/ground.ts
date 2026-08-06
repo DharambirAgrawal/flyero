@@ -26,7 +26,7 @@ import {
   type Tile,
 } from "../../components/shapes.js";
 import type { Box, Theme } from "../../components/types.js";
-import { mix, withAlpha } from "../../creative/color.js";
+import { contrastRatio, mix, withAlpha } from "../../creative/color.js";
 import type { GraphicsValue } from "../../creative/graphics.js";
 import { Rng } from "../../lib/rng.js";
 import type { DesignSpec } from "../compose/spec.js";
@@ -214,9 +214,25 @@ export function planGround(
   }
 
   if (kind === "gradient-wash") {
+    // `from` washes the accent hue over the base — and because it's derived
+    // FROM the accent, an accent-coloured mark drawn on top of it can end up
+    // low-contrast almost by construction (same hue, same territory), even
+    // though `finish()` in colorlogic.ts already guarantees accent and muted
+    // read fine against the flat `base`. Walk the mix ratio toward `base`
+    // until the wash stays legible for both, rather than trusting a single
+    // fixed ratio to always work; `base` itself is always a safe ceiling.
+    let t = 0.62;
+    let from = mix(theme.palette.accent, base, t);
+    while (
+      t < 0.94 &&
+      (contrastRatio(theme.palette.accent, from) < 3 || contrastRatio(theme.palette.muted, from) < 3)
+    ) {
+      t += 0.08;
+      from = mix(theme.palette.accent, base, t);
+    }
     plan.gradient = {
       id: groundId("wash"),
-      from: mix(theme.palette.accent, base, 0.62),
+      from,
       to: base,
       angle: rng.pick([0, 45, 90, 135]),
     };

@@ -14,6 +14,7 @@ import { planDecorations } from "../decor/decorations.js";
 import type { Decoration, GroundPlan } from "../decor/types.js";
 import { depthForRole } from "../canvas/depth.js";
 import { figureInk } from "../../components/figure.js";
+import { inkFor } from "../../components/primitives.js";
 import { BUSY_VARIANCE, ToneField } from "../canvas/tone.js";
 
 /**
@@ -757,7 +758,11 @@ export function solveLayout(
         .map((e) => boxes[e.id])
         .filter((b): b is Box => Boolean(b))
         .filter((b) => overlapArea(b, plateBox) > 0)
-        .filter((b) => !tone.legibleFor(b, theme.palette.fg, (b.fontSize ?? 0) >= 32));
+        // Checked against the ink the box will actually render in, not a
+        // hardcoded dark `fg` — a box already marked `onDark` by pass 8.55
+        // renders light, and testing it as if it were dark text can miss (or
+        // wrongly flag) exactly the boxes this scrim decision exists to catch.
+        .filter((b) => !tone.legibleFor(b, inkFor(theme, b, theme.palette.fg), (b.fontSize ?? 0) >= 32));
 
       if (coversPage && failing.length > 0) {
         const top = Math.min(...failing.map((b) => b.y));

@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 import sharp from "sharp";
-import { contrastRatio, meetsAA } from "../../creative/color.js";
+import { contrastRatio, meetsAA, relativeLuminance } from "../../creative/color.js";
 import { inkFor } from "../../components/primitives.js";
 import { themeFromSpec } from "../render/theme.js";
 import { BUSY_VARIANCE } from "../canvas/tone.js";
@@ -182,7 +182,20 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
 
   // The palette still has to hold up on the base wash, so a flyer cannot pass
   // merely because every element happens to sit on a region that rescues it.
-  const base = layout.ground.base;
+  //
+  // For a gradient-wash ground, `layout.ground.base` is only one of the two
+  // rendered stops — the flat page background at one edge of the gradient.
+  // The other stop (`gradient.from`, mixed toward the accent colour) is
+  // painted across most of the canvas and is not necessarily lighter: when
+  // the accent is darker than the base, `from` is the darker of the two, and
+  // checking `base` alone silently misses it. Compare against whichever stop
+  // actually renders darkest, matching the "honest worst case" the region
+  // was built for in ground.ts.
+  const { gradient } = layout.ground;
+  const base =
+    gradient && relativeLuminance(gradient.from) < relativeLuminance(layout.ground.base)
+      ? gradient.from
+      : layout.ground.base;
   if (!meetsAA(fg, base)) {
     contrastFailures.push(`foreground ${fg} on ${base} is ${contrastRatio(fg, base).toFixed(2)}:1`);
   }
