@@ -10,7 +10,20 @@ import { arcGuideId, arcTextPath, ribbonPath, roundedRectPath } from "./shapes.j
 const headlineBlock: ComponentModule = {
   manifest: {
     id: "headline-block",
-    visual: { shape: "text-only", aspect: 2.2, density: "medium", carriesTone: false, reads: "Two or three lines of very large type, set tight; the biggest object on the page and the thing a viewer reads first." },
+    visual: {
+      shape: "text-only",
+      aspect: 2.2,
+      density: "medium",
+      carriesTone: false,
+      reads:
+        "Two or three lines of very large type, set tight; the biggest object on the page and the " +
+        "thing a viewer reads first. props.treatment (default \"plain\") can instead draw a solid " +
+        "colour block behind the type and reverse the letters out of it — props.treatment: \"plate\" " +
+        "hugs each line, \"band\" runs the full box width; props.plateShape (\"rect\" | \"pill\" | " +
+        "\"ribbon\") shapes that block. This is the single move most reference posters use and most " +
+        "flyers here skip: a saturated block over a photo or a flat ground, type reversed out of it, " +
+        "not text floating loose on the page.",
+    },
     category: "content",
     purpose:
       "The primary message. Sized by the solver to be the loudest typographic object unless an oversized anchor outranks it.",
