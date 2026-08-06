@@ -175,6 +175,23 @@ describe("gates", () => {
     expect(result.notes.join(" ")).toContain("absent from user statements");
   });
 
+  it("fails the coverage floor on a sparse composition, even with every other check clean", async () => {
+    const spec = fixtureSpec(fixtureLineages("coverage-floor", 1)[0]!);
+    const sparse: DesignSpec = JSON.parse(JSON.stringify(spec));
+    // Headline, CTA and brand only — the shape of a real regression this gate
+    // exists to catch: nothing else here objects to an empty-looking page.
+    sparse.elements = sparse.elements.filter((e) =>
+      ["message", "cta", "brand"].includes(e.role),
+    );
+    const result = await runGates(
+      { spec: sparse, layout: layoutFor(sparse), requestedAssetIds: [] },
+      ctx,
+    );
+    expect(result.mechanical.coverage).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.notes.join(" ")).toMatch(/coverage:.*empty page/);
+  });
+
   it("physically masks headline and brand pixels for the Cover Test", async () => {
     const spec = fixtureSpec(fixtureLineages("g2-mask", 1)[0]!);
     const render = renderSpec(spec);

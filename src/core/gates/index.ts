@@ -4,6 +4,7 @@ import { contrastRatio, meetsAA, relativeLuminance } from "../../creative/color.
 import { inkFor } from "../../components/primitives.js";
 import { themeFromSpec } from "../render/theme.js";
 import { BUSY_VARIANCE } from "../canvas/tone.js";
+import { measureCoverage, MIN_COVERAGE } from "../canvas/coverage.js";
 import { detectBanned, type BannedHit } from "../../creative/banned.js";
 import { typographyById } from "../../creative/typebehaviors.js";
 import { recipeFor } from "../layout/recipes.js";
@@ -32,6 +33,7 @@ export type GateResult = {
     ctaPresent: boolean;
     assetsUsedOrReported: boolean;
     bannedListClear: boolean;
+    coverage: boolean;
   };
   notes: string[];
   bannedHits: BannedHit[];
@@ -237,6 +239,18 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
   const ctaPresent = Boolean(ctaEl && spec.copy.cta.label.trim().length > 0);
   if (!ctaPresent) notes.push("no legible call to action");
 
+  // Coverage floor — GAP-ANALYSIS.md's own first-priority item. Nothing else
+  // here catches a flyer that technically has 4-7 justified elements and a
+  // clean palette but reads as an empty page with a headline on it.
+  const coverageMeasured = measureCoverage(spec, layout);
+  const coverage = coverageMeasured >= MIN_COVERAGE;
+  if (!coverage) {
+    notes.push(
+      `coverage: only ${(coverageMeasured * 100).toFixed(0)}% of the canvas carries an element or ` +
+        `decoration (floor ${(MIN_COVERAGE * 100).toFixed(0)}%) — reads as an empty page`,
+    );
+  }
+
   const usedAssets = new Set(spec.elements.flatMap((e) => e.assets ?? []));
   const unusedAssets = input.requestedAssetIds.filter((id) => !usedAssets.has(id));
   // Unused is acceptable — silently dropping without reporting is not.
@@ -349,6 +363,7 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
     ctaPresent,
     assetsUsedOrReported,
     bannedListClear: banned.clear,
+    coverage,
   };
 
   return {

@@ -13,6 +13,7 @@ const cleanGates = (notes: string[] = []): GateResult => ({
     ctaPresent: true,
     assetsUsedOrReported: true,
     bannedListClear: true,
+    coverage: true,
   },
   notes,
   bannedHits: [],

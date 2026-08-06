@@ -197,6 +197,7 @@ type GateResult = {
   mechanical: {
     overflow: boolean; contrast: boolean; margins: boolean;
     ctaPresent: boolean; assetsUsedOrReported: boolean; bannedListClear: boolean;
+    coverage: boolean;
   };
   notes: string[];
 };
@@ -212,6 +213,19 @@ type GateResult = {
 | G4 | Spec has a relationship or gesture involving the headline element, OR typography behavior ∈ participating set; vision confirms type isn't a floating label |
 | G5 | Exactly one `gesture` present with `purpose`; layout applies exactly one gesture family |
 | G6 | Slogan ban-list regex; invented-stat heuristics; every `copy.details` value and every numeric claim must appear in `provenance.userStatements` (copied from Brief `source:user`); vision/copy check for hollow slogans |
+
+### `mechanical.coverage`
+
+Not one of the Six Gates — a floor under all of them. A grid over the canvas
+(`src/core/canvas/coverage.ts`, 60px cells) marks a cell covered if any
+element box or decoration bbox touches it; `coverage` = covered cells /
+total cells, ground excluded (same "ground is exempt" convention as
+`decor/budget.ts`'s `MAX_INK_COVERAGE`, which caps decoration ink from
+above — this is the floor under everything, not decoration-specific).
+Fails below `MIN_COVERAGE` (0.32, calibrated against 40 fixture-sampled
+designers — see the constant's own comment for the numbers). Catches a
+flyer that clears G3's 4–7 element count and every colour check while
+still reading as an empty page with a headline on it.
 
 ## 8. Banned-list detector (code heuristics)
 

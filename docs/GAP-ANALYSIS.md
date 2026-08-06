@@ -527,8 +527,15 @@ automated against a site whose terms forbid it — and it lands as an *asset*
 
 ## Working order
 
-1. **Coverage floor.** Measure ink/object coverage of the canvas; make it a
-   mechanical check with a real threshold. Nothing else can be judged without it.
+1. **Coverage floor.** **Closed (2026-08-05).** `src/core/canvas/coverage.ts`
+   measures the fraction of the canvas actually touched by an element box or
+   a decoration bbox (grid membership, ground excluded, same convention as
+   the decoration ink cap) and gates on it as `mechanical.coverage`, floor
+   0.32 — calibrated against 40 fixture-sampled designers (lowest normal
+   sample 0.386) against sparse repros (0.21-0.27). This is exactly the check
+   that would catch a flyer like the "Pulse Cycle" real-world test prompt: a
+   flat background, a headline, a CTA pill and two small motifs, correctly
+   read as visibly empty.
 2. **Photo-as-ground.** A photographic evidence element should be able to *be*
    the ground, with type over it and a legibility scrim — the single biggest
    visual change.
@@ -591,9 +598,11 @@ automated against a site whose terms forbid it — and it lands as an *asset*
      topology solver, or moving ring placement before box placement so it can
      participate in the existing keep-out machinery `DecorForm`s already use.
      Not fixed today — a real solver change, not a quick patch — but this is
-     why `test/acceptance/examples.test.ts`'s `photo-led` case can still
-     occasionally fail on an unlucky seed; that is the product correctly
-     catching a real defect, not a flaky test to silence.
+     why `test/acceptance/examples.test.ts`'s `photo-led` case (and, seen
+     2026-08-05 while calibrating the coverage floor below, `assembled` too —
+     same `contrast` mechanical check, same unpinned-seed flakiness) can
+     still occasionally fail on an unlucky seed; that is the product
+     correctly catching a real defect, not a flaky test to silence.
 9. **Found 2026-08-05, while testing real prompts end to end: a real-estate
    flyer's hero photo rendered as an unrecognisable blur.** **Closed.** Root
    cause: the guide's own image-prep table (`guide.ts`) mapped "Photo to sit
