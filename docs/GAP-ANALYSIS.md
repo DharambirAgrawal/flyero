@@ -539,12 +539,19 @@ automated against a site whose terms forbid it — and it lands as an *asset*
 4. **Text clusters.** One element carrying several small lines, so the canvas
    can hold 12+ text objects inside a 4–7 element budget.
 5. **Type in shapes**, **frames**, **scene illustration** — in that order.
-6. **Reachability sweep.** `kawaii-doodle`/`festive-scene` are still only
-   reachable from `botanical-celebration` — wire into `crafted-collage` too.
-   `word` fragments and `big-numeral` are surfaced in skills.ts now
-   (2026-08-05); `shaded` motifs are still not mentioned anywhere an agent
-   would read. The speech-bubble-with-no-shape render from the Luma Journal
-   session is still not root-caused.
+6. **Reachability sweep.** **Closed (2026-08-05).** `kawaii-doodle`/
+   `festive-scene` wired into `crafted-collage`'s graphics pool alongside
+   `botanical-celebration`. `shaded` motifs now documented in the
+   composition skill, matching how `word` fragments and `big-numeral`
+   already are. The speech-bubble-with-no-shape render from the Luma
+   Journal session: root-caused as far as it can be — rendered the motif in
+   isolation (flat, shaded, three sizes/tones, now permanent coverage in
+   `scripts/sheet-figures.ts`) and it is correct on current code. The static
+   path was never the bug; this matches the already-documented class of
+   failure where an LLM-authored `composed-figure` part passes a bad
+   parameter (see the `sparkle` `waist` bug above) rather than the shape
+   data itself being wrong. The exact failing spec from that session wasn't
+   preserved, so this can't be pinned further than that.
 7. **`runGates` "contrast" mechanical check failed intermittently against a
    `gradient-wash` ground.** **Closed (2026-08-05).** Root cause was exactly
    as suspected: the blanket palette check compared `accent`/`muted`/`fg`
@@ -587,6 +594,20 @@ automated against a site whose terms forbid it — and it lands as an *asset*
      why `test/acceptance/examples.test.ts`'s `photo-led` case can still
      occasionally fail on an unlucky seed; that is the product correctly
      catching a real defect, not a flaky test to silence.
+9. **Found 2026-08-05, while testing real prompts end to end: a real-estate
+   flyer's hero photo rendered as an unrecognisable blur.** **Closed.** Root
+   cause: the guide's own image-prep table (`guide.ts`) mapped "Photo to sit
+   *behind* type" → the `bg-plate-blur` preset (sigma 12, meant for pure
+   atmosphere — a bokeh field with no subject), which is exactly how "type
+   over a real estate photo" reads on a quick pass — but `photo-hero`
+   already has the right tool for that (a built-in scrim that darkens only
+   the type's band and leaves the rest of the photo sharp), documented two
+   sections later in the same guide and easy to miss in favour of the table
+   match above it. Fixed by rewriting the table row and the preset's
+   catalogue description (`transform.ts`) to name the actual failure mode —
+   the subject becomes unrecognisable and fails Gate G2 — and point at
+   `photo-hero`'s scrim as the correct tool whenever the photo *is* the
+   evidence, which for a listing, a venue or a product it almost always is.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

@@ -74,6 +74,15 @@ const FIGURES: { name: string; parts: unknown[] }[] = [
       { id: "star", draw: { kind: "shape", form: "star" }, size: "tiny", at: { of: "hex", side: "top-right-of", gap: "tight" }, tone: "paper", layer: "front" },
     ],
   },
+  {
+    name: "speech-bubble-check",
+    parts: [
+      { id: "b1", draw: { kind: "motif", motif: "speech-bubble" }, size: "huge", at: { at: "center" }, tone: "accent" },
+      { id: "b2", draw: { kind: "motif", motif: "speech-bubble", shaded: true }, size: "large", at: { at: "top-left" }, tone: "ink" },
+      { id: "b3", draw: { kind: "motif", motif: "speech-bubble" }, size: "small", at: { at: "bottom-right" }, tone: "muted" },
+      { id: "w", draw: { kind: "word", text: "HI!" }, size: "small", at: { of: "b1", side: "on" }, tone: "paper", layer: "front" },
+    ],
+  },
 ];
 
 async function main(): Promise<void> {

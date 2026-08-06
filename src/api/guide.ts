@@ -85,11 +85,21 @@ User images almost never drop cleanly into a flyer. Treat prep as part of design
 | Product photo on studio bg | preset \`product-hero\` or \`soft-cutout\` |
 | UI screenshot | preset \`screenshot-frame\` |
 | Face / founder | preset \`circle-avatar\` |
-| Photo to sit *behind* type | preset \`bg-plate-blur\` (+ optional \`brand-tint\`) |
+| Purely decorative texture behind type — no recognisable subject | preset \`bg-plate-blur\` (+ optional \`brand-tint\`) |
 
 Custom ops (crop, cropBox, blur, removeBackground, feather, roundCorners, tint,
 modulate, opacity, …) can be chained after a preset. Originals are immutable —
 every transform returns a new assetId.
+
+**\`bg-plate-blur\` is heavy — sigma 12, the subject becomes an unrecognisable
+wash of colour.** That is correct for pure atmosphere (a bokeh field behind a
+logo) and wrong for anything Gate G2 needs a viewer to recognise: a specific
+house, a specific product, a specific dish. If the photo *is* the evidence —
+which for a real-estate listing, a venue or a product it almost always is —
+do not blur it to make type sit on it. Use \`photo-hero\`'s built-in scrim
+instead (below): it darkens only the band the type needs and leaves the rest
+of the photograph sharp, so the thing you are advertising is still the thing
+a viewer sees.
 
 ## How an image lands on the page is itself a design decision
 

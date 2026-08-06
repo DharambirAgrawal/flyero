@@ -208,7 +208,11 @@ export const TRANSFORM_CATALOGUE = {
     "logo-clean": "Knock out flat logo background so it sits on any flyer colour",
     "soft-cutout": "Gentler cutout with stronger feather — portraits / soft product shots",
     "circle-avatar": "Cutout + circular mask — face / founder / icon lockups",
-    "bg-plate-blur": "Heavy blur + quiet grade — use as atmospheric plate behind content",
+    "bg-plate-blur":
+      "Heavy blur (sigma 12) + quiet grade — for purely decorative atmosphere with no recognisable " +
+      "subject. Never use on a flyer's evidence photo (a specific house, product, dish): it becomes " +
+      "an unrecognisable colour wash and fails the cover test. For type over a real subject photo, " +
+      "use photo-hero's built-in scrim instead — it darkens only the type's band, not the whole image",
     "screenshot-frame": "Slight crop + sharpen + rounded corners — UI screenshots in browser-frame",
     "brand-tint": "Wash with accent colour — unify a photo with the lineage palette",
   },
