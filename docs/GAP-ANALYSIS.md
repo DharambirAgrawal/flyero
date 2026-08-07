@@ -166,6 +166,25 @@ A test asserts the pair.
   and a photograph has no fill. A photo-aware contrast check needs the image's
   mean luminance, which `AssetAnalysis` may already carry.
 
+**Update (2026-08-05):** both superseded by the later tone-field consolidation
+(see "the structural gap, named and started", below) — confirmed by reading
+current code, not assumed. `cta-button`'s non-solid styles, `eyebrow-label`,
+and `footer-lockup` all already call `inkFor`/`mutedInkFor`. The contrast
+gate's per-element loop (`gates/index.ts`) already checks
+`layout.tone.legibleFor`, which does see photographs (`ToneField.paintPhoto`).
+A fresh sweep for the same pattern (any component filling text with a raw
+`theme.palette.*` instead of `inkFor`/`mutedInkFor`) found two real remaining
+instances, both fixed: `score-ring`'s value and label text
+(`components/evidence.tsx`) and `waypoint-marker`'s label
+(`components/structure.tsx`) — both roles include `support` or `evidence`,
+so both are gate-checked and both drew directly on whatever ground sits
+behind them with no self-established background. Left as-is, deliberately:
+`ui-fragment`'s secondary line and `chat-exchange`'s bubble text, which both
+sit on a `Panel` the same component paints with a known fill, and
+`rule-line`'s label, which is `role: "structure"` only and therefore outside
+the gate's per-element check entirely — real but lower-stakes, decorative
+rather than primary content.
+
 ### 2026-07-31 — item 3 (commit the palette) landed
 
 Measured first: **7 of 8 colour logics produced a near-white ground** (84-93%
@@ -230,7 +249,10 @@ that the change generalises.
 
 1. The eyebrow has gone invisible on photo grounds — drawn, but too dark
    against the scrimmed image. Same root cause as the QR bug: components pick
-   ink without knowing what they are sitting on.
+   ink without knowing what they are sitting on. **Superseded (2026-08-05)**:
+   `eyebrow-label` now calls `mutedInkFor` — confirmed by reading current
+   code, see the ink-consultation sweep under item 2's "Still open" note,
+   above.
 2. `detail-cluster` labels are too small and too quiet to read at poster size.
 3. `scrim: "full"` dims the *whole* photograph, which reads slightly muddy. The
    references keep the image bright and either place type in a naturally quiet

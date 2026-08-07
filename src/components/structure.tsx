@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { ReactElement } from "react";
-import { FittedLine, Group, Rule } from "./primitives.js";
+import { FittedLine, Group, Rule, mutedInkFor } from "./primitives.js";
 import type { ComponentModule } from "./types.js";
 import { ensureContrast, withAlpha } from "../creative/color.js";
 
@@ -436,7 +436,7 @@ const waypointMarker: ComponentModule = {
             minSize={10}
             role={theme.fonts.mono ? "mono" : "body"}
             theme={theme}
-            fill={withAlpha(theme.palette.fg, 0.7)}
+            fill={mutedInkFor(theme, box)}
             tracking={0.06}
             uppercase
           />

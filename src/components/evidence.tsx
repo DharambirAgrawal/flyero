@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FittedLine, Group, Panel, Rule, TextBlock, fitText, inkFor} from "./primitives.js";
+import { FittedLine, Group, Panel, Rule, TextBlock, fitText, inkFor, mutedInkFor } from "./primitives.js";
 import type { ComponentModule } from "./types.js";
 import { focalPreserveAspect } from "./assets.js";
 import { ensureContrast, mix, withAlpha } from "../creative/color.js";
@@ -639,7 +639,7 @@ const scoreRing: ComponentModule = {
           minSize={18}
           role="display"
           theme={theme}
-          fill={theme.palette.fg}
+          fill={inkFor(theme, box)}
           weight={theme.fonts.weights.display}
           align="middle"
         />
@@ -653,7 +653,7 @@ const scoreRing: ComponentModule = {
           minSize={11}
           role="body"
           theme={theme}
-          fill={ensureContrast(theme.palette.muted, theme.palette.bg, true)}
+          fill={mutedInkFor(theme, box)}
           align="middle"
         />
       </Group>
