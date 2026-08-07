@@ -6,6 +6,70 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-05 — Hosted-connector upload fix, three gate holes closed, ornament over photos
+
+Second pass the same day, prompted directly by watching a real Claude
+connector session and a real MCP tool trace fail. Six changes, each a
+confirmed live bug or a law-5/law-4 hole, not a taste call.
+
+### Fixed
+- **`upload_asset` required a local filesystem path.** The exact tool
+  definition is shared between the stdio MCP server and the remote HTTP MCP
+  transport (`src/mcp/http.ts`, AGENTS.md law 6), and a hosted Claude.ai/
+  Desktop connector has no shared disk with the user at all — an attached
+  image arrives as inline bytes, not a path. Watched live: the connected
+  agent invented an "uploads folder", found it "empty", and gave up with
+  placeholder imagery. Now accepts `data` (base64) as well as `path`, with
+  both the tool description and the top-level auto-delivered instructions
+  explaining the distinction and warning against inventing a local file.
+- **Gate G6 (no invented facts) only ever inspected `spec.copy`.** An
+  invented claim placed in a component prop instead
+  (`annotation-label.text = "Sunrise is at 5.40am"`, from an earlier live
+  run) reached the page untouched — props are exactly where an agent puts
+  short factual text. Now every string nested anywhere inside every
+  element's `props` gets the same slogan/hollow-word and unsupported-
+  statistic scan `copy` already gets; `STAT_CLAIM_PATTERN` extended to catch
+  time-of-day claims, the exact shape of the original bug.
+- **A reported vision collision never blocked `done`.** `vision.collisions`
+  only ever reached `notes`; a verdict listing three collisions could still
+  return `status: done`. Added `mechanical.noCollisions`, so it fails
+  `passed` the same way every other mechanical check does.
+- **Ornament was invisible on every `photoGround` topology.** A photoGround
+  evidence element's box *is* the canvas, so its zero-tolerance decoration
+  keep-out covered 100% of the page — no ornament could ever clear it, on
+  exactly the briefs a graphic language should do the most for. `layer:
+  "over"` decorations (badges, sparkles, bunting — a normal design move on
+  top of a photo) now get an explicit exemption from that specific keep-out;
+  `under`/`with` stay zero-tolerance, since crowding the photo from behind
+  or beside it is what actually costs Gate G2.
+- **`ToneField.paintPhoto` claimed every photo was equally busy.** A
+  hardcoded `variance = 0.12` for every photo cell meant text within one
+  90px grid cell of *any* photo edge inherited a busy verdict regardless of
+  what that photo actually showed there. Now computed from the photo's own
+  measured 8×8 tone map (local 3×3-neighbourhood spread), floored at 0.02.
+  Found alongside it: the gate's failure note displayed a different, more
+  flattering contrast ratio than the one `legibleFor` actually decided on
+  (a 4.47:1 near-miss showed up in a note as "12.12:1") — fixed to compute
+  from the same formula.
+- **Ink-consultation sweep.** Three components GAP-ANALYSIS.md had tracked
+  as picking ink blind (`cta-button`, `eyebrow-label`, `footer-lockup`) were
+  confirmed already fixed by earlier work, not re-touched. A fresh sweep for
+  the same pattern across every component file found two real remaining
+  instances — `score-ring`'s value/label text and `waypoint-marker`'s label —
+  both gate-checked roles, both fixed.
+
+### Also
+- `headline-block`'s `plate`/`band` treatment (type reversed out of a solid
+  colour block — the "box behind text" device most reference posters use)
+  was fully built and completely undiscoverable: its own `visual.reads` line
+  never mentioned it. Same failure class as the 2026-08-02 fix that made 28
+  components reachable, for a prop instead of a component. Fixed.
+
+Full root-cause detail, including two corrected wrong theories from earlier
+in this file's own history, lives in `docs/GAP-ANALYSIS.md`.
+
+---
+
 ## 2026-08-05 — Coverage floor gate, gradient-wash contrast fix, reachability sweep
 
 Closed the five open items `docs/GAP-ANALYSIS.md` was tracking under
