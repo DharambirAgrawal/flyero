@@ -276,7 +276,7 @@ export function solveLayout(
       // worse fault than the one it set out to fix.
       if (PHOTO_COMPONENTS.has(el.component)) continue;
       const props = mod.props.parse(el.props ?? {});
-      const natural = mod.intrinsicHeight(props, theme, box.w);
+      const natural = mod.intrinsicHeight(props, theme, box.w, spec.copy);
       if (natural > 0 && natural < box.h) {
         box.y += (box.h - natural) / 2;
         box.h = natural;
@@ -284,7 +284,7 @@ export function solveLayout(
       continue;
     }
     const props = mod.props.parse(el.props ?? {});
-    const wanted = mod.intrinsicHeight(props, theme, box.w);
+    const wanted = mod.intrinsicHeight(props, theme, box.w, spec.copy);
     growCap.set(
       el.id,
       PHOTO_COMPONENTS.has(el.component) ? box.w * 1.7 : Math.max(wanted, mod.manifest.minSize.h),

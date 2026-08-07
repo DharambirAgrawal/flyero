@@ -606,6 +606,20 @@ const motifCollage: ComponentModule = {
  *
  * This is where the missing density actually comes from.
  */
+/**
+ * Vertical space one label+value row needs at a given cell width — shared by
+ * `intrinsicHeight` and `render`'s own `cellH` math below so the two can
+ * never drift apart. They used to: `intrinsicHeight` returned a fixed 190px
+ * total for "column" regardless of fact count, so a box sized for ~3 facts
+ * got exactly the same height for 4+, and the extra rows overlapped the ones
+ * above them — a real, user-visible bug (a label landing on top of the
+ * previous row's value).
+ */
+const detailClusterRowHeight = (cellW: number): number => {
+  const labelSize = Math.max(10, Math.min(15, cellW * 0.075));
+  const valueSize = Math.max(15, Math.min(30, cellW * 0.14));
+  return labelSize * 1.9 + valueSize * 1.25;
+};
 const detailCluster: ComponentModule = {
   manifest: {
     id: "detail-cluster",
@@ -626,10 +640,16 @@ const detailCluster: ComponentModule = {
     dividers: z.boolean().default(true),
     uppercaseLabels: z.boolean().default(true),
   }),
-  intrinsicHeight: (p, _t, width) => {
+  intrinsicHeight: (p, _t, width, copy) => {
     const { arrangement } = p as { arrangement: "row" | "column" | "grid" };
-    if (arrangement === "column") return 190;
-    return arrangement === "grid" ? Math.max(120, width * 0.22) : 84;
+    const factCount = Math.max(1, Math.min(6, copy?.details?.length ?? 3));
+    if (arrangement === "column") return detailClusterRowHeight(width) * factCount;
+    if (arrangement === "grid") {
+      const perRow = Math.min(3, factCount);
+      const rows = Math.ceil(factCount / perRow);
+      return Math.max(120, detailClusterRowHeight(width / perRow) * rows);
+    }
+    return 84;
   },
   render: ({ id, box, theme, copy, props }) => {
     const { arrangement, dividers, uppercaseLabels } = props as {

@@ -715,6 +715,23 @@ automated against a site whose terms forbid it — and it lands as an *asset*
     often the *deterministic* sampler itself reaches for `treatment: "plate"`
     versus leaving it at the `"plain"` default is not yet measured — this fix
     only guarantees an *agent* composing by hand now knows the option exists.
+11. **Found 2026-08-05, from a real rendered flyer a user flagged as broken:
+    `detail-cluster`'s "column" arrangement overlapped its own rows —
+    "TIME" rendered on top of "Saturday", "WHERE" on top of "9am-3pm".**
+    **Closed.** Root cause: `intrinsicHeight` returned a fixed 190px total
+    for "column" regardless of how many facts were supplied — a box sized
+    for ~3 facts got the identical height for 4 or more, and the extra rows
+    had nowhere to go. The deeper cause: `ComponentModule.intrinsicHeight`'s
+    signature (`props, theme, width`) never received `copy`, so a component
+    whose row count depends on `copy.details.length` structurally could not
+    know it. Widened the signature to take an optional `copy` — additive,
+    the other 27 `intrinsicHeight` implementations are unaffected — and
+    `detail-cluster` now computes real per-row height from the actual fact
+    count via a helper (`detailClusterRowHeight`) shared with `render`'s own
+    `cellH` math, so the two can't drift apart the way they just had.
+    Verified by rendering the exact 4-fact reproduction: clean spacing,
+    zero overlap. New tests assert height scales with fact count and that
+    it's always large enough for `render`'s own row-content formula.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

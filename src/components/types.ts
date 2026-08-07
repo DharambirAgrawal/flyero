@@ -177,7 +177,15 @@ export type ComponentModule = {
   /**
    * Height this component wants at a given width. The solver uses it to stack
    * and shrink content before committing geometry.
+   *
+   * `copy` is optional and most components ignore it — height is usually a
+   * function of `props` and `width` alone. It exists for the rare component
+   * whose row/line count depends on data that lives in `copy`, not `props`
+   * (`detail-cluster`'s fact count): without it, a fixed-count assumption
+   * silently breaks the moment the count differs, and nothing catches it
+   * because layout in isolation still "succeeds" — it just overlaps once
+   * the wrong number of rows are drawn into a box sized for the guess.
    */
-  intrinsicHeight?: (props: any, theme: Theme, width: number) => number;
+  intrinsicHeight?: (props: any, theme: Theme, width: number, copy?: Copy) => number;
   render: (ctx: RenderContext) => ReactElement;
 };

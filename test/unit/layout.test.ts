@@ -395,3 +395,51 @@ describe("recipe slots do not fight each other", () => {
     }
   });
 });
+
+describe("detail-cluster row height scales with fact count", () => {
+  // Real, user-visible bug this closes: intrinsicHeight for "column"
+  // arrangement returned a fixed 190px regardless of how many facts were
+  // supplied, so a solver-assigned box sized for ~3 facts gave a 4th (and
+  // any further) row nowhere to go — its label rendered on top of the
+  // previous row's value. intrinsicHeight now takes `copy` so it can see the
+  // real fact count; this checks the two things that matter: the height
+  // actually grows with fact count, and the box it produces is large enough
+  // that the solver's own row math (mirrored here) never overlaps consecutive
+  // rows.
+  const mod = getComponent("detail-cluster");
+
+  it("returns more height for more facts", () => {
+    const props = mod.props.parse({ arrangement: "column" });
+    const twoFacts = mod.intrinsicHeight!(props, {} as never, 300, {
+      details: [
+        { label: "Day", value: "Saturday" },
+        { label: "Time", value: "9am" },
+      ],
+    } as never);
+    const sixFacts = mod.intrinsicHeight!(props, {} as never, 300, {
+      details: Array.from({ length: 6 }, (_, i) => ({ label: `L${i}`, value: `V${i}` })),
+    } as never);
+    expect(sixFacts).toBeGreaterThan(twoFacts * 2);
+  });
+
+  it("gives every row enough height that consecutive label/value pairs cannot overlap", () => {
+    for (const factCount of [2, 3, 4, 5, 6]) {
+      const width = 300;
+      const props = mod.props.parse({ arrangement: "column" });
+      const copy = {
+        details: Array.from({ length: factCount }, (_, i) => ({ label: `L${i}`, value: `V${i}` })),
+      } as never;
+      const totalHeight = mod.intrinsicHeight!(props, {} as never, width, copy);
+      const cellH = totalHeight / factCount;
+      // Mirrors render()'s own sizing so this test fails the moment the two
+      // formulas drift apart again, not just when today's specific numbers do.
+      const labelSize = Math.max(10, Math.min(15, width * 0.075));
+      const valueSize = Math.max(15, Math.min(30, width * 0.14));
+      const rowContentHeight = labelSize * 1.9 + valueSize;
+      expect(
+        cellH,
+        `${factCount} facts: row height ${cellH.toFixed(1)} too small for content height ${rowContentHeight.toFixed(1)}`,
+      ).toBeGreaterThanOrEqual(rowContentHeight);
+    }
+  });
+});
