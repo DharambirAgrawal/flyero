@@ -607,15 +607,24 @@ const motifCollage: ComponentModule = {
  * This is where the missing density actually comes from.
  */
 /**
- * Vertical space one label+value row needs at a given cell width — shared by
- * `intrinsicHeight` and `render`'s own `cellH` math below so the two can
- * never drift apart. They used to: `intrinsicHeight` returned a fixed 190px
- * total for "column" regardless of fact count, so a box sized for ~3 facts
- * got exactly the same height for 4+, and the extra rows overlapped the ones
- * above them — a real, user-visible bug (a label landing on top of the
- * previous row's value).
+ * Vertical space one label+value row needs at a given cell width.
+ *
+ * Shared three ways, not two: `intrinsicHeight` uses it to size the box in
+ * the first place, `render` uses it for the actual `cellH`/font-size math,
+ * and `runGates` (`gates/index.ts`) imports this exact function to verify
+ * the box a real spec+layout ended up with is still big enough — a
+ * deterministic, code-level check, not a vision judgment an agent can argue
+ * past. All three reading from one function is what makes that check
+ * meaningful: if this number ever drifts from what `render` actually draws,
+ * the gate is wrong in the same direction render is, and would say so no
+ * more usefully than nothing at all. That is exactly the bug this file had
+ * before today — `intrinsicHeight` returned a fixed 190px regardless of
+ * fact count, `render` computed its own independent row math, and nothing
+ * anywhere compared the two — so a label rendered on top of the previous
+ * row's value and no gate, only a vision call an agent could rationalize
+ * past, ever had a chance of catching it.
  */
-const detailClusterRowHeight = (cellW: number): number => {
+export const detailClusterRowHeight = (cellW: number): number => {
   const labelSize = Math.max(10, Math.min(15, cellW * 0.075));
   const valueSize = Math.max(15, Math.min(30, cellW * 0.14));
   return labelSize * 1.9 + valueSize * 1.25;

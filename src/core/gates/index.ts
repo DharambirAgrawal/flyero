@@ -5,6 +5,7 @@ import { inkFor } from "../../components/primitives.js";
 import { themeFromSpec } from "../render/theme.js";
 import { BUSY_VARIANCE } from "../canvas/tone.js";
 import { measureCoverage, MIN_COVERAGE } from "../canvas/coverage.js";
+import { detailClusterRowHeight } from "../../components/photo.js";
 import { detectBanned, type BannedHit } from "../../creative/banned.js";
 import { typographyById } from "../../creative/typebehaviors.js";
 import { recipeFor } from "../layout/recipes.js";
@@ -35,6 +36,7 @@ export type GateResult = {
     bannedListClear: boolean;
     coverage: boolean;
     noCollisions: boolean;
+    componentGeometry: boolean;
   };
   notes: string[];
   bannedHits: BannedHit[];
@@ -277,6 +279,40 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
     );
   }
 
+  // `detail-cluster` lays several facts out inside ONE element's box —
+  // geometry private to its own render function, invisible to every check
+  // above (they all reason in terms of one box per spec.element). The one
+  // real bug this shape produced (a fixed-height "column" mode overlapping
+  // its own rows once it held more facts than the box was sized for) was
+  // caught only by a vision call, which an agent can decide to ship past —
+  // and did, on a live flyer. `detailClusterRowHeight` is the exact formula
+  // `render` uses for one row's content height; recomputed here from the
+  // real box a spec+layout ended up with, so this is a deterministic,
+  // code-only check for that specific failure — no vision call needed, and
+  // nothing to argue past.
+  const detailClusterFailures: string[] = [];
+  for (const el of spec.elements) {
+    if (el.component !== "detail-cluster") continue;
+    const box = layout.boxes[el.id];
+    if (!box) continue;
+    const arrangement = (el.props as { arrangement?: string } | undefined)?.arrangement ?? "row";
+    if (arrangement === "row") continue; // Single row — cellH can't be too small for it.
+    const factCount = Math.max(1, Math.min(6, spec.copy.details.length));
+    const perRow = arrangement === "grid" ? Math.min(3, factCount) : 1;
+    const rows = Math.ceil(factCount / perRow);
+    const cellW = box.w / perRow;
+    const cellH = box.h / rows;
+    const needed = detailClusterRowHeight(cellW);
+    if (cellH < needed - 1) {
+      detailClusterFailures.push(
+        `${el.id}: ${arrangement} row height ${cellH.toFixed(0)}px is too small for ${factCount} facts ` +
+          `(needs ${needed.toFixed(0)}px) — rows will overlap`,
+      );
+    }
+  }
+  const componentGeometry = detailClusterFailures.length === 0;
+  if (!componentGeometry) notes.push(...detailClusterFailures.map((f) => `geometry: ${f}`));
+
   const usedAssets = new Set(spec.elements.flatMap((e) => e.assets ?? []));
   const unusedAssets = input.requestedAssetIds.filter((id) => !usedAssets.has(id));
   // Unused is acceptable — silently dropping without reporting is not.
@@ -422,6 +458,7 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
     bannedListClear: banned.clear,
     coverage,
     noCollisions,
+    componentGeometry,
   };
 
   return {

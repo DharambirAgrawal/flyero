@@ -1212,7 +1212,15 @@ function applyGesture(
       // Move the eyebrow under the hero's leading edge rather than dragging the
       // hero to the top of the canvas, which would collide with everything.
       box.zIndex = eb.zIndex + 5;
-      eb.y = box.y - eb.h * 0.35;
+      // `eb.y = box.y - eb.h * 0.35` used to put 65% of the eyebrow's OWN box
+      // under the hero, unconditionally — for a short single-line label most
+      // of that 65% is the actual glyphs, not padding, so "hero overlaps
+      // eyebrow" rendered as "eyebrow vanishes, garbled". Same protection
+      // `applyRelationshipOverlaps` already gives a declared overlap: clamp
+      // the intrusion to `textOcclusionLimit` so only a small, legible tuck
+      // — never the label itself — is what actually goes under the hero.
+      const maxIntrusion = textOcclusionLimit(eb, true);
+      eb.y = box.y - eb.h + maxIntrusion;
       eb.x = box.x + 26;
       return { type: gesture.apply, elementId: eyebrow.id, bleeds: false };
     }

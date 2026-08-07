@@ -15,6 +15,7 @@ const cleanGates = (notes: string[] = []): GateResult => ({
     bannedListClear: true,
     coverage: true,
     noCollisions: true,
+    componentGeometry: true,
   },
   notes,
   bannedHits: [],

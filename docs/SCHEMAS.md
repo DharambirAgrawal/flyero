@@ -197,7 +197,7 @@ type GateResult = {
   mechanical: {
     overflow: boolean; contrast: boolean; margins: boolean;
     ctaPresent: boolean; assetsUsedOrReported: boolean; bannedListClear: boolean;
-    coverage: boolean; noCollisions: boolean;
+    coverage: boolean; noCollisions: boolean; componentGeometry: boolean;
   };
   notes: string[];
 };
@@ -234,6 +234,19 @@ is non-empty. A collision is a defect the reviewer has *seen*, not a
 hypothesis a later check might overrule — it must at minimum force a
 revision. Previously only reached `notes`, so a verdict listing collisions
 could still return `status: done`.
+
+### `mechanical.componentGeometry`
+
+A deterministic, code-only check for defects that live *inside* one
+component's own render logic rather than in `spec.elements`/`layout.boxes`
+geometry the other checks reason about — invisible to everything except a
+vision call. Currently checks `detail-cluster`: its "column"/"grid"
+arrangements recompute `detailClusterRowHeight` (`components/photo.tsx`,
+the same formula `render` uses) from the real box a spec+layout ended up
+with, and fail if a row doesn't have enough height for its label+value
+pair — the exact shape of a real bug (rows overlapping once a box held more
+facts than it was sized for) that only a vision call had caught before,
+and that an agent could — and did, on a live flyer — decide to ship past.
 
 ## 8. Banned-list detector (code heuristics)
 
