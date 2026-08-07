@@ -174,9 +174,19 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
     // unreadable at any ratio, which is why `legibleFor` also weighs busyness.
     if (!layout.tone.legibleFor(box, ink, large)) {
       const sample = layout.tone.sample(box);
+      // The ratio shown must be the one `legibleFor` actually decided on, not
+      // `contrastRatio(ink, sample.fill)` — `sample.fill` is a representative
+      // colour (the modal cell, or a hex quantised from luminance) that can
+      // read several points higher than the raw luminance blend `legibleFor`
+      // compares against, making a genuine near-miss look like a healthy pass
+      // and sending anyone debugging the note in the wrong direction.
+      const inkLum = relativeLuminance(ink);
+      const hi = Math.max(inkLum, sample.luminance) + 0.05;
+      const lo = Math.min(inkLum, sample.luminance) + 0.05;
+      const trueRatio = hi / lo;
       contrastFailures.push(
         `${el.id}: ink ${ink} over measured tone ${sample.luminance.toFixed(2)}` +
-          ` (${contrastRatio(ink, sample.fill).toFixed(2)}:1` +
+          ` (${trueRatio.toFixed(2)}:1` +
           `${sample.variance > BUSY_VARIANCE ? ", busy ground" : ""})`,
       );
     }

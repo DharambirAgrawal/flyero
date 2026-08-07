@@ -572,37 +572,61 @@ automated against a site whose terms forbid it — and it lands as an *asset*
    toward `base` until the wash stays legible for the palette's own
    accent/muted, rather than trusting a fixed 0.62 ratio.
 8. **New, found while verifying #7: `layout.tone.legibleFor` "busy ground"
-   can fail even when contrast passes, for two distinct reasons — one fixed,
-   one still open.**
+   can fail even when contrast passes.** Investigated repeatedly across this
+   file's history — first suspected a `scallop-frame` ring straddle, which a
+   fresh geometry dump (`layout.tone.sample` + `layout.decorations` printed
+   directly, not inferred from box coordinates) **disproved**: real failing
+   runs showed `ground kind: flat` with no ring anywhere near the failing
+   box. Wrong theories are worth correcting in place rather than left to
+   mislead the next pass. Three real, distinct causes found instead, two
+   fixed:
    - *Fixed.* The photo-hero full-wash scrim decision (`solver.ts` pass 8.6)
-     computed its `failing` list by checking legibility against a hardcoded
-     `theme.palette.fg`, not the ink the box will actually render in. A box
-     already marked `onDark` by pass 8.55 renders light, so testing it as
-     dark text could both miss real failures and misidentify safe ones.
-     Fixed by checking `inkFor(theme, b, theme.palette.fg)` instead.
-   - *Still open.* A wide text block can be placed by the topology straddling
-     the coloured ring of a `scallop-frame` (or, presumably, `wobbly-frame`)
-     ground — half the block over the ring's `deeper` fill, half over the
-     flat `base` — which the tone field correctly measures as high-variance
-     (busy), because it genuinely is: the background colour changes midway
-     through the text block. `runGates` correctly refuses to pass this, as
-     it should (AGENTS.md law 4). The real fix is upstream: these ring-shaped
-     `GroundKind`s are planned *after* box placement (`ground.ts`'s own
-     header comment), so nothing in the topology solver currently knows to
-     keep a text box from spanning the ring band. Reproducible via the
-     `photo-led` published example: composing it repeatedly against fresh
-     `/v1/studio/assignments` seeds fails `runGates`' contrast check roughly
-     1 run in 5–8, seed `01KZA9D7RBNTX65CYA5N51SM9A` being one instance
-     (`note` element, `body-paragraph`, straddles a `scallop-frame` ring at
-     y≈1055–1205). Needs either a keep-out band for ring `GroundKind`s in the
-     topology solver, or moving ring placement before box placement so it can
-     participate in the existing keep-out machinery `DecorForm`s already use.
-     Not fixed today — a real solver change, not a quick patch — but this is
-     why `test/acceptance/examples.test.ts`'s `photo-led` case (and, seen
-     2026-08-05 while calibrating the coverage floor below, `assembled` too —
-     same `contrast` mechanical check, same unpinned-seed flakiness) can
-     still occasionally fail on an unlucky seed; that is the product
-     correctly catching a real defect, not a flaky test to silence.
+     computed its `failing` list against a hardcoded `theme.palette.fg`, not
+     the ink the box will actually render in. Fixed by checking
+     `inkFor(theme, b, theme.palette.fg)` instead.
+   - *Fixed.* `ToneField.paintPhoto` (`canvas/tone.ts`) gave every photo cell
+     a hardcoded `variance = 0.12` — the fixed 90px-grid cell size means text
+     positioned within one cell of a photo's edge, even without truly
+     overlapping it, inherited that photo's busy verdict regardless of what
+     the photo actually showed there. A flat, calm crop of a photo read as
+     busy just as often as its most detailed corner. Replaced with
+     `localToneVariance`: real local spread computed from the photo's own
+     measured 8×8 tone map (3×3 neighbourhood around each texel), floored at
+     0.02 so a photo is never claimed perfectly flat — a photo genuinely is
+     busier at full resolution than eight samples can see, just not
+     *uniformly* busy the way the old constant implied.
+   - *Also fixed, found while re-checking failure notes during this pass:*
+     the failure message computed its displayed ratio from
+     `contrastRatio(ink, sample.fill)` — `sample.fill` is a representative
+     colour (the modal cell, or a hex quantised from a luminance blend) that
+     can read several points higher than the raw luminance blend
+     `legibleFor` actually decides on. One repro showed a note reading
+     "12.12:1" for a box that was in fact failing at 4.47:1 against the real
+     4.5 threshold — a near-miss dressed up as a healthy pass, and exactly
+     the kind of number that sends debugging in the wrong direction (it did,
+     this session, before the geometry dump caught it). Now computed from
+     the same raw-luminance formula `legibleFor` uses internally.
+   - *Still open, and now correctly understood rather than guessed at.*
+     `composed-figure` deliberately does not paint its whole bounding box
+     into the tone field — only its individual parts (`solver.ts`,
+     `figureInk`), on purpose: a figure of four small marks and a lot of
+     paper is not honestly a solid slab, and painting it as one would make
+     every downstream scrim/ink decision wrong. But that means a large
+     `size: "huge"` decorative part inside a figure (the published
+     `assembled` example's own `ground` blob, `src/api/agent.ts`) can leave
+     the figure's box internally uneven — some cells inked, some still bare
+     page — and a headline placed over that box lands on a mix the tone
+     field correctly reports as busy, because it genuinely is uneven there.
+     Nothing currently protects text that overlaps a `composed-figure`
+     the way `photo-hero`'s scrim protects text over a photograph. This is
+     why `test/acceptance/examples.test.ts`'s `assembled` case can still
+     occasionally fail `runGates`' contrast check on an unlucky topology
+     roll (roughly 1 run in 5–8) — the product correctly catching a real
+     defect, not a flaky test to silence. A real fix needs either a
+     composed-figure-aware scrim/legibility pass, or the topology solver
+     declining to let text overlap a figure box at all unless the figure
+     itself reports (via `figureInk`) that the overlapped region is actually
+     inked densely enough to carry it.
 9. **Found 2026-08-05, while testing real prompts end to end: a real-estate
    flyer's hero photo rendered as an unrecognisable blur.** **Closed.** Root
    cause: the guide's own image-prep table (`guide.ts`) mapped "Photo to sit

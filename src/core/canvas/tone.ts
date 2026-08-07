@@ -55,6 +55,40 @@ export function greyForLuminance(l: number): string {
 /** Above this spread, a region is treated as busy and fine type will not hold. */
 export const BUSY_VARIANCE = 0.055;
 
+/**
+ * Even where the 8×8 tone map itself reads flat, a photograph has real
+ * texture at full resolution that eight samples cannot see — a plain wall
+ * still has grain, a clear sky still has gradient. Never claim zero.
+ */
+const PHOTO_VARIANCE_FLOOR = 0.02;
+
+/**
+ * Local busyness around one texel of an 8×8 tone map: the spread of its
+ * (up to) 3×3 neighbourhood, not the whole photo's mean. A photo is bright
+ * *here* and dark *there* by design (see `paintPhoto`'s own comment) — its
+ * busyness is exactly as local as its luminance, so a single global number
+ * for the whole image would flatten a photo that is calm sky above and
+ * detailed foliage below into one verdict for both.
+ */
+function localToneVariance(toneMap: number[], u: number, v: number): number {
+  let sum = 0;
+  let sumSq = 0;
+  let count = 0;
+  for (let dv = -1; dv <= 1; dv++) {
+    for (let du = -1; du <= 1; du++) {
+      const uu = u + du;
+      const vv = v + dv;
+      if (uu < 0 || uu > 7 || vv < 0 || vv > 7) continue;
+      const value = toneMap[vv * 8 + uu]!;
+      sum += value;
+      sumSq += value * value;
+      count += 1;
+    }
+  }
+  const mean = sum / count;
+  return Math.max(PHOTO_VARIANCE_FLOOR, sumSq / count - mean * mean);
+}
+
 /** Target cell size in px. Fine enough to find a headline zone, cheap to build. */
 const CELL = 90;
 
@@ -160,9 +194,10 @@ export class ToneField {
       const v = Math.min(7, Math.max(0, Math.floor((((r - r0) * this.cellH) / Math.max(1, rect.h)) * 8)));
       const cell = this.cells[i]!;
       cell.lum = toneMap[v * 8 + u]!;
-      // Photographs are busy by construction; local spread against neighbours
-      // would be finer, but this is a coarse model and must not pretend.
-      cell.varr = 0.12;
+      // Measured, not assumed: a flat-looking crop of a genuinely busy photo
+      // now reads as calm, and a detailed region of an otherwise-plain photo
+      // still reads as busy — see `localToneVariance`.
+      cell.varr = localToneVariance(toneMap, u, v);
       // The fill must agree with the luminance, or every consumer that reasons
       // from colour reasons about a surface that is not there.
       cell.fill = greyForLuminance(cell.lum);
