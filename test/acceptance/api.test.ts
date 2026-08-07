@@ -521,6 +521,41 @@ describe("remote MCP", () => {
     expect(auto.description).toContain("compose_flyer");
   });
 
+  it("uploads via base64 data, not just a local path — the only route a hosted connector has", async () => {
+    /*
+     * upload_asset used to require an absolute local filesystem path. That
+     * works for a locally-spawned agent (Claude Code) but not for a hosted
+     * connector: there is no disk shared between it and the user, so an
+     * attached image arrives as inline bytes, not a path. Confirmed live: a
+     * connected agent invented an "uploads folder", found it "empty", and
+     * gave up. upload_asset must accept those bytes directly.
+     */
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: {
+          name: "upload_asset",
+          arguments: {
+            data: TINY_PNG.toString("base64"),
+            mimeType: "image/png",
+            filename: "logo.png",
+            kind: "logo",
+          },
+        },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.result?.isError, JSON.stringify(body)).not.toBe(true);
+    const text = body.result.content.map((c: { text?: string }) => c.text ?? "").join(" ");
+    expect(text).toMatch(/^Uploaded logo\.png as ast_/);
+  });
+
   it("exposes the agent-driven tools, which need no model key on the server", async () => {
     /*
      * The original tools generate a flyer *for* you and call a language model

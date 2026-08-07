@@ -184,9 +184,18 @@ export function buildMcpServer(): McpServer {
         "   will waste calls hunting for a fit. Pick the designer whose METAPHOR matches the",
         "   message, not the palette you like. Read its `constraints`: element count varies by",
         "   designer, and `direction.gesture.requiresComponent` may force a specific component.",
-        "3. search_images then import_image. A flyer about a place, a dish or an object with no",
-        "   picture of it cannot pass the cover test. If there is genuinely nothing to photograph,",
-        "   use scene-illustration or motif-collage instead of a stock photo of nothing.",
+        "3. Get a real image in. Two different sources, do not confuse them:",
+        "   - The user's OWN logo or product photo (attached in this conversation, or one they",
+        "     describe having) -> upload_asset. If you cannot read local disk (most hosted/chat",
+        "     connectors cannot — there is no folder shared between you and the user), pass the",
+        "     attachment's bytes as base64 in `data`, not a guessed `path`. If the user says they",
+        "     attached something and you do not see image content in this turn, say so and ask them",
+        "     to attach it again — never invent a placeholder or proceed as if it arrived.",
+        "   - Stock photography for anything the user did not supply -> search_images then",
+        "     import_image.",
+        "   A flyer about a place, a dish or an object with no picture of it cannot pass the cover",
+        "   test. If there is genuinely nothing to photograph, use scene-illustration or",
+        "   motif-collage instead of a stock photo of nothing.",
         "4. get_composition_example BEFORE compose_flyer. It returns a working composition to copy.",
         "   Guessing the shape wastes many attempts.",
         "   Read every component's LOOKS LIKE line before picking. There are 36 of them and output",
@@ -260,26 +269,65 @@ export function buildMcpServer(): McpServer {
     {
       title: "Upload a logo or screenshot for use in a flyer",
       description:
-        "Upload an image file so a flyer can place it. After upload, usually call prepare_asset " +
-        "so the image is cropped / cut out / blended for the slot — raw dumps look amateur.",
+        "Upload an image so a flyer can place it. Give EXACTLY ONE of `path` or `data`:\n" +
+        "- `path` — only if you can read the local filesystem yourself (a locally-spawned agent). " +
+        "Most hosted/chat connectors CANNOT do this — there is no shared disk between you and the " +
+        "user, so a path they mention in conversation is not one you can open.\n" +
+        "- `data` — base64-encoded image bytes, for everyone else. This is the normal case for a " +
+        "hosted connector: when a user attaches an image in the conversation, its bytes arrive to " +
+        "you as inline content — base64-encode them into `data` and set `mimeType` and `filename` " +
+        "from what you were given. Do not guess at a local path or a folder that might hold the " +
+        "file; there isn't one.\n" +
+        "After upload, usually call prepare_asset so the image is cropped / cut out / blended for " +
+        "the slot — raw dumps look amateur.",
       inputSchema: {
-        path: z.string().describe("Absolute path to a PNG, JPEG, WebP or SVG file."),
+        path: z
+          .string()
+          .optional()
+          .describe("Absolute local filesystem path. Only for agents with real disk access."),
+        data: z
+          .string()
+          .optional()
+          .describe("Base64-encoded image bytes. Use this for a chat-attached image."),
+        mimeType: z
+          .string()
+          .optional()
+          .describe("Required with `data`, e.g. image/png, image/jpeg, image/webp, image/svg+xml."),
+        filename: z.string().optional().describe("Original filename, for the confirmation message."),
         kind: z.enum(["logo", "screenshot", "reference"]).describe("What the image is."),
       },
     },
-    async ({ path, kind }) => {
-      const bytes = await readFile(path);
+    async ({ path, data, mimeType, filename, kind }) => {
+      if (!path && !data) {
+        throw new Error(
+          "Give either `path` (local disk) or `data` (base64 bytes) — neither was provided. If the " +
+            "user attached an image in this conversation, base64-encode those bytes into `data`; do " +
+            "not look for a local file or folder.",
+        );
+      }
+      let bytes: Buffer;
+      let mime: string;
+      let name: string;
+      if (data) {
+        if (!mimeType) throw new Error("`mimeType` is required alongside `data`.");
+        bytes = Buffer.from(data, "base64");
+        mime = mimeType;
+        name = filename ?? `upload.${mimeType.split("/")[1] ?? "bin"}`;
+      } else {
+        bytes = await readFile(path!);
+        const ext = path!.split(".").pop()?.toLowerCase();
+        mime =
+          ext === "png"
+            ? "image/png"
+            : ext === "webp"
+              ? "image/webp"
+              : ext === "svg"
+                ? "image/svg+xml"
+                : "image/jpeg";
+        name = basename(path!);
+      }
       const form = new FormData();
-      const ext = path.split(".").pop()?.toLowerCase();
-      const mime =
-        ext === "png"
-          ? "image/png"
-          : ext === "webp"
-            ? "image/webp"
-            : ext === "svg"
-              ? "image/svg+xml"
-              : "image/jpeg";
-      form.append("file", new Blob([new Uint8Array(bytes)], { type: mime }), basename(path));
+      form.append("file", new Blob([new Uint8Array(bytes)], { type: mime }), name);
       form.append("kind", kind);
 
       const res = await fetch(`${BASE}/v1/assets`, {
@@ -294,7 +342,7 @@ export function buildMcpServer(): McpServer {
           {
             type: "text",
             text:
-              `Uploaded ${basename(path)} as ${body.assetId} (${body.dimensions?.join("×")}). ` +
+              `Uploaded ${name} as ${body.assetId} (${body.dimensions?.join("×")}). ` +
               `Next: prepare_asset with a preset (logo-clean, product-hero, screenshot-frame, …) ` +
               `then pass the *prepared* id into create_flyer / compose.`,
           },
