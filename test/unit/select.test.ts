@@ -14,6 +14,7 @@ const cleanGates = (notes: string[] = []): GateResult => ({
     assetsUsedOrReported: true,
     bannedListClear: true,
     coverage: true,
+    noCollisions: true,
   },
   notes,
   bannedHits: [],

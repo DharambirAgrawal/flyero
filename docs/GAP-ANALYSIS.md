@@ -423,10 +423,14 @@ time-of-day claims ("5.40am", "10pm") — the exact shape of this bug's own
 example, which the existing %/×/thousands-separator pattern would have
 missed entirely.
 
-**3. Reported collisions do not block `done`.** The review endpoint accepted a
-verdict listing three collisions and still returned `status: done`. A collision
-is a defect the agent has *seen*; it must at minimum force a revision rather
-than being recorded and ignored.
+**3. Reported collisions do not block `done`.** **Closed (2026-08-05).** The
+review endpoint accepted a verdict listing three collisions and still returned
+`status: done`. A collision is a defect the agent has *seen*; it must at
+minimum force a revision rather than being recorded and ignored. Fixed:
+`gates/index.ts` now derives `mechanical.noCollisions` from
+`vision.collisions.length`, so a non-empty collisions array fails `passed`
+the same way any other mechanical check does, rather than only reaching
+`notes`.
 
 Poster faults worth fixing separately: the `plate` treatment renders one plate
 per line, so a three-line headline becomes a ragged staircase (it should be one

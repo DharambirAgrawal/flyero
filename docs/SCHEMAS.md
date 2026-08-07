@@ -197,7 +197,7 @@ type GateResult = {
   mechanical: {
     overflow: boolean; contrast: boolean; margins: boolean;
     ctaPresent: boolean; assetsUsedOrReported: boolean; bannedListClear: boolean;
-    coverage: boolean;
+    coverage: boolean; noCollisions: boolean;
   };
   notes: string[];
 };
@@ -226,6 +226,14 @@ Fails below `MIN_COVERAGE` (0.32, calibrated against 40 fixture-sampled
 designers — see the constant's own comment for the numbers). Catches a
 flyer that clears G3's 4–7 element count and every colour check while
 still reading as an empty page with a headline on it.
+
+### `mechanical.noCollisions`
+
+`false` whenever the vision verdict's `collisions` array (§ visionVerdictSchema)
+is non-empty. A collision is a defect the reviewer has *seen*, not a
+hypothesis a later check might overrule — it must at minimum force a
+revision. Previously only reached `notes`, so a verdict listing collisions
+could still return `status: done`.
 
 ## 8. Banned-list detector (code heuristics)
 

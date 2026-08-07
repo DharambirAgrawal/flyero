@@ -172,6 +172,29 @@ describe("gates", () => {
     expect(result.notes.join(" ")).toMatch(/component prop/);
   });
 
+  it("blocks passed on a reported collision instead of only logging it", async () => {
+    // Real failure this closes: the review endpoint accepted a verdict
+    // listing collisions and still returned status: done — a collision is a
+    // defect the reviewer has *seen*, not a note to file away.
+    const spec = fixtureSpec(fixtureLineages("g-collision", 1)[0]!);
+    const verdict = {
+      ideaReads: true,
+      ideaAsSeen: spec.idea,
+      productGuessable: true,
+      productGuess: "the product",
+      headlineParticipates: true,
+      copyReadsHuman: true,
+      collisions: ["the CTA button overlaps the headline's last line"],
+    };
+    const result = await runGates(
+      { spec, layout: layoutFor(spec), requestedAssetIds: [], verdict },
+      ctx,
+    );
+    expect(result.mechanical.noCollisions).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.notes.join(" ")).toContain("collision: the CTA button overlaps");
+  });
+
   it("allows a supplied proof figure and rejects an unsupported detail", async () => {
     const spec = fixtureSpec(fixtureLineages("g6-provenance", 1)[0]!);
     const sourced: DesignSpec = JSON.parse(JSON.stringify(spec));

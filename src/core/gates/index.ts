@@ -34,6 +34,7 @@ export type GateResult = {
     assetsUsedOrReported: boolean;
     bannedListClear: boolean;
     coverage: boolean;
+    noCollisions: boolean;
   };
   notes: string[];
   bannedHits: BannedHit[];
@@ -402,6 +403,11 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
   }
   if (vision && !vision.copyReadsHuman) notes.push("G6: reviewer finds the copy machine-written");
 
+  // A collision is a defect the reviewer has *seen*, not a hypothesis — it
+  // must at minimum force a revision rather than being recorded and ignored.
+  // This used to only reach `notes`, so a verdict listing three collisions
+  // still returned `status: done`.
+  const noCollisions = !vision?.collisions.length;
   if (vision?.collisions.length) {
     notes.push(...vision.collisions.map((c) => `collision: ${c}`));
   }
@@ -415,6 +421,7 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
     assetsUsedOrReported,
     bannedListClear: banned.clear,
     coverage,
+    noCollisions,
   };
 
   return {
