@@ -155,6 +155,23 @@ describe("gates", () => {
     expect(result.detail.G6).toBe(false);
   });
 
+  it("fails G6 on an invented fact placed in a component prop, not just in copy", async () => {
+    // Real failure this closes: an invented claim in annotation-label.text
+    // ("Sunrise is at 5.40am", never supplied by the user) reached the page
+    // untouched, because G6 used to inspect only `copy`.
+    const spec = fixtureSpec(fixtureLineages("g6-props", 1)[0]!);
+    const bad: DesignSpec = JSON.parse(JSON.stringify(spec));
+    const support = bad.elements.find((e) => e.role === "support");
+    expect(support, "fixture must carry a support element to attach props to").toBeTruthy();
+    support!.props = { ...support!.props, text: "Sunrise is at 5.40am" };
+    const result = await runGates(
+      { spec: bad, layout: layoutFor(bad), requestedAssetIds: [] },
+      ctx,
+    );
+    expect(result.detail.G6).toBe(false);
+    expect(result.notes.join(" ")).toMatch(/component prop/);
+  });
+
   it("allows a supplied proof figure and rejects an unsupported detail", async () => {
     const spec = fixtureSpec(fixtureLineages("g6-provenance", 1)[0]!);
     const sourced: DesignSpec = JSON.parse(JSON.stringify(spec));

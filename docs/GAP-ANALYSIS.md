@@ -408,12 +408,20 @@ Fixed with `rehydrateTone`. The general rule this exposes: **anything placed on
 `LayoutResult` crosses a storage boundary**, so it must be plain data or be
 explicitly rebuilt. A class on that type is a latent 500.
 
-**2. G6 cannot see component props.** The provenance check inspects `copy` and
-correctly rejected three invented `details` ("Kathmandu", "Annapurna", "Oct to
-Apr") — good. But an invented claim placed in a component prop
-(`annotation-label.text = "Sunrise is at 5.40am"`) reached the page untouched.
-Props are a hole straight through the no-invented-facts law, and props are
-exactly where an agent puts short factual text.
+**2. G6 cannot see component props.** **Closed (2026-08-05).** The provenance
+check inspected `copy` and correctly rejected three invented `details`
+("Kathmandu", "Annapurna", "Oct to Apr") — good. But an invented claim placed
+in a component prop (`annotation-label.text = "Sunrise is at 5.40am"`) reached
+the page untouched. Props are a hole straight through the no-invented-facts
+law, and props are exactly where an agent puts short factual text. Fixed by
+walking every string nested anywhere inside every element's `props`
+(`collectStrings` in `gates/index.ts` — recurses through objects and arrays,
+so `composed-figure`'s `parts[].draw.text` is covered too, not just a flat
+component) through the same slogan/hollow-word and unsupported-statistic
+checks `copy` already gets. `STAT_CLAIM_PATTERN` also extended to catch
+time-of-day claims ("5.40am", "10pm") — the exact shape of this bug's own
+example, which the existing %/×/thousands-separator pattern would have
+missed entirely.
 
 **3. Reported collisions do not block `done`.** The review endpoint accepted a
 verdict listing three collisions and still returned `status: done`. A collision

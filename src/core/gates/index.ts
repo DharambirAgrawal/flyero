@@ -69,7 +69,22 @@ const HOLLOW_WORDS = [
 
 /** Numbers that look like proof and therefore need an exact user source. */
 const STAT_CLAIM_PATTERN =
-  /\b\d+(?:\.\d+)?\s*(?:%|x\b|×)|\b\d{1,3},\d{3}\+?\b|\b\d+\s*(?:million|billion|k\+)\b/gi;
+  /\b\d+(?:\.\d+)?\s*(?:%|x\b|×)|\b\d{1,3},\d{3}\+?\b|\b\d+\s*(?:million|billion|k\+)\b|\b\d{1,2}(?:[:.]\d{2})?\s*(?:am|pm)\b/gi;
+
+/**
+ * Every string value nested anywhere inside `props` — an object, an array of
+ * objects (composed-figure's `parts`), whatever shape a component defines.
+ * G6 used to inspect only `copy`, so an invented fact placed in a component
+ * prop (`annotation-label.text = "Sunrise is at 5.40am"`, never supplied by
+ * the user) reached the page untouched: props are exactly where an agent
+ * puts short factual text, and exactly the hole no-invented-facts had.
+ */
+function collectStrings(value: unknown, out: string[] = []): string[] {
+  if (typeof value === "string") out.push(value);
+  else if (Array.isArray(value)) for (const v of value) collectStrings(v, out);
+  else if (value && typeof value === "object") for (const v of Object.values(value)) collectStrings(v, out);
+  return out;
+}
 
 function normalizeFact(value: string): string {
   return value
@@ -347,14 +362,40 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
   const unsupportedDetails = spec.copy.details
     .map((detail) => detail.value)
     .filter((value) => !isBackedByUser(value, userStatements));
+
+  // Same two checks, run again over every string an element's props carry —
+  // free text that never passed through `copy` at all.
+  const propStrings = spec.elements.flatMap((el) =>
+    collectStrings(el.props ?? {}).map((text) => ({ id: el.id, text })),
+  );
+  const hollowInProps = propStrings.filter(({ text }) =>
+    HOLLOW_WORDS.some((w) => text.toLowerCase().includes(w)),
+  );
+  const unsupportedStatsInProps = propStrings.flatMap(({ id, text }) =>
+    [...text.matchAll(STAT_CLAIM_PATTERN)]
+      .map((match) => match[0])
+      .filter((claim) => !isBackedByUser(claim, userStatements))
+      .map((claim) => `${id}: ${claim}`),
+  );
+
   const g6 =
     hollow.length === 0 &&
     unsupportedStats.length === 0 &&
     unsupportedDetails.length === 0 &&
+    hollowInProps.length === 0 &&
+    unsupportedStatsInProps.length === 0 &&
     (vision ? vision.copyReadsHuman : true);
   if (hollow.length > 0) notes.push(`G6: slogan-shaped words: ${hollow.join(", ")}`);
   if (unsupportedStats.length > 0) {
     notes.push(`G6: unsupported proof figure(s): ${unsupportedStats.join(", ")}`);
+  }
+  if (hollowInProps.length > 0) {
+    notes.push(
+      `G6: slogan-shaped words in a component prop: ${hollowInProps.map((h) => `${h.id}: ${h.text}`).join("; ")}`,
+    );
+  }
+  if (unsupportedStatsInProps.length > 0) {
+    notes.push(`G6: unsupported proof figure(s) in a component prop: ${unsupportedStatsInProps.join(", ")}`);
   }
   if (unsupportedDetails.length > 0) {
     notes.push(`G6: detail value(s) absent from user statements: ${unsupportedDetails.join(", ")}`);
