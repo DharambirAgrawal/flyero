@@ -462,23 +462,60 @@ export function buildMcpServer(): McpServer {
   server.registerTool(
     "export_flyer",
     {
-      title: "Save a flyer to a file",
+      title: "Get a finished flyer made with create_flyer",
       description:
-        "Write a finished flyer to disk. PNG for posting, SVG for editing in Figma or Illustrator " +
-        "(text stays editable).",
+        "Get a finished flyer as PNG or SVG (text stays editable in the SVG). Returns the export URLs " +
+        "directly — works the same whether you can reach local disk or not.",
       inputSchema: {
         jobId: z.string(),
         format: z.enum(["png", "svg"]),
-        outputPath: z.string().describe("Absolute path to write to."),
+        outputPath: z
+          .string()
+          .optional()
+          .describe(
+            "Only useful when this server runs on the same machine as you. On a hosted deployment it " +
+              "writes to the server's disk, which you cannot reach — the returned URLs work regardless.",
+          ),
       },
     },
     async ({ jobId, format, outputPath }) => {
-      const bytes = await apiBinary(`/v1/flyers/${jobId}/export?format=${format}`);
-      const target = resolve(outputPath);
-      await mkdir(dirname(target), { recursive: true });
-      await writeFile(target, bytes);
+      // Mirrors export_composed_flyer's safer default: outputPath used to be
+      // required, so a hosted connector — no shared disk with the user —
+      // had no valid way to call this tool at all. Same failure class the
+      // upload_asset fix closed, the other direction.
+      if (format === "svg") {
+        const svg = await apiBinary(`/v1/flyers/${jobId}/export?format=svg`);
+        if (outputPath) {
+          const target = resolve(outputPath);
+          await mkdir(dirname(target), { recursive: true });
+          await writeFile(target, svg);
+          return { content: [{ type: "text", text: `Wrote ${svg.length} bytes to ${target}` }] };
+        }
+        return { content: [{ type: "text", text: svg.toString("utf8") }] };
+      }
+      const preview = await apiBinary(`/v1/flyers/${jobId}/export?format=png&scale=0.4`);
+      if (outputPath) {
+        const full = await apiBinary(`/v1/flyers/${jobId}/export?format=png`);
+        const target = resolve(outputPath);
+        await mkdir(dirname(target), { recursive: true });
+        await writeFile(target, full);
+      }
       return {
-        content: [{ type: "text", text: `Wrote ${bytes.length} bytes to ${target}` }],
+        content: [
+          { type: "image" as const, data: preview.toString("base64"), mimeType: "image/png" },
+          {
+            type: "text" as const,
+            text: [
+              outputPath ? `Full resolution also written to ${outputPath}.` : "",
+              "SHOW THESE LINKS TO THE USER — the inline preview above is for you,",
+              "and a chat UI does not always render tool-result images to the reader.",
+              `PNG: ${shareUrl(jobId, "png")}`,
+              `SVG: ${shareUrl(jobId, "svg")}`,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          },
+        ],
       };
     },
   );

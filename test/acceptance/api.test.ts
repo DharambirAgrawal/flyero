@@ -9,6 +9,7 @@ import { createJob, saveRevision, updateJob } from "../../src/store/jobs.js";
 import { solveLayout } from "../../src/core/layout/solver.js";
 import { themeFromSpec } from "../../src/core/render/theme.js";
 import { runGates } from "../../src/core/gates/index.js";
+import { config } from "../../src/config.js";
 
 /**
  * Acceptance test 5 from REQUIREMENTS.md: the full create → poll → revise →
@@ -33,6 +34,16 @@ let app: FastifyInstance;
 beforeAll(async () => {
   app = buildServer();
   await app.ready();
+  /*
+   * MCP tools that wrap the REST surface (upload_asset, export_flyer, …) call
+   * it over real loopback fetch — config.flyeroApiUrl, "how the process talks
+   * to itself" — not app.inject. Without an actual listener, those calls
+   * either 404 against whatever else happens to be on the port or fail
+   * outright; app.inject alone was never enough to exercise them. Binding to
+   * config.port, the same default config.flyeroApiUrl already assumes,
+   * makes fetch() reach this exact instance.
+   */
+  await app.listen({ port: config.port, host: "127.0.0.1" });
 });
 
 afterAll(async () => {
@@ -650,6 +661,35 @@ describe("remote MCP", () => {
     expect(body.result?.isError, JSON.stringify(body)).not.toBe(true);
     const text = body.result.content.map((c: { text?: string }) => c.text ?? "").join(" ");
     expect(text).toMatch(/^Uploaded logo\.png as ast_/);
+  });
+
+  it("exports without a local outputPath — the only route a hosted connector has", async () => {
+    /*
+     * export_flyer used to require outputPath and only ever wrote to local
+     * disk — the same failure class as upload_asset, the other direction: a
+     * hosted connector has no disk to write to at all, so it had no valid
+     * way to call this tool. Uses the "export surface" describe block's
+     * fixture job (fly_EXPORTFIXTURE), created earlier in this file's run.
+     */
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "export_flyer", arguments: { jobId: "fly_EXPORTFIXTURE", format: "png" } },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.result?.isError, JSON.stringify(body)).not.toBe(true);
+    const content = body.result.content as Array<{ type: string; text?: string }>;
+    expect(content.some((c) => c.type === "image")).toBe(true);
+    const text = content.find((c) => c.type === "text")?.text ?? "";
+    expect(text).toContain("PNG:");
+    expect(text).toContain("SVG:");
   });
 
   it("exposes the agent-driven tools, which need no model key on the server", async () => {

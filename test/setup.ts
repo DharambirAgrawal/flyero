@@ -15,6 +15,14 @@ process.env.STORAGE_DIR = join(root, "objects");
 // tests must never touch the production Neon database.
 process.env.DATABASE_URL = "";
 process.env.API_KEYS = "test_key_1,test_key_2";
+// The MCP server's own tools call the REST API over real loopback fetch
+// (config.flyeroApiUrl/flyeroApiKey — "how the process talks to itself"),
+// authenticating with this key. It defaults to "dev_key_change_me", which
+// is not in API_KEYS above, so any MCP tool that wraps a REST call (
+// upload_asset, export_flyer, …) 401'd against its own server in every test
+// — until now masked by whichever key an incidental stale local dev server
+// happened to be running with, not by this actually being wired correctly.
+process.env.FLYERO_API_KEY = "test_key_1";
 process.env.ANTHROPIC_API_KEY = "";
 process.env.LOG_LEVEL = "silent";
 process.env.MAX_CONCURRENT_JOBS = "4";

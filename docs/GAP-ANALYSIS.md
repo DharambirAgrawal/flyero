@@ -817,6 +817,38 @@ automated against a site whose terms forbid it — and it lands as an *asset*
     .../revise` fails fast and clearly, not with a raw SDK error, when no
     key is configured — the same coverage `create_flyer` already had that
     `revise_flyer` never did.
+16. **Found 2026-08-05, from the same investigation: `export_flyer` had the
+    exact same hosted-connector bug `upload_asset` had, the other
+    direction — and discovering it exposed that the two tests written for
+    that bug class were themselves passing by accident, not by working
+    test infrastructure.** `export_flyer`'s `outputPath` was required and
+    only ever wrote to local disk — a hosted connector, no shared disk with
+    the user, had no valid way to call it at all. Fixed to mirror
+    `export_composed_flyer`'s already-safe pattern: `outputPath` optional,
+    always returns the export URLs plus an inline preview. While writing a
+    regression test for this, found the real reason the equivalent
+    `upload_asset` test (added earlier the same day) had been passing: MCP
+    tools that wrap the REST API call it over a real loopback `fetch()`
+    (`config.flyeroApiUrl` — "how the process talks to itself"), and no
+    test file has ever actually started a listening server — `app.inject()`
+    only simulates the *inbound* request being tested, it does nothing for
+    an outbound `fetch()` a tool handler makes from inside that request. The
+    `upload_asset` test's `fetch()` was reaching a stale, unrelated local
+    `npm run dev` process left running on the default port from earlier
+    work — coincidentally answering successfully because creating a new
+    asset doesn't depend on any pre-existing fixture state. This test's own
+    job *did* depend on fixture state, and had no such process to coincide
+    with, so it surfaced the gap immediately as a 404, then (after closing
+    that process) a clean connection failure, then (after fixing that) a
+    401 from a second, related gap: `config.flyeroApiKey` — what these
+    internal `fetch()` calls authenticate with — defaults to
+    `dev_key_change_me`, never added to the test suite's `API_KEYS` list.
+    Fixed all the way down: `test/acceptance/api.test.ts` now actually
+    binds `app.listen()` on `config.port` in `beforeAll`, and
+    `test/setup.ts` sets `FLYERO_API_KEY` to a key the suite's own
+    `API_KEYS` accepts. Both tools' regression tests now pass against a
+    real, correctly configured listener — confirmed stable across repeated
+    runs — not against whatever happened to be on the port.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before
