@@ -185,6 +185,17 @@ export type DecorSlot = {
 export type KeepOut = {
   rect: Rect;
   allowance: number;
+  /**
+   * A looser allowance for `layer: "over"` decorations only. Undefined means
+   * "same as `allowance`" — most keep-outs don't need the distinction. Exists
+   * for one case: an evidence element that fills the whole canvas (a
+   * `photoGround` topology) makes `allowance: 0` a keep-out over 100% of the
+   * page, so ornament never appears at all on exactly the briefs a graphic
+   * language should do the most for. A badge or a sparkle *on top of* a
+   * photo is a normal design move; ornament crowding *behind* or *beside* it
+   * is what actually costs Gate G2, so only "over" gets the exemption.
+   */
+  overAllowance?: number;
   /** For diagnostics and test failure messages. */
   elementId: string;
 };

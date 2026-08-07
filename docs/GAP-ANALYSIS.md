@@ -260,6 +260,32 @@ that the change generalises.
 4. Ornament is invisible on photo-ground topologies — expected, since the photo
    covers the page, but it means the graphic language does nothing for exactly
    the briefs that look best. Ornament should sit *over* the photo there.
+   **Closed (2026-08-05).** Root cause confirmed by reading `keepOutsFrom`
+   (`decor/decorations.ts`): every evidence element gets a zero-tolerance
+   keep-out, and a `photoGround` evidence element's box *is* the canvas — so
+   the keep-out covers 100% of the page and no decoration, at any size or
+   position, could ever clear it. A first attempt at a small fixed exemption
+   (`overAllowance: 0.12`) still failed every case: `covered` is computed as
+   a fraction of the *decoration's own area* overlapped by the keep-out, and
+   a decoration entirely inside a full-canvas keep-out is ~100% covered, not
+   partially — no small number ever clears that bar. Fixed by exempting
+   `layer: "over"` decorations from the evidence keep-out entirely
+   (`overAllowance: 1`) specifically when that evidence element fills
+   ≥92% of the canvas in both dimensions (the same threshold `solver.ts`
+   already uses for `coversPage`), while `under`/`with` stay zero-tolerance —
+   a badge or a sparkle sitting on top of a photo is a normal design move,
+   ornament crowding it from behind or beside it is what actually costs G2,
+   and the global clutter budget (`MAX_OVER_ITEMS`, `MAX_INK_COVERAGE`) still
+   caps how much can appear either way. Verified: `festive-scene`'s
+   `bunting-string` (an `over` slot) now places on every one of 8 tries on
+   `diagonal-progression` (a `photoGround` topology), versus zero before.
+   New unit test in `decorate.test.ts` covers the exemption directly; the
+   existing "never intrudes on a keep-out" test (which iterates every
+   graphics×topology pairing) was blind to this the whole time — its fixture
+   defaults to a non-photographic evidence component, so it never actually
+   exercised the `photoGround` path despite looking comprehensive. Now
+   updated to account for `overAllowance` so it stays a true invariant if
+   that fixture ever changes.
 5. Type is still smaller than the references, which set headlines enormous.
 6. No colour blocks or badges over the image — a common reference device.
 

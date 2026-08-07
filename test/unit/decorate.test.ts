@@ -53,15 +53,42 @@ describe("decoration layer — placement is safe everywhere", () => {
         if (decoration.weight === "wash" && decoration.layer === "under") continue;
         const area = Math.max(1, decoration.bbox.w * decoration.bbox.h);
         for (const ko of keepOuts) {
+          const allowance =
+            decoration.layer === "over" && ko.overAllowance !== undefined ? ko.overAllowance : ko.allowance;
           const covered = overlapArea(decoration.bbox, ko.rect) / area;
           expect(
             covered,
             `${id}: ${decoration.id} (${decoration.weight}/${decoration.layer}) covers ` +
               `${(covered * 100).toFixed(1)}% of ${ko.elementId}'s keep-out`,
-          ).toBeLessThanOrEqual(ko.allowance + 1e-9);
+          ).toBeLessThanOrEqual(allowance + 1e-9);
         }
       }
     }
+  });
+
+  it("still lets 'over' ornament land on a photoGround topology, where the evidence keep-out is the whole canvas", () => {
+    // Real gap this closes: a photoGround evidence element's keep-out rect
+    // covers the entire page, so a small fractional allowance can never let
+    // anything through — every candidate decoration is ~100% "covered" by
+    // it, not partially. Without the overAllowance exemption, ornament was
+    // silently zero on exactly the topologies (diagonal-progression here)
+    // and graphic languages (festive-scene, with layer: "over" slots) meant
+    // to show it off the most.
+    let sawOverDecoration = false;
+    for (let i = 0; i < 8; i++) {
+      const lineage = { ...fixtureLineages(`GROUND-${i}`, 1)[0]!, topology: "diagonal-progression" as const, graphics: "festive-scene" as const };
+      const spec = fixtureSpec(lineage);
+      const evidenceEl = spec.elements.find((e) => e.role === "evidence");
+      expect(evidenceEl, "fixture must carry an evidence element").toBeTruthy();
+      evidenceEl!.component = "photo-hero";
+      const layout = solveLayout(spec, themeFromSpec(spec));
+      const evidenceBox = layout.boxes[evidenceEl!.id]!;
+      expect(evidenceBox.w, "evidence must fill the canvas for this test to mean anything").toBeGreaterThanOrEqual(
+        spec.canvas.w * 0.92,
+      );
+      if (layout.decorations.some((d) => d.layer === "over")) sawOverDecoration = true;
+    }
+    expect(sawOverDecoration, "no 'over' decoration landed in 8 tries on a photoGround topology").toBe(true);
   });
 
   it("respects every budget cap", () => {

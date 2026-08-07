@@ -91,6 +91,18 @@ export function keepOutsFrom(spec: DesignSpec, boxes: Record<string, Box>): Keep
         : isText
           ? DECOR_BUDGET.PAD_TEXT
           : DECOR_BUDGET.PAD_NON_TEXT;
+    // A `photoGround` evidence element fills the whole canvas, so its
+    // keep-out rect *is* the canvas — any decoration placed anywhere is
+    // ~100% "covered" by it, not partially. A small fractional allowance
+    // (0.1, 0.2, …) therefore still blocks everything; only something close
+    // to full exemption actually lets ornament through. Exempt "over" layer
+    // decorations entirely there — a badge or a sparkle sitting on top of a
+    // photo is a normal design move, and the global clutter budget
+    // (MAX_OVER_ITEMS, MAX_INK_COVERAGE in decor/budget.ts) still caps how
+    // much of it can appear. "under"/"with" stay zero-tolerance: ornament
+    // crowding the photo from behind or beside it is what actually costs G2.
+    const groundFilling =
+      el.role === "evidence" && box.w >= spec.canvas.w * 0.92 && box.h >= spec.canvas.h * 0.92;
     out.push({
       rect: inflate(bounds, pad),
       // Text and evidence are zero-tolerance. Evidence especially: the vision
@@ -98,6 +110,7 @@ export function keepOutsFrom(spec: DesignSpec, boxes: Record<string, Box>): Keep
       // judging whether the product is guessable, so ornament crowding the
       // photograph actively costs G2 pass rate.
       allowance: el.role === "evidence" || isText ? 0 : 0.25,
+      overAllowance: groundFilling ? 1 : undefined,
       elementId: el.id,
     });
   }
@@ -120,8 +133,9 @@ function violatesKeepOut(
   const area = Math.max(1, bbox.w * bbox.h);
   const exempt = weight === "wash" && layer === "under";
   for (const ko of keepOuts) {
+    const allowance = layer === "over" && ko.overAllowance !== undefined ? ko.overAllowance : ko.allowance;
     const covered = overlapArea(bbox, ko.rect) / area;
-    if (covered <= ko.allowance) continue;
+    if (covered <= allowance) continue;
     if (exempt) continue;
     return true;
   }
