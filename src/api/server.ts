@@ -581,11 +581,26 @@ export function buildServer(): FastifyInstance {
        * which is guaranteed to give the same bytes it would have had.
        */
       if (!exists(path)) {
+        /**
+         * The spec.json cache file lives on the same ephemeral disk as the
+         * render cache — on Render that disk is wiped on every redeploy
+         * (config.ts's own comment on `databaseUrl` says so). Falling back
+         * to only that file 404'd real exports with "No spec for revision"
+         * for jobs whose spec was sitting the whole time in the `revisions`
+         * table, durable, via Postgres — the exact data GET .../spec already
+         * reads correctly a few routes up. This endpoint just wasn't using
+         * it. The spec is small (~8KB); losing the render cache is the
+         * accepted, documented tradeoff (`export/index.ts`), losing the
+         * spec itself was never supposed to be possible once a DB is set.
+         */
         const specPath = flyerKey(job.id, revision, "spec.json");
-        if (!exists(specPath)) {
+        const cachedSpecJson = exists(specPath) ? getText(specPath) : null;
+        const dbRow = cachedSpecJson ? null : await getRevision(job.id, revision);
+        const specJson = cachedSpecJson ?? dbRow?.spec ?? null;
+        if (!specJson) {
           return fail(reply, 404, "not_found", `No spec for revision ${revision}`);
         }
-        const spec = parseSpec(JSON.parse(getText(specPath)));
+        const spec = parseSpec(JSON.parse(specJson));
         const assets = (
           await getAssets(spec.elements.flatMap((el: { assets?: string[] }) => el.assets ?? []))
         ).map((a) => ({

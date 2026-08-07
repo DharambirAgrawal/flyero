@@ -732,6 +732,68 @@ automated against a site whose terms forbid it — and it lands as an *asset*
     Verified by rendering the exact 4-fact reproduction: clean spacing,
     zero overlap. New tests assert height scales with fact count and that
     it's always large enough for `render`'s own row-content formula.
+12. **The bigger question item 11 raised: why didn't a deterministic gate
+    catch the overlap, and could it have?** Traced precisely rather than
+    answered in the abstract. `layout.boxes` holds exactly one box per
+    `spec.element` — every gate (`overflow`, `margins`, `contrast`,
+    keep-out/collision machinery) reasons at that granularity. `detail-
+    cluster` is *one* element; its row subdivision is private state inside
+    its own `render` function, never surfaced anywhere `layout` describes.
+    So nothing code-side could see it — only the vision critic, which reads
+    actual pixels, ever had a chance, and a vision verdict is a judgment call
+    an agent can rationalize past (and in the live transcript that prompted
+    this, did: "doesn't really constitute a collision"). **Closed**, for
+    this specific component: `runGates` now imports `detailClusterRowHeight`
+    directly and independently recomputes whether the box a real spec+layout
+    produced is tall enough for its fact count — `mechanical.componentGeometry`,
+    a genuinely deterministic, code-only check, not a rendering. The general
+    pattern (expose a compound component's internal sub-layout as a
+    function, not just JSX, so a gate can consult the same source of truth
+    `render` uses) is the answer for any future component with this shape;
+    not applied retroactively to every component without a concrete bug
+    driving it, per this file's own "measured first, not guessed" discipline.
+13. **Found 2026-08-05, from a second live transcript: the `hero-overlaps-
+    eyebrow` gesture buried the eyebrow's own text, not just its padding.**
+    **Closed.** `applyRelationshipOverlaps` (declared `spec.relationships`
+    overlaps) already clamps intrusion into text via `textOcclusionLimit` —
+    max 45% of a line's height or 28px, whichever is smaller, vertical only.
+    The `overlap-eyebrow` gesture `apply` case never used it: `eb.y = box.y
+    - eb.h * 0.35` moves the eyebrow up by 35% of its own height, which
+    — worked through — puts *65%* of the eyebrow's box under the hero, not
+    35%. For a short single-line label that 65% is the glyphs, not margin.
+    Fixed by routing the same `textOcclusionLimit` clamp through this
+    gesture, so it gets the identical protection a declared relationship
+    already had. Verified: all three `hero-overlaps-eyebrow` cases in
+    `npm run sheet -- SEED 8` now render the eyebrow fully legible.
+    **Still open, lower confidence, not yet root-caused as precisely**: the
+    same transcript also showed a CTA button clipping detail-cluster text
+    with no declared relationship between them at all — a genuine, general
+    "two unrelated elements' solved boxes overlap" case, which item 12's
+    fix does not cover (it's specific to one component's internal geometry).
+    Nothing today verifies `layout.boxes` entries for *different* elements
+    don't collide unless linked by a `spec.relationships` entry or the
+    applied gesture. A general version of item 12's approach — a
+    deterministic check across all element pairs, exempting bleed/ground
+    elements and declared relationship/gesture pairs — is the likely fix;
+    not built today because the specific failing case wasn't reproduced
+    from a real spec, only described secondhand in the transcript.
+14. **Found 2026-08-05, from a real production error: `GET .../export`
+    404'd with "No spec for revision 3" on a job whose spec was durable in
+    Postgres the entire time.** **Closed.** The Postgres migration earlier
+    today made `revisions.spec` (the DB) the durable copy — `GET .../spec`
+    already reads it correctly via `getRevision`. `GET .../export`'s
+    fallback, when its render cache is missing (the documented normal case:
+    `export/index.ts` only persists the spec by default, renders are
+    re-derived on demand), checked a *second*, separate local-disk cache
+    file (`spec.json`, written by `exportFlyer` alongside the DB write) —
+    and only that file. That file lives on the same ephemeral disk Render
+    wipes on every redeploy. Two copies of the same spec existed; the
+    endpoint was reading the one that doesn't survive a deploy and never
+    tried the one that does, sitting one route away in the same file. Fixed
+    by falling back to `getRevision` when the local cache is absent, same
+    as `/spec` already does. New acceptance test creates a job via
+    `saveRevision` alone (never calls `exportFlyer`, so no local cache
+    exists at all) and confirms `/export` still serves PNG and SVG.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

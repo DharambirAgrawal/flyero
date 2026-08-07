@@ -343,6 +343,54 @@ describe("export surface", () => {
     expect(spec).not.toHaveProperty("boxes");
     expect(JSON.stringify(spec)).not.toMatch(/"x":\s*[1-9]\d{2,}/);
   });
+
+  it("serves an export even when the local render cache never existed, from the DB alone", async () => {
+    /*
+     * Real production failure: "No spec for revision 3" on a job whose spec
+     * was safely in Postgres the whole time. exportFlyer's spec.json cache
+     * file lives on the same ephemeral disk Render wipes on every redeploy;
+     * the export route's fallback only ever checked that file, never the
+     * `revisions` table GET .../spec already reads correctly. This job never
+     * calls exportFlyer at all — only saveRevision, straight to the DB — so
+     * there is no local cache to fall back to except the database.
+     */
+    const dbOnlyJobId = "fly_DBFALLBACKFIXTURE";
+    const spec = fixtureSpec(fixtureLineages("db-fallback", 1)[0]!);
+    const { layout } = renderSpec(spec);
+    await createJob({
+      id: dbOnlyJobId,
+      apiKey: KEY,
+      prompt: "fixture",
+      risk: "studio",
+      jobSeed: "fixture",
+      assetIds: [],
+      brand: null,
+      callbackUrl: null,
+      batchId: null,
+    });
+    const gates = await runGates(
+      { spec, layout, requestedAssetIds: [] },
+      { jobId: dbOnlyJobId, apiKey: KEY, stage: "gates" },
+    );
+    await saveRevision({ jobId: dbOnlyJobId, revision: 0, spec, layout, gates, instruction: null });
+    await updateJob(dbOnlyJobId, { status: "done", idea: spec.idea, gates: JSON.stringify(gates) });
+
+    const png = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${dbOnlyJobId}/export?format=png`,
+      headers: auth,
+    });
+    expect(png.statusCode).toBe(200);
+    expect(png.headers["content-type"]).toBe("image/png");
+
+    const svg = await app.inject({
+      method: "GET",
+      url: `/v1/flyers/${dbOnlyJobId}/export?format=svg`,
+      headers: auth,
+    });
+    expect(svg.statusCode).toBe(200);
+    expect(svg.body).toContain("<text");
+  });
 });
 
 describe("batches", () => {
