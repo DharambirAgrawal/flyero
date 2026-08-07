@@ -232,6 +232,54 @@ describe("flyer lifecycle", () => {
     expect(body.error).toMatch(/ANTHROPIC_API_KEY/);
   });
 
+  it("reports honest failure on revise without a model key too, not a raw SDK error", async () => {
+    /*
+     * Real bug this closes: runJob checks hasLlm() up front and fails
+     * cleanly; runRevision never did, so a caller with no server-side model
+     * key (revise_flyer over MCP, or this route directly) got a raw SDK
+     * exception after a poll delay instead of the same immediate, clear
+     * signal create_flyer already gives. The tool description didn't warn
+     * either — this endpoint-level fix protects every caller regardless.
+     */
+    const jobId = "fly_REVISENOKEY";
+    const spec = fixtureSpec(fixtureLineages("revise-no-key", 1)[0]!);
+    const { svg, layout } = renderSpec(spec);
+    await createJob({
+      id: jobId,
+      apiKey: KEY,
+      prompt: "fixture",
+      risk: "studio",
+      jobSeed: "fixture",
+      assetIds: [],
+      brand: null,
+      callbackUrl: null,
+      batchId: null,
+    });
+    const gates = await runGates(
+      { spec, layout, requestedAssetIds: [] },
+      { jobId, apiKey: KEY, stage: "gates" },
+    );
+    exportFlyer({ jobId, revision: 0, spec, svg });
+    await saveRevision({ jobId, revision: 0, spec, layout, gates, instruction: null });
+    await updateJob(jobId, { status: "done", idea: spec.idea, gates: JSON.stringify(gates) });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/v1/flyers/${jobId}/revise`,
+      headers: auth,
+      payload: { instruction: "make the call to action stronger" },
+    });
+    expect(res.statusCode).toBe(202);
+
+    await drain();
+
+    const polled = await app.inject({ method: "GET", url: `/v1/flyers/${jobId}`, headers: auth });
+    const body = polled.json();
+    expect(body.status).toBe("failed");
+    expect(body.error).toMatch(/ANTHROPIC_API_KEY/);
+    expect(body.error).toMatch(/revise_composition|compose_flyer/);
+  });
+
   it("404s an unknown job", async () => {
     const res = await app.inject({ method: "GET", url: "/v1/flyers/fly_nope", headers: auth });
     expect(res.statusCode).toBe(404);

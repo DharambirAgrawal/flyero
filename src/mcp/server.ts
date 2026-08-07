@@ -431,10 +431,14 @@ export function buildMcpServer(): McpServer {
   server.registerTool(
     "revise_flyer",
     {
-      title: "Change an existing flyer",
+      title: "Change an existing flyer made with create_flyer (needs a server-side model key)",
       description:
         "Apply a plain-language change to a flyer that already exists — 'make the call to action stronger', " +
-        "'less text', 'show the product bigger'. The original creative idea is preserved.",
+        "'less text', 'show the product bigger'. The original creative idea is preserved.\n\n" +
+        "REQUIRES ANTHROPIC_API_KEY on the server, same as create_flyer — this only works on a flyer that " +
+        "tool made, and most deployments do not set that key. If this fails with a configuration error, do " +
+        "NOT retry: you cannot revise that flyer this way. Build one yourself with compose_flyer instead " +
+        "(see read_design_guide), then use revise_composition to change it — that path needs no server key.",
       inputSchema: {
         jobId: z.string(),
         instruction: z.string().describe("What to change, in plain language."),
@@ -482,10 +486,14 @@ export function buildMcpServer(): McpServer {
   server.registerTool(
     "create_flyer_batch",
     {
-      title: "Explore several different flyers for one brief",
+      title: "Explore several different flyers for one brief (needs a server-side model key)",
       description:
         "Generate N independent flyers from the same prompt to compare directions. Each run is a " +
-        "different designer's take — different idea, different composition. Use when the user wants options.",
+        "different designer's take — different idea, different composition. Use when the user wants options.\n\n" +
+        "REQUIRES ANTHROPIC_API_KEY on the server, same as create_flyer, and most deployments do not set " +
+        "one — you are a model already, so paying for a second one to do work you can do is usually wrong. " +
+        "If this fails with a configuration error, do NOT retry: compose each version yourself with " +
+        "compose_flyer instead, requesting a fresh designer assignment per version.",
       inputSchema: {
         prompt: z.string(),
         runs: z.number().int().min(2).max(10),

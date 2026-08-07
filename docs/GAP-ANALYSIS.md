@@ -794,6 +794,29 @@ automated against a site whose terms forbid it — and it lands as an *asset*
     as `/spec` already does. New acceptance test creates a job via
     `saveRevision` alone (never calls `exportFlyer`, so no local cache
     exists at all) and confirms `/export` still serves PNG and SVG.
+15. **Found 2026-08-05, from the same transcripts: a flyer showed no
+    visible change after an agent used `revise_flyer` — because the tool
+    silently cannot work on this deployment and neither the tool nor the
+    pipeline said so.** **Closed.** `create_flyer` checks `hasLlm()` up
+    front and its description warns explicitly ("REQUIRES ANTHROPIC_API_KEY
+    ... most deployments do not set one"). `revise_flyer` and
+    `create_flyer_batch` use the exact same server-side LLM call and had
+    neither: no upfront check in `runRevision` (`pipeline.ts`) — it went
+    straight into `reviseSpec` and let the Anthropic SDK throw whatever
+    exception a missing key produces, well after `pollJob`'s delay — and no
+    warning in either tool's description, unlike their `create_flyer`
+    sibling. An agent with no server key (this repo's default) could call
+    `revise_flyer`, get a job that fails for reasons unrelated to the actual
+    instruction, and — since the underlying failure message was raw SDK
+    text, not a clear "no key" signal — have no way to know the fix was to
+    use `revise_composition` instead. Fixed both ways: `runRevision` now
+    checks `hasLlm()` immediately and fails with the same clear message
+    `runJob` gives, naming `revise_composition` as the working alternative;
+    both tool descriptions now carry the same explicit warning
+    `create_flyer` already had. New acceptance test confirms `POST
+    .../revise` fails fast and clearly, not with a raw SDK error, when no
+    key is configured — the same coverage `create_flyer` already had that
+    `revise_flyer` never did.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

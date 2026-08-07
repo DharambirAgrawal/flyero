@@ -348,6 +348,18 @@ export async function runRevision(jobId: string, instruction: string): Promise<v
   const ctx: CallContext = { jobId, apiKey: job.api_key, stage: "revise" };
 
   try {
+    if (!hasLlm()) {
+      // runJob checks this before starting; this path never did, so a
+      // caller with no server-side model key (revise_flyer over MCP, or
+      // POST /v1/flyers/:id/revise directly) got a raw SDK exception after
+      // a poll delay instead of the same clear, immediate signal
+      // create_flyer already gives up front.
+      throw new Error(
+        "ANTHROPIC_API_KEY is not configured — revision cannot run. Use revise_composition instead " +
+          "(the agent-native path: apply the change to the spec yourself and call compose_flyer again " +
+          "with the same flyerId).",
+      );
+    }
     const previous = job.revision;
     const row = await getRevision(jobId, previous);
     if (!row) throw new Error(`Job ${jobId} has no revision ${previous} to revise`);
