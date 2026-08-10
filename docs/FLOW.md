@@ -108,6 +108,10 @@ the cover test, so this step is not optional for those briefs.
 
 ### 5. The agent composes
 
+`GET /v1/schema/composition` returns several examples on purpose — photo-led,
+assembled, exchange-led — so none reads as *the* flyer to ship. They teach JSON
+shape (field names and nesting), not a template to remix.
+
 `POST /v1/flyers/compose` carries the idea, a four-beat story, the copy, and
 **4–7 elements** — each naming a component, a role, and *why it is there*.
 Practical facts (date, place, price) go in `details`, carried by one element

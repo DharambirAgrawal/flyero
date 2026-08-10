@@ -527,6 +527,20 @@ describe("design skills", () => {
     }
   });
 
+  it("pushes agents off template-filling and the safe photo stack", async () => {
+    const guide = (await app.inject({ method: "GET", url: "/v1/guide", headers: auth })).body;
+    expect(guide).toMatch(/template filling|NOT flyers to remix|Steal the shape/i);
+    expect(guide).toMatch(/safe stack|photo-hero/);
+    expect(guide).toMatch(/request_designers/);
+    expect(guide).toMatch(/search_images/);
+
+    const composition = (
+      await app.inject({ method: "GET", url: "/v1/skills/composition", headers: auth })
+    ).body;
+    expect(composition).toMatch(/Refuse the safe stack|JSON shapes/i);
+    expect(composition).toMatch(/chat-exchange/);
+  });
+
   it("surfaces the archetype filter so agents do not brute-force the sampler", async () => {
     // A real run burned 27 assignment draws hunting for a metaphor that suited a
     // travel brief, because nothing told it the sampler can filter by campaign
@@ -605,7 +619,11 @@ describe("remote MCP", () => {
       "get_composition_example",
       "review_flyer",
       "Never invent facts",
-      "export links",
+      "export",
+      "request_designers",
+      "search_images",
+      "SHAPES",
+      "safe stack",
     ]) {
       expect(instructions, `instructions omit ${must}`).toContain(must);
     }
@@ -626,6 +644,33 @@ describe("remote MCP", () => {
       .result.tools.find((t: { name: string }) => t.name === "create_flyer");
     expect(auto.description).toContain("ANTHROPIC_API_KEY");
     expect(auto.description).toContain("compose_flyer");
+    expect(auto.description).toMatch(/SERVER-KEY ONLY|LAST RESORT/);
+  });
+
+  it("puts discovery keywords in tool descriptions so MCP search loads the right tools", async () => {
+    /*
+     * Hosted clients search tool descriptions and load a shortlist. Vague
+     * descriptions caused "request designers assignment lineage" to load
+     * revise_flyer / create_flyer_batch instead of request_designers, and
+     * "search images" to miss search_images entirely. Keywords must live in
+     * the description text itself.
+     */
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+    });
+    const byName = Object.fromEntries(
+      res.json().result.tools.map((t: { name: string; description: string }) => [t.name, t.description]),
+    );
+    expect(byName.request_designers).toMatch(/designer assignment|lineage/i);
+    expect(byName.search_images).toMatch(/Search images/i);
+    expect(byName.get_composition_example).toMatch(/SHAPE|schema shape|NOT flyers to remix/i);
+    expect(byName.read_design_guide).toMatch(/design guide/i);
+    expect(byName.compose_flyer).toMatch(/refuse the safe|NOT a template|invent/i);
+    expect(byName.create_flyer_batch).toMatch(/SERVER-KEY ONLY|LAST RESORT/);
+    expect(byName.revise_flyer).toMatch(/SERVER-KEY ONLY|LAST RESORT/);
   });
 
   it("uploads via base64 data, not just a local path — the only route a hosted connector has", async () => {

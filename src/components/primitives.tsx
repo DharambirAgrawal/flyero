@@ -18,15 +18,19 @@ import { shadowFor, type LightSource } from "../core/canvas/light.js";
  */
 export function inkFor(
   theme: Theme,
-  box: { onDark?: boolean; ground?: string },
+  box: { onDark?: boolean; ground?: string; fontSize?: number },
   fallback?: string,
 ): string {
-  if (!box.onDark) return fallback ?? theme.palette.fg;
+  const large = (box.fontSize ?? 0) >= 32;
+  if (!box.onDark) {
+    const base = fallback ?? theme.palette.fg;
+    return box.ground ? ensureContrast(base, box.ground, large) : base;
+  }
   // When the solver knows the exact ground fill, hold contrast against that.
   // The mixed-down foreground is only a stand-in for a photograph, whose real
   // colour we cannot know at this point.
   const plate = box.ground ?? mix(theme.palette.fg, "#000000", 0.5);
-  return ensureContrast("#ffffff", plate);
+  return ensureContrast("#ffffff", plate, large);
 }
 
 /** Muted ink, same rule. */

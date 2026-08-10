@@ -232,8 +232,8 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
   if (!meetsAA(muted, base, true)) {
     contrastFailures.push(`muted ${muted} on ${base} is ${contrastRatio(muted, base).toFixed(2)}:1`);
   }
-  if (!meetsAA(accent, base, true)) {
-    contrastFailures.push(`accent ${accent} on ${base} is ${contrastRatio(accent, base).toFixed(2)}:1`);
+  if (!meetsAA(accent, layout.ground.base, true)) {
+    contrastFailures.push(`accent ${accent} on ${layout.ground.base} is ${contrastRatio(accent, layout.ground.base).toFixed(2)}:1`);
   }
   const contrast = contrastFailures.length === 0;
   if (!contrast) notes.push(...contrastFailures);

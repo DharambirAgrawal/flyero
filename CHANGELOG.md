@@ -6,6 +6,53 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-10 — agent prompts: invent, don't remix; fix MCP tool discovery
+
+Live agent sessions were still template-filling: fetch `get_composition_example`,
+keep headline / photo-hero / body / CTA / footer, swap product words. Tool search
+also loaded the wrong shortlist — queries like "request designers assignment
+lineage" returned `revise_flyer` / `create_flyer_batch`, and "search images"
+missed `search_images`.
+
+### Changed
+- `guide.ts` / `skills.ts` / MCP server instructions: lead with the failure mode,
+  invent-visual-sentence-first order, explicit "examples are JSON shapes not
+  flyers", refuse the safe stack, and a tool table keyed to the intended path.
+- Third published composition example `exchange-led` (`chat-exchange`) so the
+  range covers photo / assembled / conversation — none reads as the answer.
+  Schema notes scream remix-is-wrong.
+- MCP tool descriptions: discovery keywords (`designer assignment`, `lineage`,
+  `Search images`, `design guide`, `schema shape`); server-key tools demoted to
+  `SERVER-KEY ONLY / LAST RESORT` so they stop winning general searches.
+- `docs/FLOW.md` notes that composition examples teach shape, not a template.
+- Tests: three examples compose end-to-end; guide/skills anti-template asserts;
+  MCP description keyword asserts.
+
+## 2026-08-10 — elevated AI agent creativity, design posture & contrast legibility
+
+Upgraded the agent prompt architecture across MCP instructions (`src/mcp/server.ts`),
+the onboarding guide (`src/api/guide.ts`), and design skills (`src/api/skills.ts`).
+The instructions now explicitly push the LLM agent to think like an award-winning
+poster artist rather than a default template builder. Key improvements:
+- Mandated non-repetition across jobs (varying evidence component families, reading paths,
+  and CTA styling across runs).
+- Deepened creative posture guidance in `guide.ts` and `skills.ts`, detailing how to leverage
+  unconventional component choices (e.g. `scene-illustration`, `polaroid-stack`, `photo-cluster`,
+  `photo-grid`, `torn-photo`, `document-card`, `before-after-stack`, `detail-cluster`, `composed-figure`).
+- Hardened text ink selection in `src/components/primitives.tsx` (`inkFor` now evaluates box font size
+  and calls `ensureContrast` over measured ground tone), resolving edge-case contrast gate failures.
+- Verified all 231 tests pass cleanly across unit, golden snapshot, and acceptance suites.
+
+## 2026-08-10 — agent guide now pushes harder on creative variance
+
+The API guide text for agent-facing flyer creation was too checklist-like and
+let models settle into familiar, generic compositions. Tightened the prose to
+do three things more explicitly: push for a specific visual sentence instead of
+a template, tell the agent to vary evidence family / reading path / CTA shape
+across jobs, and call out the actual tool sequence (`read_design_guide`,
+`read_design_skill`, `request_designers`, `get_composition_example`,
+`import_image`, `compose_flyer`) so the prompt matches the tools the agent sees.
+
 ## 2026-08-10 — cta-button's printed URL overlapped the next element down
 
 Same live test, second real bug: after the EXIF fix, the rebuilt flyer's

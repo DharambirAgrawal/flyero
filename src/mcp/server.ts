@@ -170,60 +170,40 @@ export function buildMcpServer(): McpServer {
     { name: "flyero", version: "0.1.0" },
     {
       instructions: [
-        "Flyero turns a plain-language brief into one 1080x1350 flyer. YOU are the designer:",
-        "you choose the words, the pictures and the components. The engine owns colour, fonts,",
-        "sizes, positions and ornament — never send coordinates or hex values, they are ignored",
-        "or rejected.",
+        "Flyero turns a plain-language brief into a flyer. YOU are the Creative Director — invent the",
+        "visual story, the copy, and the elements. Think like an award-winning poster designer, not a",
+        "template filler. Never ship the same evidence family / reading path / CTA style as your last job.",
         "",
-        "Work in this order. Skipping a step is what makes runs fail slowly:",
+        "The published composition examples are JSON SHAPES only (field names + nesting). They are NOT",
+        "flyers to remix. If your elements match an example's slots with different strings, throw the",
+        "draft out and invent a new visual sentence from the metaphor.",
         "",
-        "1. read_design_guide, then read_design_skill (composition and copywriting at minimum).",
-        "2. request_designers with a campaignArchetype — event-invitation, product-promotion,",
-        "   awareness-education, editorial-announcement, offer-promotion. The archetype filters",
-        "   metaphors to ones that suit the brief; without it you are drawing from everything and",
-        "   will waste calls hunting for a fit. Pick the designer whose METAPHOR matches the",
-        "   message, not the palette you like. Read its `constraints`: element count varies by",
-        "   designer, and `direction.gesture.requiresComponent` may force a specific component.",
-        "3. Get a real image in. Two different sources, do not confuse them:",
-        "   - The user's OWN logo or product photo (attached in this conversation, or one they",
-        "     describe having) -> upload_asset. If you cannot read local disk (most hosted/chat",
-        "     connectors cannot — there is no folder shared between you and the user), pass the",
-        "     attachment's bytes as base64 in `data`, not a guessed `path`. If the user says they",
-        "     attached something and you do not see image content in this turn, say so and ask them",
-        "     to attach it again — never invent a placeholder or proceed as if it arrived.",
-        "   - Anything the user did not supply -> search_images then import_image. This searches a",
-        "     dozen sources at once (real photos, SVG icons, brand marks, illustrations, procedural",
-        "     shapes/dividers/badges, QR codes) and almost never needs a key, so you should reach for",
-        "     it before asking the user for anything — pass `type` (photo | icon | svg | vector | png",
-        "     | background | shape) to aim it at what the slot actually needs instead of sifting",
-        "     through photos for an icon or vice versa. A bare 'qr:https://...' query returns a",
-        "     scannable QR code for an event page, menu or RSVP link.",
-        "   A flyer about a place, a dish or an object with no picture of it cannot pass the cover",
-        "   test. If there is genuinely nothing to photograph, use scene-illustration or",
-        "   motif-collage instead of a stock photo of nothing.",
-        "4. get_composition_example BEFORE compose_flyer. It returns a working composition to copy.",
-        "   Guessing the shape wastes many attempts.",
-        "   Read every component's LOOKS LIKE line before picking. There are 36 of them and output",
-        "   from this API spent a long time collapsing onto the same two or three, purely because",
-        "   the rest were not described well enough to picture. If nothing fits, build one:",
-        "   `composed-figure` assembles motifs, shapes, cut-out photos and short words for this",
-        "   flyer only, placed by relationship ('the plane top-right of the sun'), never by",
-        "   coordinate. It is also how you fill an empty page — one element, up to eight parts,",
-        "   so the 4-7 restraint gate stays satisfied while the page gets genuinely dense.",
-        "5. compose_flyer. A rejection names the exact field or rule — read it, it is precise.",
-        "6. LOOK at the returned image, then review_flyer. Three gates (does the idea read, is the",
-        "   product guessable with the words covered, does the type participate) cannot be settled",
-        "   by code, so the flyer stays awaiting_review until you judge it. Reporting done on",
-        "   something you would not print is the one failure that cannot be undone.",
-        "7. Wrong? revise_composition and look again. Then export_composed_flyer.",
+        "The engine owns colour, fonts, sizes, positions and ornament — never send coordinates or hex",
+        "values; they are ignored or rejected.",
         "",
-        "ALWAYS give the user the export links. The inline image is for your eyes; a chat UI does",
-        "not always show tool-result images to the person reading, so a flyer they cannot see is a",
-        "flyer you did not deliver.",
+        "Intended path (no server model key). Call tools by these names so search finds them:",
         "",
-        "Never invent facts. No prices, dates, seasons, statistics or claims the user did not give",
-        "you — Gate G6 checks this and will reject them. Leave cta.url null rather than inventing",
-        "an address.",
+        "1. read_design_guide, then read_design_skill (composition + copywriting at minimum).",
+        "2. request_designers — Studio Sampler designer assignment / lineage. Pass campaignArchetype",
+        "   (event-invitation | product-promotion | awareness-education | editorial-announcement |",
+        "   offer-promotion). Pick the designer whose METAPHOR forces an unexpected visual thought.",
+        "   Read `constraints` and `direction.gesture.requiresComponent`.",
+        "3. Imagery: user logo/photo → upload_asset (+ prepare_asset). Anything else → search_images",
+        "   then import_image (photos, icons, illustrations, shapes, QR). A place/dish/object needs a",
+        "   real picture for G2; otherwise scene-illustration / motif-collage / chat-exchange.",
+        "4. get_composition_example BEFORE compose_flyer — for schema shape only, then invent.",
+        "   Refuse the safe stack (headline + photo-hero + body + CTA + footer) unless metaphor+brief",
+        "   both demand it. Prefer unfamiliar evidence: polaroid-stack, photo-cluster, torn-photo,",
+        "   chat-exchange, before-after-stack, detail-cluster, composed-figure, …",
+        "5. compose_flyer with your authored composition. Fix precise rejection fields; do not guess.",
+        "6. LOOK at the image, then review_flyer (G1 idea / G2 cover / G4 type). Reject generic work.",
+        "7. Tweaks → revise_composition. Then export_composed_flyer and SHOW the user the export links.",
+        "",
+        "Avoid create_flyer / create_flyer_batch / revise_flyer unless the server has ANTHROPIC_API_KEY —",
+        "you are already a model; those usually fail with a config error. Do not retry; compose yourself.",
+        "",
+        "Never invent facts. No stats, prices, dates, testimonials not given by the user — Gate G6.",
+        "Leave cta.url null unless supplied.",
       ].join("\n"),
     },
   );
@@ -233,12 +213,10 @@ export function buildMcpServer(): McpServer {
     {
       title: "Create a flyer automatically (needs a server-side model key)",
       description:
-        "Hands the whole job to the server: it writes the brief, invents the idea and composes the page " +
-        "itself, then returns a flyer that passed every gate. Takes up to ~3 minutes.\n\n" +
-        "REQUIRES ANTHROPIC_API_KEY on the server, and most deployments do not set one — you are a model " +
-        "already, so paying for a second one to do work you can do is usually wrong. If this fails with a " +
-        "configuration error, do NOT retry: use compose_flyer and design it yourself. That is the intended " +
-        "path and needs no key.",
+        "SERVER-KEY ONLY / LAST RESORT. Hands the whole job to a second model on the server. " +
+        "REQUIRES ANTHROPIC_API_KEY — most deployments do not set one. You are already a model, so " +
+        "prefer compose_flyer (read_design_guide → request_designers → get_composition_example → " +
+        "compose_flyer). If this fails with a configuration error, do NOT retry.",
       inputSchema: {
         prompt: z
           .string()
@@ -438,12 +416,9 @@ export function buildMcpServer(): McpServer {
     {
       title: "Change an existing flyer made with create_flyer (needs a server-side model key)",
       description:
-        "Apply a plain-language change to a flyer that already exists — 'make the call to action stronger', " +
-        "'less text', 'show the product bigger'. The original creative idea is preserved.\n\n" +
-        "REQUIRES ANTHROPIC_API_KEY on the server, same as create_flyer — this only works on a flyer that " +
-        "tool made, and most deployments do not set that key. If this fails with a configuration error, do " +
-        "NOT retry: you cannot revise that flyer this way. Build one yourself with compose_flyer instead " +
-        "(see read_design_guide), then use revise_composition to change it — that path needs no server key.",
+        "SERVER-KEY ONLY / LAST RESORT. Plain-language revise of a flyer that create_flyer made. " +
+        "REQUIRES ANTHROPIC_API_KEY — most deployments do not set one. If this fails with a configuration " +
+        "error, do NOT retry. For flyers you authored with compose_flyer, use revise_composition instead.",
       inputSchema: {
         jobId: z.string(),
         instruction: z.string().describe("What to change, in plain language."),
@@ -530,12 +505,10 @@ export function buildMcpServer(): McpServer {
     {
       title: "Explore several different flyers for one brief (needs a server-side model key)",
       description:
-        "Generate N independent flyers from the same prompt to compare directions. Each run is a " +
-        "different designer's take — different idea, different composition. Use when the user wants options.\n\n" +
-        "REQUIRES ANTHROPIC_API_KEY on the server, same as create_flyer, and most deployments do not set " +
-        "one — you are a model already, so paying for a second one to do work you can do is usually wrong. " +
-        "If this fails with a configuration error, do NOT retry: compose each version yourself with " +
-        "compose_flyer instead, requesting a fresh designer assignment per version.",
+        "SERVER-KEY ONLY / LAST RESORT. Generate N server-authored flyers from one prompt. " +
+        "REQUIRES ANTHROPIC_API_KEY — most deployments do not set one. Prefer composing each version " +
+        "yourself: request_designers (fresh assignment/lineage per version) then compose_flyer. " +
+        "If this fails with a configuration error, do NOT retry.",
       inputSchema: {
         prompt: z.string(),
         runs: z.number().int().min(2).max(10),
@@ -590,8 +563,9 @@ export function buildMcpServer(): McpServer {
     {
       title: "Read the design guide",
       description:
-        "How to compose a flyer with this system: the loop, the component catalogue, the Six Gates, and " +
-        "what you do and do not control. Read this before your first composition.",
+        "Flyero design guide — how to compose a flyer with this system: creative posture (invent, " +
+        "do not template-fill), the loop, component catalogue, Six Gates, and what you do not control. " +
+        "Read this before your first composition.",
       inputSchema: {},
     },
     async () => ({ content: [{ type: "text", text: await apiText("/v1/guide") }] }),
@@ -602,10 +576,10 @@ export function buildMcpServer(): McpServer {
     {
       title: "Read a design skill",
       description:
-        "Short guides on judgement: 'brief' (reading a request, choosing a designer), 'composition' (what " +
-        "the flyer shows), 'copywriting' (words that survive the gates), 'critique' (judging the render). " +
-        "Call with no name to list them. These teach judgement, not palettes — colour and type come from " +
-        "your assigned designer.",
+        "Design skills / judgement guides: 'brief' (reading a request, choosing a designer assignment), " +
+        "'composition' (what the flyer shows — invent evidence, refuse the safe stack), 'copywriting' " +
+        "(words that survive the gates), 'critique' (judging the render, reject generic). Call with no " +
+        "name to list them. These teach judgement, not palettes — colour and type come from your lineage.",
       inputSchema: {
         name: z
           .enum(["brief", "composition", "copywriting", "critique"])
@@ -636,10 +610,11 @@ export function buildMcpServer(): McpServer {
     {
       title: "Request designer assignments",
       description:
-        "Ask the Studio Sampler for candidate designers. Each is a bundle — metaphor, layout topology, " +
-        "typography, material, colour logic, signature gesture, graphic language — and you cannot edit " +
-        "one. Pick the designer whose METAPHOR fits your message. Pass campaignArchetype so the sampler " +
-        "only returns metaphors suited to that kind of brief; redrawing until one fits is fighting it.",
+        "Request designers / designer assignment / lineage from the Studio Sampler. Returns candidate " +
+        "designers — each a bundle (metaphor, layout topology, typography, material, colour logic, " +
+        "signature gesture, graphic language) you cannot edit. Pick the one whose METAPHOR forces a " +
+        "fresh visual sentence for this brief. Pass campaignArchetype so the sampler only returns " +
+        "metaphors suited to that kind of brief; redrawing until one fits is fighting it.",
       inputSchema: {
         runs: z.number().int().min(1).max(6).optional().describe("How many designers. Default 3."),
         campaignArchetype: z
@@ -678,15 +653,13 @@ export function buildMcpServer(): McpServer {
     {
       title: "Search images, icons, illustrations, shapes and QR codes",
       description:
-        "Find a real image or graphic for the flyer across a dozen sources at once: real photographs, " +
-        "SVG icons, multi-color brand marks, hand-drawn illustrations, procedurally generated shapes " +
-        "(dividers, arrows, badges, speech bubbles) and QR codes. Returns candidates with previews; " +
-        "nothing is downloaded, so looking is cheap. Most sources need no API key, so try this before " +
-        "asking the user for an image — only their OWN logo or product photo has to come from them " +
-        "(upload_asset). A flyer about a place, a dish or an object with no picture of it cannot pass " +
-        "the cover test — search before you compose. Set `type` to aim at the right kind of result: " +
-        "'photo' for the cover-test shot, 'icon'/'svg' for a small motif, 'vector' for a full " +
-        "illustration, 'shape' for a divider/arrow/badge/QR code, 'background' for full-bleed texture, " +
+        "Search images for the flyer — find photos, icons, illustrations, shapes and QR codes across a " +
+        "dozen sources at once. Returns candidates with previews; nothing is downloaded, so looking is " +
+        "cheap. Most sources need no API key — try search_images before asking the user for stock. " +
+        "Only their OWN logo or product photo must come from upload_asset. A flyer about a place, dish " +
+        "or object with no picture cannot pass the cover test — search before you compose. Set `type` " +
+        "to aim: 'photo' for the cover-test shot, 'icon'/'svg' for a small motif, 'vector' for a full " +
+        "illustration, 'shape' for a divider/arrow/badge/QR, 'background' for full-bleed texture, " +
         "'png' for a pre-cut sticker. For a QR code, set query to 'qr:<the url to encode>'.",
       inputSchema: {
         query: z.string().describe("What to show, e.g. 'himalaya peak nepal', 'coffee cup icon', 'qr:https://example.com'."),
@@ -750,9 +723,11 @@ export function buildMcpServer(): McpServer {
     {
       title: "Get a copyable composition example",
       description:
-        "A complete, valid composition you can paste and edit, plus the rules that are not obvious from " +
-        "the shape alone. CALL THIS BEFORE compose_flyer. Guessing the schema wastes attempts — the " +
-        "example is exact.",
+        "Composition example / schema shape for compose_flyer — complete valid JSON plus rules that " +
+        "are not obvious from the shape. CALL THIS BEFORE compose_flyer. The examples are SHAPES to " +
+        "learn field names from, NOT flyers to remix; invent a new visual sentence and evidence family. " +
+        "Several examples are returned (photo-led, assembled, exchange-led) so none reads as the answer. " +
+        "Guessing the schema wastes attempts.",
       inputSchema: {},
     },
     async () => ({
@@ -767,17 +742,18 @@ export function buildMcpServer(): McpServer {
     {
       title: "Compose a flyer yourself",
       description:
-        "You write the flyer; the engine draws it. CALL get_composition_example FIRST — it returns a valid " +
-        "composition to copy, and guessing the shape wastes attempts. Send the lineage from " +
-        "request_designers unchanged, the copy, and 4-7 elements each naming a component, a role and " +
-        "`whyHere`. Returns the rendered flyer plus which gates passed. A rejection lists the exact " +
-        "fields that are wrong — read them, they are precise. Never send coordinates, colours or fonts.",
+        "Compose flyer — you write it; the engine draws it. CALL get_composition_example FIRST for the " +
+        "JSON shape (not a template to fill). Send the lineage from request_designers unchanged, the " +
+        "copy, and 4-7 elements each naming a component, a role and `whyHere`. Invent the visual idea " +
+        "from the metaphor; refuse the safe photo-hero stack unless the brief demands it. Returns the " +
+        "rendered flyer plus which gates passed. A rejection lists the exact fields that are wrong — " +
+        "read them. Never send coordinates, colours or fonts.",
       inputSchema: {
         composition: z
           .record(z.any())
           .describe(
             "The full composition object. Get its exact shape from get_composition_example — it is a " +
-              "working one you can edit, not a description of one.",
+              "working shape you edit into a NEW flyer, not a flyer to lightly remix.",
           ),
       },
     },

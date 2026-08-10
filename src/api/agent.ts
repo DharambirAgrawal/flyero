@@ -274,23 +274,103 @@ export const COMPOSITION_EXAMPLE_ASSEMBLED = {
 } as const;
 
 /**
+ * A third example — software / exchange, no photograph.
+ *
+ * Two examples still clustered: either "put a photo in a hero" or "draw a
+ * garden with composed-figure". Real SaaS and coaching briefs kept getting
+ * forced into photo-hero with a stock laptop, which fails the cover test
+ * while looking finished. This one makes the conversation metaphor concrete
+ * with `chat-exchange`, so the published range covers photo / assembled /
+ * exchange — three different evidence families, none of which is *the* answer.
+ */
+export const COMPOSITION_EXAMPLE_EXCHANGE = {
+  lineage: "<<paste the `lineage` object from request_designers, unchanged>>",
+  productName: "Replywell",
+  sourceStatements: [
+    "Replywell turns a vague support ticket into a clear next step the customer can act on.",
+    "Paste the messy ask; get a short reply that names the action.",
+  ],
+  idea: "A messy ask lands; a clear next step comes back.",
+  story: [
+    "A customer writes in a fog.",
+    "The old reply stalls them.",
+    "One clearer answer names the action.",
+    "They move.",
+  ],
+  copy: {
+    eyebrow: "SUPPORT REPLIES",
+    headline: "Answer the fog",
+    body: null,
+    cta: { label: "Try a reply", url: null, qr: false },
+    details: [],
+  },
+  elements: [
+    {
+      id: "frame",
+      component: "eyebrow-label",
+      role: "support",
+      whyHere: "Names the category before the four-word idea lands.",
+      props: {},
+    },
+    {
+      id: "message",
+      component: "headline-block",
+      role: "message",
+      whyHere: "The one idea, short enough to sit large.",
+      props: { treatment: "plain" },
+    },
+    {
+      id: "exchange",
+      component: "chat-exchange",
+      role: "evidence",
+      whyHere: "Shows the product as an ask and a better answer — no stock laptop needed.",
+      props: {
+        ask: "Where is my order and what do I do?",
+        reply: "It ships Thursday. Track it from your account, or reply here if it slips.",
+      },
+    },
+    {
+      id: "action",
+      component: "cta-button",
+      role: "cta",
+      whyHere: "The one thing to do next.",
+      props: { style: "bracketed" },
+    },
+    {
+      id: "who",
+      component: "footer-lockup",
+      role: "brand",
+      whyHere: "Names who built the reply tool.",
+      props: {},
+    },
+  ],
+  relationships: [],
+  gesturePurpose:
+    "Explains the single deliberate rule-break your lineage's gesture applies.",
+  assetIds: [],
+  brandColors: [],
+} as const;
+
+/**
  * The rules that are not visible from the example alone.
  */
 export const COMPOSITION_NOTES = [
+  "CRITICAL: these examples are JSON *shapes*, not flyers to remix. Steal field names and nesting. Invent a new visual sentence, a new evidence family, and new copy for the brief in front of you. If your elements match an example's slots with different strings, throw the draft out.",
   "`lineage` must be the object from request_designers, copied unchanged. Do not rebuild or trim it.",
   "Each element needs `whyHere` — not `purpose`, not `why`. Gate G3 rejects an element that cannot justify itself.",
   "`role` is singular, one of: evidence | message | support | cta | brand | structure.",
   "You need exactly one `message` and one `cta`, and at least one `evidence`.",
-  "Element count is 4-7 overall, but your assignment narrows it: quiet 4-5, balanced 5-6, rich 6-7. Check `direction.density` and count before you send — the two examples are different sizes on purpose, because no single count is valid for every assignment.",
+  "Element count is 4-7 overall, but your assignment narrows it: quiet 4-5, balanced 5-6, rich 6-7. Check `direction.density` and count before you send — the examples are different sizes on purpose, because no single count is valid for every assignment.",
   "`assets` goes on the element that displays the image; `assetIds` at the top level lists every asset used.",
   "`props` may only contain keys that component declares. Engine-owned props (positions, scrims, alignment) are rejected.",
   "`copy.cta.url` may be null. Do not invent a web address.",
   "`sourceStatements` is the user's own words, and Gate G6 checks every `copy.details` value against it. Omit it and any date, place or price you show is treated as invented — which is exactly what it would be. This is the field agents forget most often.",
   "The check is a literal one: each `details` value must appear verbatim inside one source statement (case and punctuation are ignored, wording is not). Writing \"Sat 17 June, 10am\" when the user said \"Saturday the 17th at ten\" fails, and should — paraphrasing a date is how wrong dates get printed. Quote the user, or put your wording into `sourceStatements` only if that is genuinely what they said.",
   "Never send colours, fonts, sizes or coordinates. They come from the lineage.",
-  "Two examples are returned, not one. Read both before copying either: `photo-led` when there is something real to photograph, `assembled` when there is not, or when the page would otherwise be four things on a lot of paper.",
+  "Three examples are returned so none reads as the only answer: `photo-led` (real thing to photograph), `assembled` (drawn / composed density), `exchange-led` (conversation / software with no stock photo). Read all three, then build something that fits *this* brief — often none of the three is the right evidence family.",
   "`composed-figure` places parts by relationship (`{ of: \"sun\", side: \"top-right-of\", gap: \"near\" }`), never by coordinate, and counts as ONE element while carrying up to eight parts. It is the tool for a one-off arrangement and the tool for density.",
   "Read each component's LOOKS LIKE line before choosing. Picking by name alone is how every flyer ends up built from the same three components.",
+  "Refuse the safe stack (headline + photo-hero + body + CTA + footer) unless the metaphor and brief both demand it — and even then vary CTA style and support devices across jobs.",
 ] as const;
 
 const authoredSchema = z.object({
@@ -661,17 +741,18 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   /** The shape of a composition, as something an agent can copy rather than infer. */
   app.get("/v1/schema/composition", async () => ({
     /*
-     * Two, and they are meant to be read as a pair. `example` is singular and
-     * kept for callers that already read it; `examples` is what a fresh agent
-     * should look at, because one example is copied as a template and two are
-     * compared as a range.
+     * Several examples, meant to be read as a *range* of evidence families —
+     * never as flyers to remix. `example` is singular and kept for callers that
+     * already read it; `examples` is what a fresh agent should look at. One
+     * example is copied as a template; three different families make it harder
+     * to mistake any one of them for the answer.
      */
     example: COMPOSITION_EXAMPLE,
     examples: [
       {
         name: "photo-led",
         useWhen:
-          "There is a real thing to photograph — a place, a dish, an object, a face. The picture is the evidence.",
+          "There is a real thing to photograph — a place, a dish, an object, a face. The picture is the evidence. Shape only — invent your own crop, props and copy.",
         elementCount: COMPOSITION_EXAMPLE.elements.length,
         fitsDensity: ["quiet", "balanced"],
         composition: COMPOSITION_EXAMPLE,
@@ -679,10 +760,18 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       {
         name: "assembled",
         useWhen:
-          "Nothing honest to photograph, or the page needs density. Builds its evidence from parts and carries several facts in one element.",
+          "Nothing honest to photograph, or the page needs density. Builds its evidence from parts and carries several facts in one element. Shape only — do not rebuild this garden.",
         elementCount: COMPOSITION_EXAMPLE_ASSEMBLED.elements.length,
         fitsDensity: ["balanced", "rich"],
         composition: COMPOSITION_EXAMPLE_ASSEMBLED,
+      },
+      {
+        name: "exchange-led",
+        useWhen:
+          "The product is an exchange of voices — support, coaching, Q&A, software that answers. No stock laptop photo. Shape only — write a real ask/reply for this brief.",
+        elementCount: COMPOSITION_EXAMPLE_EXCHANGE.elements.length,
+        fitsDensity: ["quiet", "balanced"],
+        composition: COMPOSITION_EXAMPLE_EXCHANGE,
       },
     ],
     /*
@@ -696,7 +785,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       quiet: elementBudgetForDensity("quiet"),
       balanced: elementBudgetForDensity("balanced"),
       rich: elementBudgetForDensity("rich"),
-      note: "Read `direction.density` on your assignment and count your elements against this table BEFORE composing. The two examples are deliberately different sizes; add or drop a support element to fit.",
+      note: "Read `direction.density` on your assignment and count your elements against this table BEFORE composing. The examples are deliberately different sizes; add or drop a support element to fit. They demonstrate JSON shape — not the flyer you should ship.",
     },
     notes: COMPOSITION_NOTES,
   }));

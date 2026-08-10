@@ -34,7 +34,7 @@ const SKILLS: Skill[] = [
     name: "composition",
     title: "Choosing what the flyer shows",
     description:
-      "How to pick the evidence component and the way an image lands, so the picture carries the message rather than decorating it.",
+      "How to invent a specific visual claim and pick evidence that carries it — never a remix of the published examples.",
     useWhen: "Before writing a spec — this is the decision that most affects whether the flyer reads.",
     body: `# Choosing what the flyer shows
 
@@ -45,6 +45,16 @@ knows roughly what this is about, the composition works. If the words are doing
 all the work, you have made a document with a photograph on it.
 
 That is also Gate G2, which is judged on the rendered image, not on your intent.
+
+## Invent first — then open the catalogue
+
+Write one visual sentence before you name a single component. Then match
+components to that sentence. Opening the catalogue first is how every session
+collapses onto headline + photo-hero + body + CTA.
+
+The composition examples from \`get_composition_example\` are **JSON shapes**.
+They are not flyers to remix. If your element list matches an example's slots
+with different strings, you have not designed anything yet.
 
 ## What you control
 
@@ -73,21 +83,38 @@ Do not default to one photograph in a rectangle. The arrangement says something:
   range"*. Lookbooks, menus, portfolios.
 - **torn-photo** — torn paper over an offset block. Hand-made, zine, community.
 - **masked-image** — one photo cut to a circle, arch, pill or blob.
+- **chat-exchange** — a question and a markedly better answer. Software,
+  coaching, support, any brief that is an exchange of voices.
+- **before-after-stack** — two states on one hard seam. Transformation with a
+  clear pair.
 - **scene-illustration** — a drawn landscape. No photograph at all.
 - **motif-collage** — drawn marks around a subject mark. No photograph.
+- **composed-figure** — a one-off assembly for this flyer only.
 
 Three photos on a dashed line and the same three in a grid make *different
 claims*. Choose the true one.
+
+## Refuse the safe stack
+
+Unless the metaphor and the brief both demand it, do not ship:
+
+headline-block + photo-hero + body-paragraph + cta-button + footer-lockup
+
+That skeleton is the system's most common failure. Change the evidence family,
+drop the body when the picture is enough, put facts in \`detail-cluster\`, use a
+relationship so type sits *in* the image, or build a \`composed-figure\`. Vary
+CTA \`style\` (\`underlined\` / \`solid\` / \`bracketed\`) across jobs on purpose.
 
 ## When not to use a photograph
 
 Plenty of briefs have nothing worth photographing — a service, an idea, a
 campaign about a behaviour. A stock photo of nothing says less than a drawing.
-Use \`scene-illustration\` or \`motif-collage\` and say the thing honestly.
+Use \`scene-illustration\`, \`motif-collage\`, \`chat-exchange\` or
+\`composed-figure\` and say the thing honestly.
 
 Conversely: a flyer for a *place*, a *dish* or an *object* with no picture of it
 cannot pass the cover test, and no amount of styling will rescue it. Search for
-one (POST /v1/assets/search) before you compose.
+one (\`search_images\` / POST /v1/assets/search) before you compose.
 
 ## When nothing in the catalogue fits, build the component
 
@@ -161,7 +188,8 @@ actually puts on the page, not when to use it. Read them. Output from this API
 spent a long time converging on the same two or three components for every
 brief, and the cause was simply that the rest were not described well enough to
 picture. They are now. If your composition resembles the last one you made,
-that is the failure repeating.
+or resembles a published example with different copy, that is the failure
+repeating — change the evidence family before you submit.
 
 ## Before you submit
 
@@ -173,7 +201,7 @@ honest answer is "it is fine", it is not finished.`,
     name: "copywriting",
     title: "Words that survive the gates",
     description:
-      "Headline, eyebrow, body and details — what each is for, how long it can be, and the claims that will get a flyer rejected.",
+      "Headline, eyebrow, body and details — specific human language, not a slogan that fits any brand.",
     useWhen: "While filling in copy, and before submitting a composition.",
     body: `# Words that survive the gates
 
@@ -198,6 +226,7 @@ Elevate."), "Unlock your potential", "Take it to the next level", "Elevate your
 X", and any sentence that would fit any other business unchanged.
 
 Test: swap in a competitor's name. If the line still works, it says nothing.
+Write again until the line fails that test.
 
 ## What each slot is for
 
@@ -205,9 +234,10 @@ Test: swap in a competitor's name. If the line still works, it says nothing.
   arrives *before* the headline and sets the frame. Skip it rather than pad it.
 - **headline** — the one idea. Gate G1.
 - **body** (<=180 chars) — one supporting thought, in the user's own register.
-  Not a paragraph. Not three sentences.
+  Not a paragraph. Not three sentences. Often \`null\` is stronger.
 - **cta.label** (<=34 chars) — a thing to *do*, phrased as an action. "Book your
-  crossing", not "Learn more".
+  crossing", not "Learn more". Vary CTA tone across jobs; do not always use the
+  same verb.
 - **details** — up to six labelled facts: date, place, price, phone, handle.
   This is where practical information belongs. Do not stuff it into body.
 
@@ -229,7 +259,7 @@ discover it in print.`,
     name: "critique",
     title: "Judging your own flyer",
     description:
-      "How to review a rendered flyer honestly before submitting a verdict — what to look for and what to reject.",
+      "How to review a rendered flyer honestly — reject generic work, not only broken work.",
     useWhen: "After fetching the PNG, before POSTing a review verdict.",
     body: `# Judging your own flyer
 
@@ -253,7 +283,12 @@ G1. If you need the body copy to understand the headline, the headline is wrong.
 composition* — scaled, placed, interacting with the image — or is it a caption
 sitting above a picture? That is G4.
 
-**5. Hunt for collisions.** Text clipped by an image edge, a line running off
+**5. Ask whether it is generic.** Could this poster belong to any brand after
+you swap the name? Does it look like the published example with different
+words? If yes, it fails your job even if the mechanical gates pass — revise
+until it has a specific visual thought.
+
+**6. Hunt for collisions.** Text clipped by an image edge, a line running off
 the canvas, an element overlapping another, a QR sitting on a busy area. Report
 each one in \`collisions\`; the reviser can act on specifics, not on "it looks
 off".
@@ -262,8 +297,8 @@ off".
 
 A verdict of \`done\` on a flyer you would not print is the one failure this
 system cannot recover from. If the top third is empty, if a word is cut, if the
-image says nothing — say so. \`below_bar\` with an honest reason is a *correct*
-outcome, not a failure.
+image says nothing, if it is merely competent — say so. \`below_bar\` with an
+honest reason is a *correct* outcome, not a failure.
 
 ## What is not your job
 
@@ -276,7 +311,7 @@ that is a different assignment, not a revision.`,
     name: "brief",
     title: "Turning a request into an assignment",
     description:
-      "How to read what a user actually asked for, what to ask back, and how to choose among the sampled designers.",
+      "How to read what a user asked for, and how to choose a designer whose metaphor forces a fresh visual idea.",
     useWhen: "At the start, before requesting or choosing a studio assignment.",
     body: `# Turning a request into an assignment
 
@@ -300,7 +335,7 @@ as an assumption, and let the user correct it.
 
 ## Ask for the right kind of designer first
 
-POST /v1/studio/assignments takes a **campaignArchetype**:
+POST /v1/studio/assignments (\`request_designers\`) takes a **campaignArchetype**:
 product-promotion, event-invitation, awareness-education,
 editorial-announcement, offer-promotion.
 
@@ -315,15 +350,20 @@ Also note the field is **runs**, not "count".
 
 You get several lineages per job. They differ by construction — metaphor,
 topology, typography, material, colour logic, gesture and graphic language.
-Choose the one whose **metaphor** actually fits the message, not the one whose
-palette you like:
+Choose the one whose **metaphor forces the most intriguing visual sentence**
+for this brief — not the one whose palette feels safest, and not the one that
+lets you reuse yesterday's layout:
 
 - \`growth\` suits campaigns about change over time.
 - \`cartography\` suits journeys and multi-stop offers.
 - \`before-after-fold\` suits transformation with a clear pair.
 - \`magnification\` suits a small detail that matters.
+- \`conversation\` suits an exchange of voices, questions, or ask-and-answer.
 
-If none fits, request another assignment rather than forcing one.
+If none creates a striking visual idea, request another assignment with fresh
+runs rather than forcing a weak fit. If the metaphor fits but your first
+component instinct is the same stack you always use, the metaphor is doing its
+job — lean into it and pick unfamiliar evidence.
 
 ## Do not fight your assignment
 

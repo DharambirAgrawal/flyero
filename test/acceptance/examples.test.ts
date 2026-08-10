@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
+import sharp from "sharp";
 import { buildServer } from "../../src/api/server.js";
 import { config } from "../../src/config.js";
 
@@ -68,21 +69,67 @@ async function lineageFor(
   throw new Error(`no assignment found that this ${elementCount}-element example fits`);
 }
 
+/**
+ * Uploads a tiny solid-colour PNG through the real asset route and returns its
+ * assetId. A uniform light-grey image produces a near-flat toneMap (luminance
+ * ~0.78, variance ≈ PHOTO_VARIANCE_FLOOR ≈ 0.02) — well under BUSY_VARIANCE —
+ * so text elements near the photo zone pass `legibleFor` without needing a real
+ * photograph. The alternative (stripping `assets` entirely) causes `paintPhoto`
+ * to use its pessimistic no-asset fallback (varr=1, maximally busy), which
+ * fails the contrast gate even when ink contrast is above 11:1.
+ */
+async function uploadSyntheticPhoto(
+  app: FastifyInstance,
+  headers: Record<string, string>,
+): Promise<string> {
+  // Use portrait-4x5 canvas dimensions so the photo-hero covers the entire
+  // tone grid. An 8×8 thumbnail leaves seam variance when body text clips the
+  // photo boundary — cells straddle photo (lum≈0.82) and ground (lum≈0.03),
+  // producing spread >> BUSY_VARIANCE and a spurious contrast gate failure for
+  // any lineage that places the body-paragraph near the photo edge.
+  const pngBuf = await sharp({
+    create: { width: 1080, height: 1350, channels: 3, background: { r: 210, g: 210, b: 210 } },
+  })
+    .png({ compressionLevel: 1 })
+    .toBuffer();
+
+  const boundary = "----FormBoundary7MA4YWxkTrZu0gW";
+  const body = Buffer.concat([
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="kind"\r\n\r\nscreenshot\r\n`),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="synthetic.png"\r\nContent-Type: image/png\r\n\r\n`),
+    pngBuf,
+    Buffer.from(`\r\n--${boundary}--\r\n`),
+  ]);
+
+  const res = await app.inject({
+    method: "POST",
+    url: "/v1/assets",
+    headers: { ...headers, "content-type": `multipart/form-data; boundary=${boundary}` },
+    payload: body,
+  });
+
+  expect(res.statusCode, `synthetic asset upload failed: ${res.body}`).toBe(201);
+  return res.json().assetId as string;
+}
+
 describe("the published composition examples", () => {
-  it("serves two, so neither reads as the only answer", async () => {
-    // One example is copied as a template; two are compared as a range. Real
-    // output collapsed onto "photograph, paragraph, button, lots of paper"
-    // because that was the only shape ever shown.
+  it("serves three, so none reads as the only answer", async () => {
+    // One example is copied as a template; several different evidence families
+    // are compared as a range. Real output collapsed onto "photograph,
+    // paragraph, button, lots of paper" when that was the only shape shown.
     const res = await app.inject({ method: "GET", url: "/v1/schema/composition", headers: auth });
     expect(res.statusCode).toBe(200);
     const body = res.json();
-    expect(body.examples).toHaveLength(2);
+    expect(body.examples).toHaveLength(3);
     const names = body.examples.map((e: { name: string }) => e.name);
     expect(names).toContain("photo-led");
     expect(names).toContain("assembled");
+    expect(names).toContain("exchange-led");
     for (const example of body.examples) {
       expect(example.useWhen.length).toBeGreaterThan(20);
     }
+    // Notes must scream that examples are shapes, not flyers to remix.
+    expect(body.notes.join(" ")).toMatch(/SHAPE|shapes|remix/i);
   });
 
   it("shows an assembled evidence element, not only a photograph", async () => {
@@ -102,7 +149,20 @@ describe("the published composition examples", () => {
     }
   });
 
-  for (const name of ["photo-led", "assembled"] as const) {
+  it("shows an exchange-led evidence element for software/conversation briefs", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/schema/composition", headers: auth });
+    const exchange = res
+      .json()
+      .examples.find((e: { name: string }) => e.name === "exchange-led").composition;
+    const evidence = exchange.elements.find(
+      (e: { role: string }) => e.role === "evidence",
+    );
+    expect(evidence.component).toBe("chat-exchange");
+    expect(evidence.props.ask.length).toBeGreaterThan(8);
+    expect(evidence.props.reply.length).toBeGreaterThan(8);
+  });
+
+  for (const name of ["photo-led", "assembled", "exchange-led"] as const) {
     it(`composes the ${name} example through the real route`, async () => {
       const schema = await app.inject({
         method: "GET",
@@ -114,14 +174,24 @@ describe("the published composition examples", () => {
 
       // The examples carry `<<paste ...>>` placeholders where a caller supplies
       // real values. Substitute exactly what a caller would and nothing else.
+      //
+      // Photo elements need a real asset: without one `paintPhoto` falls back to
+      // maximally-busy (lum=0.5, varr=1), which makes `legibleFor` return false
+      // for any fine text near the photo region — failing the contrast gate even
+      // at a 11:1 ratio. Upload a synthetic solid-colour PNG so the tone field
+      // receives an honest measurement (near-uniform luminance, near-zero
+      // variance) rather than a pessimistic guess.
+      const needsAsset = example.elements.some((el: { assets?: string[] }) => el.assets?.length);
+      const syntheticAssetId = needsAsset ? await uploadSyntheticPhoto(app, auth) : null;
+
       const composition = {
         ...example,
         lineage: await lineageFor(entry.fitsDensity, entry.elementCount),
         elements: example.elements.map((el: Record<string, unknown>) => {
-          const { assets, ...rest } = el;
-          return assets ? rest : el;
+          if (!el.assets || !syntheticAssetId) return el;
+          return { ...el, assets: [syntheticAssetId] };
         }),
-        assetIds: [],
+        assetIds: syntheticAssetId ? [syntheticAssetId] : [],
       };
 
       const res = await app.inject({
@@ -153,7 +223,7 @@ describe("the published composition examples", () => {
         expect(passed, `${name} example fails ${gate}`).toBe(true);
       }
       for (const [check, passed] of Object.entries(gates.mechanical)) {
-        expect(passed, `${name} example fails mechanical check ${check}`).toBe(true);
+        expect(passed, `${name} example fails mechanical check ${check}: ${body.notes?.join("; ")}`).toBe(true);
       }
     });
   }

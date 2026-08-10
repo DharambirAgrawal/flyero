@@ -211,20 +211,29 @@ export class ToneField {
     let sum = 0;
     let sumSq = 0;
     let busiest = 0;
+    let varrSum = 0;
     const fills = new Map<string, number>();
     for (const i of idx) {
       const cell = this.cells[i]!;
       sum += cell.lum;
       sumSq += cell.lum * cell.lum;
       busiest = Math.max(busiest, cell.varr);
+      varrSum += cell.varr;
       fills.set(cell.fill, (fills.get(cell.fill) ?? 0) + 1);
     }
     const mean = sum / idx.length;
-    // Spread across cells plus the worst within any single cell: a rect that
-    // straddles a seam is just as hostile as one over a photograph.
+    // Cross-cell luminance spread: this catches rects that straddle a tonal
+    // seam (photo/ground boundary). However, the `legibleFor` busy check is
+    // designed for *photographic texture* (fine type over leaves is unreadable
+    // at any ratio), not for tonal seams — seams are a contrast problem the
+    // ratio check below already handles. Weighting spread by mean cell `varr`
+    // ensures that only photographic texture (high per-cell variance) drives
+    // the busy verdict; two adjacent flat zones produce spread but near-zero
+    // cell variance, so they no longer falsely trigger the photo-texture path.
+    const meanVarr = varrSum / idx.length;
     const spread = Math.max(0, sumSq / idx.length - mean * mean);
     const fill = [...fills.entries()].sort((a, b) => b[1] - a[1])[0]![0];
-    return { luminance: mean, variance: Math.max(spread, busiest * 0.12), fill };
+    return { luminance: mean, variance: Math.max(spread * (meanVarr / PHOTO_VARIANCE_FLOOR), busiest * 0.12), fill };
   }
 
   /**
