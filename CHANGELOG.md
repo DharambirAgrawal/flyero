@@ -6,6 +6,33 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-10 — cta-button's printed URL overlapped the next element down
+
+Same live test, second real bug: after the EXIF fix, the rebuilt flyer's
+"solid"-style CTA button had its URL caption (`vayami.ai/waitlist`-style
+text, drawn by `cta-button` itself below the plate) landing almost exactly
+on top of `footer-lockup`'s brand name one element below it — both texts
+legible-but-smashed together in the exported PNG.
+
+Root cause: `cta-button`'s `intrinsicHeight` (`src/components/content.tsx`)
+returned a fixed 72px for the "solid" style — exactly the button plate's own
+height, with no allowance for the URL line `render()` draws *underneath* it
+(`${id}-url`, at `box.y + min(box.h,72) + 12`). The layout solver sizes each
+element's box from `intrinsicHeight` alone (`src/core/layout/solver.ts`), so
+whatever `render()` draws past that box simply spills into the next element
+down — a collision the mechanical `noCollisions` gate doesn't catch because
+it reasons about element boxes, not sub-element paint outside them.
+
+### Fixed
+- `intrinsicHeight` now takes `copy.cta.url` into account (the function
+  already received `copy` as its 4th argument — solver.ts passes it, this
+  was just the one component not using it) and adds 44px of real room when
+  a URL will be printed. Verified two ways: swept 20 fixture lineages with
+  the CTA forced to `style:"solid"` and checked cta-box-bottom vs.
+  footer-box-top for every one (no overlap), then rendered one through the
+  real pipeline offline and looked at the PNG — button, URL and brand name
+  now sit with clean space between them.
+
 ## 2026-08-09 — EXIF-rotated photos were stored sideways (found via live multi-provider test)
 
 Ran the new multi-provider search end to end through a real MCP agent session

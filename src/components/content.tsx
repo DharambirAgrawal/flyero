@@ -633,9 +633,15 @@ const ctaButton: ComponentModule = {
   props: z.object({
     style: z.enum(["underlined", "solid", "bracketed"]).default("underlined"),
   }),
-  intrinsicHeight: (props, _theme, _width) => {
+  intrinsicHeight: (props, _theme, _width, copy) => {
     const { style } = props as { style: string };
-    return style === "solid" ? 72 : 84;
+    const base = style === "solid" ? 72 : 84;
+    // The URL caption prints *below* the button/underline (see render, `${id}-url`),
+    // not inside it — "solid"'s 72 is exactly the plate height with nothing spare,
+    // so without this the box the solver hands back is too short and the caption
+    // spills into whatever element sits below the CTA (a real collision, not a
+    // cosmetic one: seen live as the printed URL overlapping the footer brand name).
+    return copy?.cta.url ? base + 44 : base;
   },
   render: ({ id, box, theme, copy, props }) => {
     const { style } = props as { style: "underlined" | "solid" | "bracketed" };
