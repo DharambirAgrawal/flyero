@@ -62,17 +62,17 @@ export type CandidateOutcome = {
   error?: string;
 };
 
-function assetRefs(assets: AssetRecord[]): AssetRef[] {
-  return assets.map((a) => ({
+async function assetRefs(assets: AssetRecord[]): Promise<AssetRef[]> {
+  return Promise.all(assets.map(async (a) => ({
     assetId: a.id,
-    href: assetDataUri(a),
+    href: await assetDataUri(a),
     toneMap: a.analysis.toneMap,
     focalPoint: a.analysis.focalPoint,
     subjectBox: a.analysis.subjectBox,
     textSafeZones: a.analysis.textSafeZones,
     width: a.width,
     height: a.height,
-  }));
+  })));
 }
 
 async function buildCandidate(
@@ -86,7 +86,7 @@ async function buildCandidate(
   },
   ctx: CallContext,
 ): Promise<CandidateOutcome> {
-  const refs = assetRefs(input.assets);
+  const refs = await assetRefs(input.assets);
   const idea = await generateIdea(
     { brief: input.brief, lineage: input.lineage },
     { ...ctx, stage: "idea" },
@@ -366,7 +366,7 @@ export async function runRevision(jobId: string, instruction: string): Promise<v
 
     const spec = JSON.parse(row.spec) as DesignSpec;
     const assets = await getAssets(JSON.parse(job.asset_ids) as string[]);
-    const refs = assetRefs(assets);
+    const refs = await assetRefs(assets);
 
     await setStage(jobId, "revise");
     const revised = await reviseSpec({ spec, fixes: [], userInstruction: instruction }, ctx);

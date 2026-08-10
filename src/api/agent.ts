@@ -609,16 +609,18 @@ async function renderAndRecord(input: {
 }) {
   const { spec, flyerId, revision } = input;
   const assets = await getAssets(input.assetIds);
-  const refs: AssetRef[] = assets.map((a) => ({
-    assetId: a.id,
-    href: assetDataUri(a),
-    toneMap: a.analysis.toneMap,
-    focalPoint: a.analysis.focalPoint,
-    subjectBox: a.analysis.subjectBox,
-    textSafeZones: a.analysis.textSafeZones,
-    width: a.width,
-    height: a.height,
-  }));
+  const refs: AssetRef[] = await Promise.all(
+    assets.map(async (a) => ({
+      assetId: a.id,
+      href: await assetDataUri(a),
+      toneMap: a.analysis.toneMap,
+      focalPoint: a.analysis.focalPoint,
+      subjectBox: a.analysis.subjectBox,
+      textSafeZones: a.analysis.textSafeZones,
+      width: a.width,
+      height: a.height,
+    })),
+  );
 
   const { svg, layout } = renderSpec(spec, refs);
   const png = rasterize(svg);
@@ -890,15 +892,21 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       });
     }
 
-    const result = await renderAndRecord({
-      spec,
-      flyerId,
-      revision,
-      assetIds,
-      apiKey: request.apiKey,
-      author: "agent",
-    });
-    return reply.status(201).send(result);
+    try {
+      const result = await renderAndRecord({
+        spec,
+        flyerId,
+        revision,
+        assetIds,
+        apiKey: request.apiKey,
+        author: "agent",
+      });
+      return reply.status(201).send(result);
+    } catch (error) {
+      const errorCode = (error as { code?: string })?.code;
+      const message = error instanceof Error ? error.message : String(error);
+      return fail(reply, errorCode === "not_found" ? 404 : 500, errorCode === "not_found" ? "not_found" : "generation_failed", message);
+    }
   });
 
   // ── 2b. Patch: change part of a flyer without resending the whole spec ───
@@ -1004,15 +1012,21 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     }
     await updateJob(job.id, { asset_ids: JSON.stringify(assetIds) });
 
-    const result = await renderAndRecord({
-      spec: assembled.spec,
-      flyerId: job.id,
-      revision: job.revision + 1,
-      assetIds,
-      apiKey: request.apiKey,
-      author: "agent-patch",
-    });
-    return reply.status(200).send(result);
+    try {
+      const result = await renderAndRecord({
+        spec: assembled.spec,
+        flyerId: job.id,
+        revision: job.revision + 1,
+        assetIds,
+        apiKey: request.apiKey,
+        author: "agent-patch",
+      });
+      return reply.status(200).send(result);
+    } catch (error) {
+      const errorCode = (error as { code?: string })?.code;
+      const message = error instanceof Error ? error.message : String(error);
+      return fail(reply, errorCode === "not_found" ? 404 : 500, errorCode === "not_found" ? "not_found" : "generation_failed", message);
+    }
   });
 
   // ── 3. Submit the visual verdict only a viewer can give ──────────────────

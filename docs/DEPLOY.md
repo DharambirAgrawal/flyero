@@ -42,9 +42,15 @@ Optional: `PORT` (Render sets it), `NODE_ENV`, `DEFAULT_RISK`,
 ## What the free plan costs you
 
 - **It sleeps.** First request after idle takes ~30s to wake.
-- **Disk is ephemeral.** The SQLite job store and rendered files live on the
-  container filesystem, so a restart or redeploy loses previous flyers. Export
-  what you want to keep. A persistent disk fixes this on a paid plan.
+- **Disk is ephemeral.** With `DATABASE_URL` set, job/asset *metadata* lives in
+  Postgres and survives — but asset *bytes* (`STORAGE_DIR`, `src/store/objects.ts`)
+  and the render cache are still local files, wiped on every restart or redeploy.
+  An asset the DB still has a row for can end up with no file behind it. Two
+  mitigations exist: a provider-imported asset (search → import) self-heals —
+  its `provenance.downloadUrl` is stored, so a missing file is transparently
+  re-fetched and re-written on next read (`readAssetBytes` in `src/store/assets.ts`).
+  A direct upload (`upload_asset`) has no such source and cannot recover this
+  way — export what you want to keep, or add a persistent disk on a paid plan.
 - **Fonts re-download on every cold build** (~50 files), which is why the build
   is slower than the code alone would suggest.
 

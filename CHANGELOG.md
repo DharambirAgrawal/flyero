@@ -6,6 +6,54 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-10 — asset files self-heal after Render's ephemeral disk wipes them
+
+Live bug, reported directly: exporting an older flyer 500'd with a raw
+`ENOENT: ... /data/objects/assets/ast_....png`. Root cause was architectural,
+not a code mistake: `DATABASE_URL` (Postgres) moved job/asset *metadata* off
+the ephemeral Render disk a while back, so `getAsset()` still finds the row —
+but asset *bytes* (`src/store/objects.ts`, local filesystem, `STORAGE_DIR`)
+were never part of that migration and are wiped on every redeploy/restart
+regardless. A DB row that looks entirely valid pointing at a file that no
+longer exists is worse than a clean failure, because nothing about the asset
+looks broken until something tries to read it.
+
+### Fixed
+- `provenance.downloadUrl` is now persisted on every provider-imported asset
+  (new `download_url` column, additive migration in `src/store/db.ts`) — it
+  was already available at import time (`POST /v1/assets/import`'s request
+  body) and simply wasn't kept.
+- `readAssetBytes()` (`src/store/assets.ts`): reads the local file if present;
+  if missing AND the asset is an original (non-derived) provider import with a
+  stored `downloadUrl`, transparently re-fetches and re-writes it, then
+  returns the bytes — the exact "we already know where this came from, just
+  get it again" idea. Deliberately does NOT apply to a derived/transformed
+  asset (`parentId` set) — re-fetching the source would silently swap back in
+  the un-cropped original in place of whatever `prepare_asset` did to it, a
+  worse bug than the one being fixed. A direct upload has no source to
+  recover from either way.
+- `assetDataUri()` now goes through `readAssetBytes()` (necessarily async now
+  — updated all four call sites: the flyer export re-render path, both
+  `compose_flyer`/`revise_composition` handlers in `src/api/agent.ts`, and
+  `src/core/pipeline.ts`'s `create_flyer` path).
+- The flyer export re-render path, the transform route, and `GET
+  /v1/assets/:id/file` now catch a genuinely-unrecoverable read (a lost
+  direct upload) and return a clean `404 not_found` with an explanation,
+  instead of an unhandled 500 with a raw stack trace.
+- Verified live: imported an asset, deleted its file to simulate a redeploy
+  wipe, confirmed `GET .../file` transparently recovers and re-writes it;
+  did the same for a direct upload and confirmed a clean 404 instead of a
+  crash (caught one real bug in the process — `reply.type()` was being called
+  before the risky `await`, which left the reply's content-type stuck on the
+  image mime and made the *error response itself* fail to send).
+
+Not done, and worth a real decision rather than a quiet fix: object bytes are
+still local-disk-only. The honest long-term fix is durable storage for
+`STORAGE_DIR` itself (S3-compatible, already anticipated in
+`docs/ARCHITECTURE.md`'s storage row) or a Render persistent disk on a paid
+plan — this change only closes the gap for the common case (search-imported
+assets), not uploads.
+
 ## 2026-08-10 — agent prompts: invent, don't remix; fix MCP tool discovery
 
 Live agent sessions were still template-filling: fetch `get_composition_example`,

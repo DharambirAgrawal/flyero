@@ -8,7 +8,7 @@ import { PROFILE_SPACE, newJobSeed } from "../core/studio/sampler.js";
 import { VETO_COUNT } from "../creative/compatibility.js";
 import { DEFAULT_FORMAT, FORMAT_IDS, FORMATS, type FormatId } from "../creative/formats.js";
 import { availableFamilies } from "../core/render/fonts.js";
-import { createAsset, getAsset, getAssets, assetDataUri, createDerivedAsset } from "../store/assets.js";
+import { createAsset, getAsset, getAssets, assetDataUri, createDerivedAsset, readAssetBytes } from "../store/assets.js";
 import { listJobs } from "../store/jobs.js";
 import { parseSpec } from "../core/compose/spec.js";
 import { rasterize, renderSpec } from "../core/render/index.js";
@@ -293,6 +293,9 @@ export function buildServer(): FastifyInstance {
           source: request.body?.provider ?? imageProvider.name,
           sourceUrl: request.body?.sourceUrl ?? "",
           author: request.body?.author ?? "",
+          // Lets a missing file self-heal later (readAssetBytes) — the disk
+          // this gets written to does not survive a redeploy, but this URL does.
+          downloadUrl,
         },
       });
       return reply.status(201).send({
@@ -366,7 +369,7 @@ export function buildServer(): FastifyInstance {
       }
 
       try {
-        const raw = getBuffer(source.path);
+        const raw = await readAssetBytes(source);
         const result = await applyImageOps(raw, source.mime, parsed.data);
         const derived = await createDerivedAsset({
           parent: source,
@@ -391,12 +394,13 @@ export function buildServer(): FastifyInstance {
           },
         });
       } catch (error) {
+        const errorCode = (error as { code?: string })?.code;
         const message = error instanceof Error ? error.message : String(error);
-        const code = (error as { code?: string })?.code === "invalid_request" ? 400 : 500;
+        const status = errorCode === "invalid_request" ? 400 : errorCode === "not_found" ? 404 : 500;
         return fail(
           reply,
-          code,
-          code === 400 ? "invalid_request" : "generation_failed",
+          status,
+          status === 400 ? "invalid_request" : status === 404 ? "not_found" : "generation_failed",
           message,
         );
       }
@@ -407,7 +411,17 @@ export function buildServer(): FastifyInstance {
   app.get<{ Params: { assetId: string } }>("/v1/assets/:assetId/file", async (request, reply) => {
     const asset = await getAsset(request.params.assetId);
     if (!asset) return fail(reply, 404, "not_found", "No such asset");
-    return reply.type(asset.mime).send(getBuffer(asset.path));
+    try {
+      // Read before calling reply.type(): it sets the content-type header
+      // immediately (not deferred), so doing it before an await that can
+      // throw leaves the reply stuck non-JSON when the catch below tries to
+      // send an error object — Fastify then rejects its own error response.
+      const bytes = await readAssetBytes(asset);
+      return reply.type(asset.mime).send(bytes);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return fail(reply, 404, "not_found", message);
+    }
   });
 
   // ── Flyers ───────────────────────────────────────────────────────────────
@@ -609,15 +623,24 @@ export function buildServer(): FastifyInstance {
           return fail(reply, 404, "not_found", `No spec for revision ${revision}`);
         }
         const spec = parseSpec(JSON.parse(specJson));
-        const assets = (
-          await getAssets(spec.elements.flatMap((el: { assets?: string[] }) => el.assets ?? []))
-        ).map((a) => ({
-          assetId: a.id,
-          href: assetDataUri(a),
-          width: a.width,
-          height: a.height,
-          toneMap: a.analysis.toneMap,
-        }));
+        const assetRecords = await getAssets(
+          spec.elements.flatMap((el: { assets?: string[] }) => el.assets ?? []),
+        );
+        let assets;
+        try {
+          assets = await Promise.all(
+            assetRecords.map(async (a) => ({
+              assetId: a.id,
+              href: await assetDataUri(a),
+              width: a.width,
+              height: a.height,
+              toneMap: a.analysis.toneMap,
+            })),
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return fail(reply, 404, "not_found", message);
+        }
         const { svg } = renderSpec(spec, assets);
         if (format === "svg") {
           return reply.type("image/svg+xml").send(svg);

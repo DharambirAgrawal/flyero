@@ -3,10 +3,11 @@ import { ulid } from "ulid";
 import { Resvg } from "@resvg/resvg-js";
 import * as z from "zod/v4";
 import { dbAll, dbGet, dbRun, nowIso } from "./db.js";
-import { assetKey, extensionFor, getBuffer, putBuffer } from "./objects.js";
+import { assetKey, exists, extensionFor, getBuffer, putBuffer } from "./objects.js";
 import { imageSize } from "../lib/imagesize.js";
 import { callStructured, type CallContext } from "../llm/index.js";
 import { config, hasLlm } from "../config.js";
+import { fetchCandidate } from "../core/images/search.js";
 
 /**
  * Asset upload + analysis. Analysis happens once, at upload, so generation jobs
@@ -44,7 +45,7 @@ export type AssetRecord = {
   /** JSON list of ops that produced this variant (null for originals). */
   transforms: unknown[] | null;
   /** Where an imported photograph came from. Null for direct uploads. */
-  provenance: { source: string; sourceUrl: string; author: string } | null;
+  provenance: { source: string; sourceUrl: string; author: string; downloadUrl: string | null } | null;
 };
 
 const analysisSchema = z.object({
@@ -259,8 +260,12 @@ export async function createAsset(
     mime: string;
     kind: AssetKind;
     apiKey: string;
-    /** Set when the image was imported from a stock provider rather than uploaded. */
-    provenance?: { source: string; sourceUrl: string; author: string };
+    /**
+     * Set when the image was imported from a stock provider rather than uploaded.
+     * `downloadUrl`, when present, is what lets a missing file self-heal — see
+     * `readAssetBytes` — so always pass it through for a provider import.
+     */
+    provenance?: { source: string; sourceUrl: string; author: string; downloadUrl?: string };
   },
 ): Promise<AssetRecord> {
   if (!config.allowedAssetMime.includes(input.mime)) {
@@ -300,8 +305,8 @@ export async function createAsset(
   analysis.toneMap = await computeToneMap(buffer);
 
   await dbRun(
-    `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NULL, NULL, $11, $12, $13)`,
+    `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author, download_url)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NULL, NULL, $11, $12, $13, $14)`,
     [
       id,
       input.apiKey,
@@ -316,8 +321,13 @@ export async function createAsset(
       input.provenance?.source ?? null,
       input.provenance?.sourceUrl ?? null,
       input.provenance?.author ?? null,
+      input.provenance?.downloadUrl ?? null,
     ],
   );
+
+  const provenance = input.provenance
+    ? { ...input.provenance, downloadUrl: input.provenance.downloadUrl ?? null }
+    : null;
 
   return {
     id,
@@ -330,7 +340,7 @@ export async function createAsset(
     analysis,
     parentId: null,
     transforms: null,
-    provenance: input.provenance ?? null,
+    provenance,
   };
 }
 
@@ -348,6 +358,7 @@ type AssetRow = {
   source: string | null;
   source_url: string | null;
   author: string | null;
+  download_url: string | null;
 };
 
 function rowToRecord(row: AssetRow): AssetRecord {
@@ -363,7 +374,12 @@ function rowToRecord(row: AssetRow): AssetRecord {
     parentId: row.parent_id ?? null,
     transforms: row.transforms ? (JSON.parse(row.transforms) as unknown[]) : null,
     provenance: row.source
-      ? { source: row.source, sourceUrl: row.source_url ?? "", author: row.author ?? "" }
+      ? {
+          source: row.source,
+          sourceUrl: row.source_url ?? "",
+          author: row.author ?? "",
+          downloadUrl: row.download_url ?? null,
+        }
       : null,
   };
 }
@@ -383,9 +399,45 @@ export async function getAssets(ids: string[]): Promise<AssetRecord[]> {
   return ids.map((id) => byId.get(id)).filter((a): a is AssetRecord => a !== undefined);
 }
 
+/**
+ * Reads an asset's bytes, self-healing a missing file when possible.
+ *
+ * The object store (`src/store/objects.ts`) is local disk, and on Render's
+ * free/starter plan that disk is ephemeral — wiped on every redeploy or
+ * restart (`docs/DEPLOY.md`, `render.yaml`). The job/asset *metadata* survives
+ * because it lives in Postgres, so `getAsset()` still finds the row; only the
+ * bytes are gone. For an original (non-derived) provider import we know
+ * exactly where those bytes came from — `provenance.downloadUrl` — so re-fetch
+ * and re-write them rather than fail. This does NOT apply to a derived
+ * (transformed/cropped) asset: its bytes are the original *plus a transform*,
+ * and silently substituting the untouched original would be wrong, not a fix.
+ * A direct upload has no such source and cannot be recovered this way either.
+ */
+export async function readAssetBytes(asset: AssetRecord): Promise<Buffer> {
+  if (exists(asset.path)) return getBuffer(asset.path);
+
+  if (asset.parentId === null && asset.provenance?.downloadUrl) {
+    const { buffer } = await fetchCandidate({ downloadUrl: asset.provenance.downloadUrl });
+    putBuffer(asset.path, buffer);
+    return buffer;
+  }
+
+  throw Object.assign(
+    new Error(
+      asset.parentId
+        ? `Asset ${asset.id} is a prepared/transformed image and its file is missing. It cannot be ` +
+          `re-fetched (that would silently return the un-transformed original) — re-run prepare_asset ` +
+          `on its parent.`
+        : `Asset ${asset.id} was uploaded directly and its file is missing. The host's disk does not ` +
+          `persist across deploys and there is no source to re-fetch it from — it must be re-uploaded.`,
+    ),
+    { code: "not_found" },
+  );
+}
+
 /** data: URI so exported SVG is self-contained and opens anywhere. */
-export function assetDataUri(asset: AssetRecord): string {
-  return `data:${asset.mime};base64,${getBuffer(asset.path).toString("base64")}`;
+export async function assetDataUri(asset: AssetRecord): Promise<string> {
+  return `data:${asset.mime};base64,${(await readAssetBytes(asset)).toString("base64")}`;
 }
 
 /**
@@ -434,8 +486,8 @@ export async function createDerivedAsset(input: {
   analysis = { ...analysis, toneMap: await computeToneMap(input.buffer) };
 
   await dbRun(
-    `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+    `INSERT INTO assets (id, api_key, kind, mime, bytes, width, height, path, analysis, created_at, parent_id, transforms, source, source_url, author, download_url)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
     [
       id,
       input.apiKey,
@@ -450,9 +502,13 @@ export async function createDerivedAsset(input: {
       input.parent.id,
       JSON.stringify(input.opsApplied),
       // A crop of a stock photograph is still that photographer's photograph.
+      // Recorded for completeness only — readAssetBytes never uses a derived
+      // asset's downloadUrl to self-heal, because that would silently swap a
+      // lost crop/cutout for the untouched original.
       input.parent.provenance?.source ?? null,
       input.parent.provenance?.sourceUrl ?? null,
       input.parent.provenance?.author ?? null,
+      input.parent.provenance?.downloadUrl ?? null,
     ],
   );
 

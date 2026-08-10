@@ -171,6 +171,7 @@ const ADDITIVE_COLUMNS: { table: string; column: string; ddl: string }[] = [
   { table: "assets", column: "source", ddl: "ALTER TABLE assets ADD COLUMN source TEXT" },
   { table: "assets", column: "source_url", ddl: "ALTER TABLE assets ADD COLUMN source_url TEXT" },
   { table: "assets", column: "author", ddl: "ALTER TABLE assets ADD COLUMN author TEXT" },
+  { table: "assets", column: "download_url", ddl: "ALTER TABLE assets ADD COLUMN download_url TEXT" },
   {
     table: "jobs",
     column: "format",
