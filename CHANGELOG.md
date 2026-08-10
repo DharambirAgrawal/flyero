@@ -6,6 +6,37 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-09 — EXIF-rotated photos were stored sideways (found via live multi-provider test)
+
+Ran the new multi-provider search end to end through a real MCP agent session
+(coffee-shop flyer, Wikimedia photo). The exported flyer's hero photo was
+real image data — verified by decoding the embedded webp straight out of the
+SVG — but rendered turned 90°, reading as an unrecognizable diagonal smear
+over the crop band. Not a rendering-pipeline bug: `sharp(buffer).resize(...)`
+in `downscale()` (`src/store/assets.ts`) never called `.rotate()` (sharp's
+EXIF auto-orient), and `imageSize()` (`src/lib/imagesize.ts`) reads raw
+JPEG/WebP frame headers, which are silent about EXIF orientation entirely.
+A camera/phone JPEG with an orientation tag (confirmed live: a Wikimedia
+photo at raw 4128×2322 px, tag 6, meant to display at 2322×4128) got
+measured sideways, downscaled sideways, and re-encoded sideways with the
+tag dropped on the way — nothing left downstream to ever correct it.
+
+Pexels and Unsplash pre-rotate server-side, so every photo Flyero had ever
+imported before today was already upright by the time it arrived — this bug
+existed on day one but had no way to manifest until a provider serving real
+camera-original files (Wikimedia, Openverse, a user's own phone upload via
+`upload_asset`) actually got exercised.
+
+### Fixed
+- `normalizeOrientation()` (`src/store/assets.ts`) bakes EXIF orientation
+  into the pixel grid via `sharp(buffer).rotate()` before `imageSize()` ever
+  measures the image or `downscale()`/`analyze()`/`computeToneMap()` touch
+  it — one normalization point at the top of `createAsset()` so every
+  downstream step (dimensions, crop, vision analysis, tone map) agrees with
+  what a viewer actually sees. Verified against the exact failing file:
+  before, `{width:4128, height:2322, orientation:6}`, visibly sideways;
+  after, `{width:2322, height:4128, orientation:undefined}`, upright.
+
 ## 2026-08-09 — Multi-provider asset search: 12 sources, no key required by default
 
 `search_images`/`POST /v1/assets/search` was a single-provider Pexels wrapper

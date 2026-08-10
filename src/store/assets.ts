@@ -184,6 +184,30 @@ async function analyze(
  */
 const MAX_ASSET_EDGE = 1600;
 
+/**
+ * Bakes EXIF orientation into the pixel grid.
+ *
+ * A phone/camera JPEG routinely carries an orientation tag telling a viewer
+ * to rotate on display; sharp does not apply that automatically, and
+ * `imageSize()` below reads the raw frame header, which ignores it too. Skip
+ * this and a sideways photo gets measured sideways, downscaled sideways, and
+ * re-encoded sideways with the tag dropped — nothing left downstream to ever
+ * correct it. Pexels/Unsplash pre-rotate server-side, which is why this was
+ * invisible before providers that serve real camera-original files (Wikimedia,
+ * Openverse, a user's own phone upload) started passing bytes through here.
+ */
+async function normalizeOrientation(buffer: Buffer, mime: string): Promise<Buffer> {
+  if (mime === "image/svg+xml") return buffer;
+  try {
+    const meta = await sharp(buffer).metadata();
+    if (!meta.orientation || meta.orientation === 1) return buffer;
+    return await sharp(buffer).rotate().toBuffer();
+  } catch {
+    // Let downstream decoding fail (or not) on its own terms.
+    return buffer;
+  }
+}
+
 /** Re-encodes an oversized raster through the renderer we already depend on. */
 async function downscale(
   buffer: Buffer,
@@ -243,10 +267,11 @@ export async function createAsset(
     throw Object.assign(new Error(`Unsupported asset type ${input.mime}`), { code: "invalid_request" });
   }
 
-  const original = imageSize(input.buffer, input.mime);
-  const reduced = await downscale(input.buffer, input.mime, original);
+  const normalized = await normalizeOrientation(input.buffer, input.mime);
+  const original = imageSize(normalized, input.mime);
+  const reduced = await downscale(normalized, input.mime, original);
 
-  const buffer = reduced?.buffer ?? input.buffer;
+  const buffer = reduced?.buffer ?? normalized;
   const mime = reduced?.mime ?? input.mime;
   const width = reduced?.width ?? original.width;
   const height = reduced?.height ?? original.height;
