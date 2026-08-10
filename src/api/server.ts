@@ -12,7 +12,8 @@ import { createAsset, getAsset, getAssets, assetDataUri, createDerivedAsset } fr
 import { listJobs } from "../store/jobs.js";
 import { parseSpec } from "../core/compose/spec.js";
 import { rasterize, renderSpec } from "../core/render/index.js";
-import { fetchCandidate, imageProvider } from "../core/images/search.js";
+import { fetchCandidate, imageProvider, isTrustedDownloadUrl } from "../core/images/search.js";
+import type { MediaAssetType, ProviderName } from "../core/images/providers/types.js";
 import { SKILL_INDEX, getSkill } from "./skills.js";
 import { registerMcpHttp } from "../mcp/http.js";
 import { flyerKey, exists, getBuffer, getText, storageUsage } from "../store/objects.js";
@@ -49,7 +50,7 @@ type ErrorCode =
   | "below_bar"
   | "rate_limited"
   | "not_implemented"
-  /** A capability that needs a key we do not have — image search without PEXELS_API_KEY. */
+  /** A capability that needs a key we do not have — e.g. one specific provider without its API key. */
   | "not_configured"
   /** A third-party service failed. Distinct from our own failure, so it is retryable. */
   | "upstream_error";
@@ -211,8 +212,11 @@ export function buildServer(): FastifyInstance {
   app.get("/v1/assets/transforms", async () => TRANSFORM_CATALOGUE);
 
   /**
-   * Search stock photography. Returns candidates only — nothing is downloaded
-   * or stored, so an agent can look at a dozen options cheaply and import one.
+   * Search stock photography, icons, illustrations, shapes and more across a
+   * dozen providers (`src/core/images/providers/`). Returns candidates only —
+   * nothing is downloaded or stored, so an agent can look at a dozen options
+   * cheaply and import one. Most providers need no API key, so this rarely
+   * needs the user's help.
    */
   app.post<{
     Body: {
@@ -221,18 +225,12 @@ export function buildServer(): FastifyInstance {
       page?: number;
       orientation?: "portrait" | "landscape" | "square";
       color?: string;
+      type?: MediaAssetType | MediaAssetType[];
+      provider?: ProviderName;
     };
   }>("/v1/assets/search", async (request, reply) => {
     const query = request.body?.query?.trim();
     if (!query) return fail(reply, 400, "invalid_request", "query is required");
-    if (!imageProvider.configured) {
-      return fail(
-        reply,
-        503,
-        "not_configured",
-        "Image search is unavailable — PEXELS_API_KEY is not set",
-      );
-    }
     try {
       const results = await imageProvider.search({
         query,
@@ -240,13 +238,17 @@ export function buildServer(): FastifyInstance {
         page: request.body?.page,
         orientation: request.body?.orientation,
         color: request.body?.color,
+        type: request.body?.type,
+        provider: request.body?.provider,
       });
+      const providersUsed = [...new Set(results.map((r) => r.provider))];
       return {
         provider: imageProvider.name,
+        providersUsed,
         query,
         results,
-        // Pexels' licence asks for visible credit wherever practical.
-        attribution: "Photos provided by Pexels",
+        // Several providers' licences ask for visible credit wherever practical.
+        attribution: providersUsed.length > 0 ? `Assets provided by ${providersUsed.join(", ")}` : undefined,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -258,17 +260,23 @@ export function buildServer(): FastifyInstance {
   /**
    * Import a searched image into the asset store, so it rides the same
    * normalise → analyse → transform → compose path as an upload. Provenance is
-   * recorded because the photographer is owed a credit.
+   * recorded because the author is owed a credit.
    */
   app.post<{
-    Body: { downloadUrl?: string; sourceUrl?: string; author?: string; kind?: string };
+    Body: { downloadUrl?: string; sourceUrl?: string; author?: string; kind?: string; provider?: string };
   }>("/v1/assets/import", async (request, reply) => {
     const downloadUrl = request.body?.downloadUrl;
     if (!downloadUrl) return fail(reply, 400, "invalid_request", "downloadUrl is required");
-    // Only ever fetch from the provider we searched, so this endpoint cannot be
-    // turned into a general-purpose URL fetcher.
-    if (!/^https:\/\/images\.pexels\.com\//.test(downloadUrl)) {
-      return fail(reply, 400, "invalid_request", "downloadUrl must be a Pexels image URL");
+    // Only ever fetch from a known provider CDN (or accept an inline `data:`
+    // asset from a local provider like shapes/QR code), so this endpoint
+    // cannot be turned into a general-purpose URL fetcher.
+    if (!isTrustedDownloadUrl(downloadUrl)) {
+      return fail(
+        reply,
+        400,
+        "invalid_request",
+        "downloadUrl must come from a search_images result — it did not match a supported provider",
+      );
     }
     const kind = (request.body?.kind ?? "reference") as "logo" | "screenshot" | "reference";
     if (!["logo", "screenshot", "reference"].includes(kind)) {
@@ -282,7 +290,7 @@ export function buildServer(): FastifyInstance {
         kind,
         apiKey: request.apiKey,
         provenance: {
-          source: imageProvider.name,
+          source: request.body?.provider ?? imageProvider.name,
           sourceUrl: request.body?.sourceUrl ?? "",
           author: request.body?.author ?? "",
         },

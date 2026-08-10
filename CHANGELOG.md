@@ -6,6 +6,69 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-09 — Multi-provider asset search: 12 sources, no key required by default
+
+`search_images`/`POST /v1/assets/search` was a single-provider Pexels wrapper
+gated entirely on `PEXELS_API_KEY` — unset, and an agent's only path to a
+picture was asking the user to upload one. Ported the provider adapters from
+the sibling `asset-hub` project (a standalone aggregator that proved this
+approach out) into `src/core/images/providers/`, vendored rather than called
+over HTTP so Flyero stays the single Node service CLAUDE.md describes.
+
+### Added
+- 12 asset providers behind the existing `ImageProvider` interface: Pexels,
+  Unsplash, Pixabay (real photos, keyed), Openverse, Wikimedia (photos,
+  unauthenticated), SVGRepo/Iconify + Color Icons (SVG icons/brand marks),
+  unDraw + Open Doodles (illustrations), Simple Icons (brand logos), and two
+  fully local generators — Shapes (dividers, arrows, badges, speech bubbles,
+  procedurally rendered, zero network) and QR Code (`qr:<url>` query). Nine
+  of the twelve need no API key at all, so `search_images` is now available
+  out of the box — an agent should reach for it before ever asking the user
+  for stock imagery, matching the two-source split already documented
+  (user's own asset -> `upload_asset`; anything else -> `search_images` +
+  `import_image`).
+- `ImageSearchQuery.type` (photo | svg | icon | vector | png | background |
+  shape, single or array) and `.provider` (pin to one named source) —
+  callers can now aim a search at exactly the kind of asset a slot needs
+  instead of only ever getting photographs.
+- `isTrustedDownloadUrl()` (`src/core/images/search.ts`) — an exact-hostname
+  allowlist across all provider CDNs plus inline `data:image/svg+xml` for
+  the two local generators. Replaces the old single-regex Pexels-only guard
+  on `POST /v1/assets/import` with the same SSRF-safe intent, now correct
+  for a dozen sources instead of one.
+- `fetchCandidate()` now decodes `data:` URIs directly (shapes/QR codes are
+  generated, not hosted — there is nothing to fetch).
+
+### Changed
+- `docs/API.md` §2 documents `POST /v1/assets/search` and
+  `POST /v1/assets/import`, which existed in code but were never written up
+  (AGENTS.md doc-parity law) — the MCP tools wrapping them were already
+  shipping undocumented.
+- `docs/DEPLOY.md` reframes stock keys as optional upgrades, not a gate:
+  search works unauthenticated; `PEXELS_API_KEY`/`UNSPLASH_ACCESS_KEY`/
+  `PIXABAY_API_KEY` only add real photo libraries on top.
+- MCP `search_images`/`import_image` tool descriptions and the top-level
+  server instructions rewritten to describe the full catalogue and the
+  `type` filter, so a connected agent knows to search before it asks.
+
+Not done: `asset-hub`'s own Next.js app is not deployed or called at
+runtime — only its provider *logic* was ported. Its zero-persistence,
+unauthenticated `/api/search` design (no DB, ids that only round-trip inside
+one browser session) made it unsuitable to depend on directly; Flyero's own
+asset store already gives every imported asset a durable `ast_…` id.
+
+**Known caveat, carried over from asset-hub, worth a human decision later:**
+unDraw and Open Doodles have no public search API — both providers scrape
+their sites' HTML per query (1h page cache). `docs/GAP-ANALYSIS.md`
+(2026-08-0x, decor-library sourcing) already flagged that unDraw's terms
+prohibit "automated/bulk scraping" in the context of a *bulk download,
+checked-in library* — this is a live, per-query, never-redistributed fetch
+instead, which is a different act, but it is still automated access to a
+site whose terms weren't written with that distinction in mind. Not
+disabled here since Pexels (a live third-party API call, same shape) was
+already the precedent; flagging for a real legal read rather than a silent
+ship.
+
 ## 2026-08-05 — Hosted-connector upload fix, three gate holes closed, ornament over photos
 
 Second pass the same day, prompted directly by watching a real Claude

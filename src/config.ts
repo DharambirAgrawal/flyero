@@ -40,8 +40,19 @@ export const config = {
   apiKeys: list("API_KEYS", ["dev_key_change_me"]),
 
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
-  /** Stock photography. Absent is a valid state — search reports itself unconfigured. */
+  /**
+   * Asset search draws from a dozen providers (`src/core/images/providers/`);
+   * most need no key at all (shapes, QR codes, SVG icons, Wikimedia, unDraw,
+   * Open Doodles, Simple Icons, Openverse all work unauthenticated). These
+   * three unlock real photo libraries on top of that — absent is a valid
+   * state, not a misconfiguration.
+   */
   pexelsApiKey: process.env.PEXELS_API_KEY ?? "",
+  unsplashAccessKey: process.env.UNSPLASH_ACCESS_KEY ?? "",
+  pixabayApiKey: process.env.PIXABAY_API_KEY ?? "",
+  /** Optional — Openverse self-registers a client_id/secret if these are unset. */
+  openverseClientId: process.env.OPENVERSE_CLIENT_ID ?? "",
+  openverseClientSecret: process.env.OPENVERSE_CLIENT_SECRET ?? "",
   models: {
     planner: str("LLM_PLANNER_MODEL", "claude-sonnet-4-5"),
     vision: str("LLM_VISION_MODEL", "claude-sonnet-4-5"),

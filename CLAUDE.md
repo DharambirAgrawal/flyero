@@ -62,7 +62,7 @@ Base layout (`docs/ARCHITECTURE.md` §8): `src/api/`, `src/mcp/`, `src/core/{bri
 
 - `src/core/canvas/{depth,light,tone}.ts` — the depth/lighting model (`depth.ts`'s header explains why: scale, haze, contrast and blur must all derive from one continuous depth value per element, not be styled independently, or the eye reads "pasted").
 - `src/core/decor/{decorations,budget,ground,ink,ids}.ts` — ornament placement, run *after* layout is final so it never draws over type; deterministic rejection sampling with a fixed attempt budget and a per-slot RNG stream (no unbounded loops, no cross-slot coupling).
-- `src/core/images/{search,transform}.ts` — the stock-photo provider interface (behind `ImageProvider`, currently Pexels) and image transforms; this is what lets Gate G2 (cover test) pass for physical products.
+- `src/core/images/{search,transform}.ts` — the asset-search provider interface (`ImageProvider`, fanning out to a dozen providers in `src/core/images/providers/`: Pexels/Unsplash/Pixabay photos, Openverse/Wikimedia, SVGRepo/Color Icons/Simple Icons/unDraw/Open Doodles for icons/illustrations/brand marks, plus local Shapes and QR-code generators) and image transforms; this is what lets Gate G2 (cover test) pass for physical products.
 - `src/core/select/index.ts` — the comparative jury that runs after the gatekeeper: among passing candidates it picks the most-authored one (LLM jury) rather than the safest score, falling back to a deterministic least-revised pick if vision budget is exhausted.
 
 There are two entry points into composition, not one:

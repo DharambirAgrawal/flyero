@@ -74,6 +74,51 @@ Ops include: `crop`, `cropBox`, `resize`, `blur`, `sharpen`, `grayscale`, `opaci
 
 **Agent rule:** upload → transform for the slot → pass the *prepared* id into compose. Do not place raw user photos.
 
+### `POST /v1/assets/search`
+Search stock photography, SVG icons, brand marks, illustrations, procedurally generated shapes (dividers, arrows, badges, speech bubbles) and QR codes across a dozen providers at once (`src/core/images/providers/`). Returns candidates only — nothing is downloaded or stored. Most providers need no API key (only Pexels/Unsplash/Pixabay do), so this endpoint is effectively always available.
+
+```json
+// request
+{ "query": "coffee cup icon", "type": "icon", "perPage": 12, "orientation": "square", "color": "brown" }
+```
+
+- `type` — one of `photo | svg | icon | vector | png | background | shape`, or an array of them. Omit to search every kind.
+- `provider` — pin to one named source (`pexels`, `unsplash`, `pixabay`, `openverse`, `wikimedia`, `svgrepo`, `coloricons`, `undraw`, `opendoodles`, `simpleicons`, `shapes`, `qrcode`). Omit to search all configured providers, ranked by query.
+- A bare `"qr:<url>"` query returns one scannable QR code SVG.
+
+```json
+// 200
+{
+  "provider": "multi",
+  "providersUsed": ["svgrepo", "coloricons"],
+  "query": "coffee cup icon",
+  "results": [
+    {
+      "id": "svgrepo::mdi:coffee",
+      "provider": "svgrepo",
+      "assetType": "icon",
+      "width": 0,
+      "height": 0,
+      "alt": "coffee",
+      "sourceUrl": "https://icon-sets.iconify.design/mdi/?query=coffee",
+      "author": "mdi",
+      "downloadUrl": "https://api.iconify.design/mdi/coffee.svg",
+      "previewUrl": "https://api.iconify.design/mdi/coffee.svg"
+    }
+  ],
+  "attribution": "Assets provided by svgrepo, coloricons"
+}
+```
+
+### `POST /v1/assets/import`
+Pull one chosen `search_images` result into the asset store, so it rides the exact same normalise → analyse → transform → compose path as an upload.
+
+```json
+{ "downloadUrl": "https://api.iconify.design/mdi/coffee.svg", "sourceUrl": "...", "author": "mdi", "provider": "svgrepo", "kind": "reference" }
+```
+
+`downloadUrl` must come from a `search_images` result — either a known provider CDN (exact-hostname allowlist, `isTrustedDownloadUrl` in `src/core/images/search.ts`) or an inline `data:image/svg+xml,...` URI from a local provider (shapes/QR code). Anything else is rejected with `400 invalid_request` — this endpoint is deliberately not a general-purpose URL fetcher.
+
 ## 3. Flyer generation
 
 ### `POST /v1/flyers`
@@ -167,8 +212,10 @@ Per-key: `MAX_CONCURRENT_JOBS` (default 2), `MAX_DAILY_USD` soft cap (default 20
 
 | MCP tool | Calls | Notes |
 |---|---|---|
-| `upload_asset` | `POST /v1/assets` | takes local file path, reads, uploads |
+| `upload_asset` | `POST /v1/assets` | takes local file path or base64 `data`, uploads |
 | `prepare_asset` | `POST /v1/assets/{id}/transform` | presets/ops; returns new assetId + preview |
+| `search_images` | `POST /v1/assets/search` | multi-provider photo/icon/vector/shape/QR search |
+| `import_image` | `POST /v1/assets/import` | pulls one search result into the asset store |
 | `create_flyer` | `POST /v1/flyers` + polls until terminal | returns idea + PNG preview (image content block) so the calling agent can *see* the result |
 | `get_flyer` | `GET /v1/flyers/{id}` | |
 | `revise_flyer` | `POST /v1/flyers/{id}/revise` + polls | returns new preview image |

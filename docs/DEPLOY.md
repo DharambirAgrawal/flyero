@@ -26,9 +26,15 @@ repo and therefore public. A public URL plus a known key is an open service:
 anyone can generate flyers on your instance and spend your Pexels quota. The
 blueprint generates one for you; copy it out of the Render dashboard.
 
-**`PEXELS_API_KEY` — set it if you want stock photo search.** Without it,
-`/v1/assets/search` and `/v1/assets/import` return `503 not_configured` and
-everything else works normally. Free key from https://www.pexels.com/api/.
+**Stock photo keys are optional.** `/v1/assets/search` fans out to a dozen
+providers (`src/core/images/providers/`); most — SVG icons, brand marks,
+illustrations, procedural shapes, QR codes, Wikimedia, Openverse — work with
+no key at all, so image search is available out of the box. Set these three
+to unlock real photo libraries on top of that:
+
+- `PEXELS_API_KEY` — free key from https://www.pexels.com/api/.
+- `UNSPLASH_ACCESS_KEY` — free key from https://unsplash.com/developers.
+- `PIXABAY_API_KEY` — free key from https://pixabay.com/api/docs/.
 
 Optional: `PORT` (Render sets it), `NODE_ENV`, `DEFAULT_RISK`,
 `MAX_CONCURRENT_JOBS`, `LLM_*`. See `.env.example`.

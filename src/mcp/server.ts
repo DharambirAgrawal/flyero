@@ -191,8 +191,13 @@ export function buildMcpServer(): McpServer {
         "     attachment's bytes as base64 in `data`, not a guessed `path`. If the user says they",
         "     attached something and you do not see image content in this turn, say so and ask them",
         "     to attach it again — never invent a placeholder or proceed as if it arrived.",
-        "   - Stock photography for anything the user did not supply -> search_images then",
-        "     import_image.",
+        "   - Anything the user did not supply -> search_images then import_image. This searches a",
+        "     dozen sources at once (real photos, SVG icons, brand marks, illustrations, procedural",
+        "     shapes/dividers/badges, QR codes) and almost never needs a key, so you should reach for",
+        "     it before asking the user for anything — pass `type` (photo | icon | svg | vector | png",
+        "     | background | shape) to aim it at what the slot actually needs instead of sifting",
+        "     through photos for an icon or vice versa. A bare 'qr:https://...' query returns a",
+        "     scannable QR code for an event page, menu or RSVP link.",
         "   A flyer about a place, a dish or an object with no picture of it cannot pass the cover",
         "   test. If there is genuinely nothing to photograph, use scene-illustration or",
         "   motif-collage instead of a stock photo of nothing.",
@@ -671,15 +676,37 @@ export function buildMcpServer(): McpServer {
   server.registerTool(
     "search_images",
     {
-      title: "Search stock photography",
+      title: "Search images, icons, illustrations, shapes and QR codes",
       description:
-        "Find real photographs for the flyer. Returns candidates with previews; nothing is downloaded, so " +
-        "looking is cheap. A flyer about a place, a dish or an object with no picture of it cannot pass " +
-        "the cover test — search before you compose.",
+        "Find a real image or graphic for the flyer across a dozen sources at once: real photographs, " +
+        "SVG icons, multi-color brand marks, hand-drawn illustrations, procedurally generated shapes " +
+        "(dividers, arrows, badges, speech bubbles) and QR codes. Returns candidates with previews; " +
+        "nothing is downloaded, so looking is cheap. Most sources need no API key, so try this before " +
+        "asking the user for an image — only their OWN logo or product photo has to come from them " +
+        "(upload_asset). A flyer about a place, a dish or an object with no picture of it cannot pass " +
+        "the cover test — search before you compose. Set `type` to aim at the right kind of result: " +
+        "'photo' for the cover-test shot, 'icon'/'svg' for a small motif, 'vector' for a full " +
+        "illustration, 'shape' for a divider/arrow/badge/QR code, 'background' for full-bleed texture, " +
+        "'png' for a pre-cut sticker. For a QR code, set query to 'qr:<the url to encode>'.",
       inputSchema: {
-        query: z.string().describe("What to show, e.g. 'himalaya peak nepal'."),
+        query: z.string().describe("What to show, e.g. 'himalaya peak nepal', 'coffee cup icon', 'qr:https://example.com'."),
+        type: z
+          .union([
+            z.enum(["photo", "svg", "icon", "vector", "png", "background", "shape"]),
+            z.array(z.enum(["photo", "svg", "icon", "vector", "png", "background", "shape"])),
+          ])
+          .optional()
+          .describe("Narrow to a kind of asset. Omit to search every kind at once."),
+        provider: z
+          .enum([
+            "pexels", "unsplash", "pixabay", "openverse", "wikimedia", "svgrepo",
+            "coloricons", "undraw", "opendoodles", "simpleicons", "shapes", "qrcode",
+          ])
+          .optional()
+          .describe("Pin the search to one named source. Omit to search all configured sources, ranked by query."),
         perPage: z.number().int().min(1).max(40).optional(),
         orientation: z.enum(["portrait", "landscape", "square"]).optional(),
+        color: z.string().optional().describe("A colour name (red, blue, ...) to match a palette or recolour an SVG/shape."),
       },
     },
     async (args) => ({
@@ -697,12 +724,14 @@ export function buildMcpServer(): McpServer {
     {
       title: "Import a searched image",
       description:
-        "Bring a chosen search result into the flyer's assets and get an assetId. Pass the candidate's " +
-        "downloadUrl, sourceUrl and author — the photographer's credit is stored with it.",
+        "Bring a chosen search_images result into the flyer's assets and get an assetId. Pass the " +
+        "candidate's downloadUrl, sourceUrl, author and provider exactly as returned — the source's " +
+        "credit is stored with it. Only downloadUrls that came from search_images are accepted.",
       inputSchema: {
         downloadUrl: z.string().describe("From a search result."),
         sourceUrl: z.string().optional(),
         author: z.string().optional(),
+        provider: z.string().optional().describe("The result's `provider` field, for provenance."),
         kind: z.enum(["logo", "screenshot", "reference"]).optional(),
       },
     },

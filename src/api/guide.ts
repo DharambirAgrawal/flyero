@@ -43,10 +43,15 @@ nothing to steer there.
    entire point — it is what stops every flyer looking like your default taste.
 
 2. **Find or prepare images.** If the brief has no picture of the thing being
-   sold, search for one: POST /v1/assets/search {"query":"..."} returns
-   candidates without downloading anything, then POST /v1/assets/import with the
-   chosen candidate's downloadUrl, sourceUrl and author. Imported photos then
-   follow exactly the same path as uploads. **A flyer for a place, a dish or an
+   sold, search for one: POST /v1/assets/search {"query":"..."} fans out to a
+   dozen sources at once — real photographs, SVG icons, brand marks,
+   illustrations, procedural shapes/dividers/badges and QR codes — and returns
+   candidates without downloading anything. Most sources need no API key, so
+   this is almost always available; add "type":"icon" (or svg/vector/png/
+   background/shape/photo) to aim it at what the slot needs instead of sifting
+   photos for an icon. Then POST /v1/assets/import with the chosen candidate's
+   downloadUrl, sourceUrl, author and provider. Imported assets then follow
+   exactly the same path as uploads. **A flyer for a place, a dish or an
    object with no picture of it cannot pass the cover test (G2), and no amount
    of styling fixes that.** If there is genuinely nothing to photograph, use
    **motif-collage**, which draws the idea instead — that is an honest answer, a
