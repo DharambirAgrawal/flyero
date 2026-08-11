@@ -87,12 +87,17 @@ describe("image transforms", () => {
 });
 
 describe("storage economy", () => {
-  it("stores a photograph as WebP, not lossless PNG", async () => {
+  it("stores a photograph as JPEG, not lossless PNG", async () => {
     /*
      * The downscale path used to rasterise through resvg and emit PNG —
      * lossless, and therefore catastrophic for a photograph. Measured on one
-     * image: 6656KB as PNG against 142KB as WebP. Seventeen imported photos
+     * image: 6656KB as PNG against 108KB as JPEG. Seventeen imported photos
      * came to 47MB, on a budget of 500MB.
+     *
+     * WebP for a while, not JPEG — reverted after resvg (@resvg/resvg-js)
+     * was found to silently fail to decode some sharp-encoded WebP photos
+     * (no error, just an empty box) while the identical pixels re-encoded as
+     * JPEG rendered correctly every time. See src/store/assets.ts's downscale().
      */
     const { default: sharp } = await import("sharp");
     const wide = await sharp({
@@ -108,8 +113,29 @@ describe("storage economy", () => {
       apiKey: "test_key_1",
     });
 
-    expect(asset.mime, "photographs must not be stored lossless").toBe("image/webp");
+    expect(asset.mime, "photographs must not be stored lossless, or as WebP (unreliable in resvg)").toBe("image/jpeg");
     expect(Math.max(asset.width, asset.height), "no bigger than the renderer can use").toBeLessThanOrEqual(1600);
+  });
+
+  it("re-encodes a small WebP away, even when no downscale is needed", async () => {
+    // The bug this guards: a WebP under MAX_ASSET_EDGE used to skip
+    // downscale() entirely and reach the renderer unconverted.
+    const { default: sharp } = await import("sharp");
+    const small = await sharp({
+      create: { width: 400, height: 500, channels: 3, background: { r: 10, g: 80, b: 200 } },
+    })
+      .webp()
+      .toBuffer();
+
+    const asset = await createAsset({
+      buffer: small,
+      mime: "image/webp",
+      kind: "reference",
+      apiKey: "test_key_1",
+    });
+
+    expect(asset.mime, "WebP must never reach storage unconverted").toBe("image/jpeg");
+    expect([asset.width, asset.height]).toEqual([400, 500]);
   });
 
   it("keeps transparency as PNG", async () => {

@@ -6,6 +6,46 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-10 — resvg silently failed to decode some sharp-encoded WebP photos
+
+Real bug, root-caused properly rather than patched at the symptom: a
+`polaroid-stack` rendered as three blank white cards. Traced through in
+order — decoded the embedded image straight out of the exported SVG (real
+photo, correct WebP, correct dimensions, ruling out the asset pipeline);
+rasterized that exact SVG locally with the same `rasterize()`/resvg call
+production uses (identically blank, ruling out anything Render-specific);
+stripped every filter/clip/rotate down to a single bare `<image>` tag with
+nothing else on the canvas (still invisible — not composited wrong, not
+drawn at all). Re-encoded the identical source pixels as JPEG instead of
+WebP and rasterized the same minimal test: rendered correctly. `@resvg/
+resvg-js` cannot reliably decode some WebP files sharp produces — silently,
+no error, just nothing drawn — while JPEG decoding of the exact same
+content works every time.
+
+### Fixed
+- `downscale()` (`src/store/assets.ts`) now re-encodes photographs as JPEG
+  instead of WebP (alpha still goes to PNG, unchanged). JPEG was already
+  the smaller format in this file's own prior measurements (108KB vs 2-4MB
+  PNG) — WebP had no size advantage left to justify keeping it once shown
+  unreliable.
+- Broadened the trigger: `downscale()` used to only run when an image
+  exceeded `MAX_ASSET_EDGE` (1600px), so a WebP asset small enough to skip
+  resizing reached the renderer completely unconverted. It now also runs
+  (re-encoding without resizing) whenever the input is WebP, regardless of
+  size, so no WebP asset can reach storage unconverted.
+- Verified against the exact failure at every layer: the isolated
+  single-`<image>` repro (WebP invisible, JPEG fine, same pixels), then a
+  real `search_images` → `import_image` → `compose_flyer` → export run
+  through the actual REST API with a live-imported photo, confirmed
+  rendering correctly end to end.
+
+Two related things from earlier the same day, now moot for *new* imports
+but worth naming: the asset-self-heal fix and the OOM fix upstream of it
+both interacted with this bug while it was live — self-healed WebP files
+would have carried the same invisibility forward even once their
+mime/dimension mismatch was fixed. Nothing further to do there; this entry
+is the actual root cause both of those exposed.
+
 ## 2026-08-10 — asset self-heal was writing mismatched bytes (blank photos)
 
 Live bug, found by decoding an embedded image straight out of an exported

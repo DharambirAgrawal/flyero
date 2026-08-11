@@ -209,7 +209,13 @@ async function normalizeOrientation(buffer: Buffer, mime: string): Promise<Buffe
   }
 }
 
-/** Re-encodes an oversized raster through the renderer we already depend on. */
+/**
+ * Re-encodes an oversized raster, and *always* re-encodes a WebP one
+ * regardless of size — see the format comment below for why WebP is never
+ * a keep-as-is format here, only ever an input to convert away from. A
+ * small WebP upload/import that never needed downscaling would otherwise
+ * skip this function entirely and reach the renderer unconverted.
+ */
 async function downscale(
   buffer: Buffer,
   mime: string,
@@ -217,13 +223,15 @@ async function downscale(
 ): Promise<{ buffer: Buffer; width: number; height: number; mime: string } | null> {
   if (mime === "image/svg+xml") return null;
   const longest = Math.max(from.width, from.height);
-  if (longest <= MAX_ASSET_EDGE) return null;
+  const needsResize = longest > MAX_ASSET_EDGE;
+  const needsReencode = mime === "image/webp";
+  if (!needsResize && !needsReencode) return null;
 
-  const scale = MAX_ASSET_EDGE / longest;
+  const scale = needsResize ? MAX_ASSET_EDGE / longest : 1;
   const width = Math.round(from.width * scale);
   const height = Math.round(from.height * scale);
   /**
-   * Photographs are stored as WebP, not PNG.
+   * Photographs are stored as JPEG, not PNG.
    *
    * This used to rasterise through resvg and emit PNG — lossless, and therefore
    * catastrophic for a photograph: measured, imported photos landed at 2-4MB
@@ -231,8 +239,19 @@ async function downscale(
    * 47MB. PNG is the right format for a logo with flat colour and the wrong one
    * for a mountain.
    *
-   * Anything with transparency stays PNG, because WebP-ing a logo's alpha away
-   * would put a white box on the flyer.
+   * Was WebP for a while, not JPEG — reverted after a live bug: resvg
+   * (`@resvg/resvg-js`) silently failed to decode some sharp-encoded WebP
+   * photos and rendered nothing for them, no error, just an empty box, while
+   * the identical pixels re-encoded as JPEG rendered correctly every time.
+   * Confirmed by isolating a single `<image>` element with no filters/clipping
+   * in a minimal SVG: WebP invisible, JPEG fine, same source photo. JPEG's
+   * decode path is far more universally exercised than WebP's, and it was
+   * already the smaller format in this codebase's own measurements above —
+   * so there was no upside to keeping WebP once it was shown unreliable.
+   *
+   * Anything with transparency stays PNG, because JPEG has no alpha channel
+   * and re-encoding a logo's transparency away would put a white box on the
+   * flyer.
    */
   try {
     const meta = await sharp(buffer).metadata();
@@ -240,12 +259,12 @@ async function downscale(
     const pipeline = sharp(buffer).resize(width, height, { fit: "fill" });
     const out = keepAlpha
       ? await pipeline.png({ compressionLevel: 9 }).toBuffer()
-      : await pipeline.webp({ quality: 82 }).toBuffer();
+      : await pipeline.jpeg({ quality: 85 }).toBuffer();
     return {
       buffer: out,
       width,
       height,
-      mime: keepAlpha ? "image/png" : "image/webp",
+      mime: keepAlpha ? "image/png" : "image/jpeg",
     };
   } catch {
     // If the decoder cannot handle it, keep the original and let the size limit
