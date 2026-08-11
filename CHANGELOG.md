@@ -6,6 +6,42 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-10 — asset self-heal was writing mismatched bytes (blank photos)
+
+Live bug, found by decoding an embedded image straight out of an exported
+SVG (not by trusting the render): a `polaroid-stack` showing three real
+photographs rendered as three blank white cards. The `<image>` tag declared
+`href="data:image/webp;base64,..."`; the actual decoded bytes were a
+4036×6054 progressive JPEG — the stored metadata said `1067×1600`. Wrong
+mime label on real bytes is unrenderable, not almost-right.
+
+Root cause: today's own asset-self-heal fix (`readAssetBytes()`, see the
+"asset files self-heal" entry above) re-fetches an original provider image
+from `provenance.downloadUrl` when its local file is missing — but wrote
+those raw, re-fetched bytes straight to disk without re-running them
+through the same normalise → downscale → re-encode pipeline `createAsset()`
+used at import time. The provider's URL still serves the full-size original
+(here, Unsplash's `&fm=jpg` original); the DB's `mime`/`width`/`height`
+describe the *processed* asset (WebP, capped at 1600px). The self-heal path
+only fired because the Render redeploy for the OOM fix (previous entry)
+landed while this session had photos already imported — wiping their local
+files exactly the way `readAssetBytes()` is meant to recover from — so this
+shipped and broke in the same sitting it was meant to protect.
+
+### Fixed
+- `readAssetBytes()` now runs a recovered asset's bytes through
+  `normalizeOrientation()` + `downscale()` before writing them back — the
+  exact pipeline `createAsset()` runs at import time — so the file on disk
+  always matches the mime/dimensions already stored in the database. If a
+  provider ever serves something that reprocesses to a *different* mime than
+  originally stored (a changed CDN rendition), recovery now fails loudly
+  with a clear "re-import it" error instead of silently writing another
+  mismatch.
+- Verified against the exact failure: imported an asset, deleted its file,
+  confirmed the old code path's bug reproduces the mismatch, then confirmed
+  the fix recovers a WebP file whose decoded dimensions exactly match the
+  stored metadata.
+
 ## 2026-08-10 — Render OOM: tuned sharp's native cache, cleared a leaked timer
 
 Render restarted the service after it exceeded its memory limit. Audited every

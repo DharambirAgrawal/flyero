@@ -417,7 +417,36 @@ export async function readAssetBytes(asset: AssetRecord): Promise<Buffer> {
   if (exists(asset.path)) return getBuffer(asset.path);
 
   if (asset.parentId === null && asset.provenance?.downloadUrl) {
-    const { buffer } = await fetchCandidate({ downloadUrl: asset.provenance.downloadUrl });
+    const { buffer: raw, mime: fetchedMime } = await fetchCandidate({
+      downloadUrl: asset.provenance.downloadUrl,
+    });
+    /**
+     * Re-run the exact normalise → downscale pipeline `createAsset()` used at
+     * import time — never just write the raw re-fetched bytes back under the
+     * old path. `asset.mime`/`width`/`height` describe the *processed* asset
+     * (e.g. re-encoded to WebP, capped at 1600px); the provider's URL still
+     * serves the raw original (e.g. a 4000px JPEG). Skipping this reprocessing
+     * was a real bug, caught live: the SVG's `<image>` declared
+     * `data:image/webp` while the recovered bytes were actually an
+     * unprocessed JPEG — an unrenderable mismatch that showed as a blank image.
+     */
+    const normalized = await normalizeOrientation(raw, fetchedMime);
+    const original = imageSize(normalized, fetchedMime);
+    const reduced = await downscale(normalized, fetchedMime, original);
+    const buffer = reduced?.buffer ?? normalized;
+    const mime = reduced?.mime ?? fetchedMime;
+    if (mime !== asset.mime) {
+      // The provider now serves something that reprocesses differently than
+      // it did at import time (format/alpha changed) — writing it under the
+      // stored mime would reproduce this exact bug. Fail loudly instead.
+      throw Object.assign(
+        new Error(
+          `Asset ${asset.id} could not be recovered: the source now re-processes to ${mime}, not the ` +
+            `stored ${asset.mime}. Re-import it.`,
+        ),
+        { code: "not_found" },
+      );
+    }
     putBuffer(asset.path, buffer);
     return buffer;
   }
