@@ -87,6 +87,26 @@ export const config = {
   renderEngine: str("RENDER_ENGINE", "resvg"),
   renderScale: num("RENDER_SCALE", 2),
   fontsDir: resolve(str("FONTS_DIR", "./assets/fonts")),
+  /**
+   * sharp/libvips tuning — see `src/lib/sharp-init.ts` for where these apply.
+   *
+   * sharp's own cache exists to speed up *reprocessing the same input*
+   * (e.g. a thumbnail service re-deriving several sizes from one upload).
+   * Every image here — an asset transform, a tone-map sample, a render
+   * rasterisation — touches a distinct buffer exactly once, so the cache
+   * buys nothing and just holds native (non-V8-heap, invisible to a JS
+   * heap snapshot) memory for the life of the process. 0 disables it.
+   */
+  sharpCacheMb: num("SHARP_CACHE_MB", 0),
+  /**
+   * libvips' thread pool defaults to `os.cpus().length`, which under a
+   * cgroup CPU limit (Render's starter plan is 0.5 CPU) commonly still
+   * reports the host's full core count — so sharp can spin up several
+   * threads a fractional-CPU container has no real capacity for, each
+   * with its own working buffers. 1 is the safe default for a small box;
+   * raise it where sharp is genuinely CPU-bound and memory is not tight.
+   */
+  sharpConcurrency: num("SHARP_CONCURRENCY", 1),
   /** Ceiling on what an asset may occupy *after* normalisation. */
   maxAssetBytes: num("MAX_ASSET_BYTES", 10 * 1024 * 1024),
   /**

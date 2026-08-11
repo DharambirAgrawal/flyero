@@ -1,3 +1,4 @@
+import "../lib/sharp-init.js"; // must run before any sharp(...) call — see that file
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import multipart from "@fastify/multipart";
 import { ulid } from "ulid";

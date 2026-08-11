@@ -195,11 +195,17 @@ export async function searchAllProviders(
   const errors: Partial<Record<ProviderName, string>> = {};
   const opts = { color: color !== "all" ? color : undefined, orientation };
 
+  // Cleared in `finally` regardless of which side of the race wins — leaving
+  // it running would hold a live timer (and its closure) for up to 15s past
+  // the point the provider already resolved, once per provider per search.
   function withTimeout<T>(p: Promise<T>, ms = 15000): Promise<T> {
+    let timer: ReturnType<typeof setTimeout>;
     return Promise.race([
       p,
-      new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Provider timeout")), ms)),
-    ]);
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Provider timeout")), ms);
+      }),
+    ]).finally(() => clearTimeout(timer));
   }
 
   const settled = await Promise.allSettled(providers.map((p) => withTimeout(p.search(query, page, perPage, opts))));

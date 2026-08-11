@@ -6,6 +6,49 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-10 — Render OOM: tuned sharp's native cache, cleared a leaked timer
+
+Render restarted the service after it exceeded its memory limit. Audited every
+module-level `Map`/`Set`/cached-promise in `src/` for genuine unbounded growth
+(the classic JS-heap-leak shape) before touching anything: the search-result
+cache (`src/core/images/providers/cache.ts`) is correctly capped at 500 entries
+with working eviction; the unDraw/Simple Icons/Open Doodles provider caches are
+one-time, fixed-size dataset caches (44 pages / one slug index / one doodle
+list), not per-request growth; the in-memory job queue
+(`src/api/runner.ts`) always drains and its `inFlight` set is cleared in a
+`finally` regardless of success or failure; nothing keeps an LLM call history
+or rendered image bytes in memory outside a single request's scope. **No
+unbounded JS-level leak found.**
+
+### Fixed
+- **sharp's native cache was never tuned.** It defaults to on (~50MB memory +
+  20MB file + 100 operations, native/libvips memory — invisible to a JS heap
+  snapshot, which is exactly the "grows over time, gets restarted" shape this
+  incident had). Every image operation in this codebase (`src/core/images/
+  transform.ts`, `src/store/assets.ts`, tone-map sampling, render
+  rasterisation) touches a distinct buffer exactly once — the cache exists to
+  speed up *reprocessing the same input*, which never happens here, so it was
+  pure overhead. `src/lib/sharp-init.ts` (imported first thing in
+  `src/api/server.ts`) now calls `sharp.cache(false)` by default
+  (`SHARP_CACHE_MB` env var to re-enable at a chosen size) and
+  `sharp.concurrency(1)` — libvips' thread pool otherwise defaults to
+  `os.cpus().length`, which under a cgroup CPU limit (Render's starter plan is
+  0.5 CPU) commonly still reports the host's full core count, so sharp could
+  spin up threads a fractional-CPU container has no real capacity for, each
+  with its own working buffers.
+- `searchAllProviders`'s per-provider `withTimeout` (`src/core/images/
+  providers/aggregator.ts`) never cleared its `setTimeout` once the race
+  resolved — one leaked timer per provider per image search, self-bounding
+  (each fires within 15s regardless) but real. Now cleared in a `finally`.
+
+Not a leak, but worth saying plainly: I can't see Render's actual memory graph
+from here, so this is the strongest lead a full code audit turned up, not a
+confirmed root cause — watch the metrics after this deploy. If the instance
+still climbs, the next things to check are concurrent-job memory (each
+`MAX_CONCURRENT_JOBS` slot holds several full-resolution image buffers through
+compose→render→critique at once) and whether the starter plan's 512MB is
+simply undersized for real traffic, not a bug at all.
+
 ## 2026-08-10 — asset files self-heal after Render's ephemeral disk wipes them
 
 Live bug, reported directly: exporting an older flyer 500'd with a raw
