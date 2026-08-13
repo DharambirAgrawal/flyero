@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Twin peaks.</title>
-  <path d="M 1 89 L 33 27 L 51 60 L 66 38 L 99 89 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="mountain,peak,alps,hike,outdoors,travel,snow">
+  <title>Two overlapping peaks with a snow cap on the taller one.</title>
+  <desc>A mountain range in two peaks, snow on the left summit. Travel, outdoors, hiking, 'peak performance' only if the brief is actually alpine. Big peak accent, small peak accent2, snow paper, ground ink.</desc>
+  <path data-tone="accent" d="M 8 88 L 38 18 L 70 88 Z"/>
+  <path data-tone="accent2" d="M 48 88 L 78 36 L 98 88 Z"/>
+  <path data-tone="paper" d="M 28 36 L 38 18 L 50 36 L 38 30 Z"/>
+  <path data-tone="ink" d="M 6 84 H 94 A 2 2 0 0 1 96 86 V 94 A 2 2 0 0 1 94 96 H 6 A 2 2 0 0 1 4 94 V 86 A 2 2 0 0 1 6 84 Z"/>
 </svg>

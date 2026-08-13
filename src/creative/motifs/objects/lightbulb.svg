@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bulb,idea,light,invent,energy,eureka">
+  <title>A lightbulb with a filament, a screw base and a glow.</title>
+  <desc>An idea bulb. Ideas, energy, inventions — the one metaphor every brief tries; use it only when the idea is literally 'a light went on'. Glass paper, filament accent, base ink, glow accent2.</desc>
+  <path data-tone="accent2" d="M 10 42 A 40 40 0 1 1 90 42 A 40 40 0 1 1 10 42 Z"/>
+  <path data-tone="paper" d="M 24 40 A 26 30 0 1 1 76 40 A 26 30 0 1 1 24 40 Z"/>
+  <path data-tone="accent" d="M 42 40 Q 50 28 58 40 Q 50 48 42 40 Z"/>
+  <path data-tone="ink" d="M 40 66 H 60 A 2 2 0 0 1 62 68 V 72 A 2 2 0 0 1 60 74 H 40 A 2 2 0 0 1 38 72 V 68 A 2 2 0 0 1 40 66 Z M 42 74 H 58 A 2 2 0 0 1 60 76 V 80 A 2 2 0 0 1 58 82 H 42 A 2 2 0 0 1 40 80 V 76 A 2 2 0 0 1 42 74 Z M 44 82 H 56 A 2 2 0 0 1 58 84 V 88 A 2 2 0 0 1 56 90 H 44 A 2 2 0 0 1 42 88 V 84 A 2 2 0 0 1 44 82 Z"/>
+</svg>

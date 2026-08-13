@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="avocado,brunch,healthy,toast,stone,green">
+  <title>A halved avocado with a large stone.</title>
+  <desc>Avocado half. Brunch, healthy, toast, California-adjacent. Flesh paper, skin accent, stone ink, highlight accent2.</desc>
+  <path data-tone="accent" d="M 18 50 A 32 40 0 1 1 82 50 A 32 40 0 1 1 18 50 Z"/>
+  <path data-tone="paper" d="M 26 50 A 24 32 0 1 1 74 50 A 24 32 0 1 1 26 50 Z"/>
+  <path data-tone="ink" d="M 36 52 A 14 14 0 1 1 64 52 A 14 14 0 1 1 36 52 Z"/>
+  <path data-tone="accent2" d="M 39 46 A 5 6 0 1 1 49 46 A 5 6 0 1 1 39 46 Z"/>
+</svg>

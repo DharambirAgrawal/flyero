@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="book,read,education,library,story,pages">
+  <title>An open book showing two pages and a bookmark.</title>
+  <desc>A book spread. Education, libraries, stories, publishing. Pages paper, cover accent, spine ink, bookmark accent2.</desc>
+  <path data-tone="accent" d="M 8 22 L 50 30 L 50 88 L 8 80 Z M 92 22 L 50 30 L 50 88 L 92 80 Z"/>
+  <path data-tone="paper" d="M 14 28 L 48 34 L 48 80 L 14 74 Z M 86 28 L 52 34 L 52 80 L 86 74 Z"/>
+  <path data-tone="ink" d="M 48 28 H 52 A 1 1 0 0 1 53 29 V 87 A 1 1 0 0 1 52 88 H 48 A 1 1 0 0 1 47 87 V 29 A 1 1 0 0 1 48 28 Z"/>
+  <path data-tone="accent2" d="M 59 22 H 65 A 1 1 0 0 1 66 23 V 57 A 1 1 0 0 1 65 58 H 59 A 1 1 0 0 1 58 57 V 23 A 1 1 0 0 1 59 22 Z"/>
+</svg>

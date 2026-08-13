@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="cake,slice,dessert,bakery,icing,berry,layer">
+  <title>A triangular slice of layer cake with icing and a berry.</title>
+  <desc>One serving of cake: two sponge layers, icing, a berry. Cafes, dessert menus, 'save me a slice'. Not the whole cake. Sponge accent, icing paper, filling accent2, berry ink.</desc>
+  <path data-tone="accent" d="M 16 70 L 84 70 L 50 28 Z"/>
+  <path data-tone="paper" d="M 20 66 L 80 66 L 50 32 Z"/>
+  <path data-tone="accent2" d="M 22 58 L 78 58 L 50 38 Z"/>
+  <path data-tone="ink" d="M 44 30 A 6 6 0 1 1 56 30 A 6 6 0 1 1 44 30 Z"/>
+</svg>

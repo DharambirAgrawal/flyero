@@ -8,8 +8,9 @@ There is no database engine here. This folder *is* the store — read into
 memory once at startup (or on demand via `reloadCuratedLibrary()`), the same
 way `src/creative/motifs/` works. What `ls` shows you is everything there is.
 
-This is different from **motifs** (`src/creative/motifs/`, single-tone
-vector marks, recoloured to match each flyer's palette) and different from a
+This is different from **motifs** (`src/creative/motifs/`, vector marks
+recoloured from the flyer's palette — single-layer or multi-layer via
+`data-tone`) and different from a
 **job's uploaded assets** (`POST /v1/assets`, ephemeral, per-job, not
 searchable later). This folder is for real photographs and illustrations you
 want available everywhere, indefinitely.

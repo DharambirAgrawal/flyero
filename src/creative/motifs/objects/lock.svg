@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="lock,padlock,security,privacy,safe,closed">
+  <title>A padlock with a shackle and a keyhole.</title>
+  <desc>A padlock. Security, privacy, members-only, 'locked in'. Body accent, shackle ink, keyhole paper.</desc>
+  <path data-tone="ink" d="M 30 46 V 28 Q 30 12 50 12 Q 70 12 70 28 V 46 H 60 V 28 Q 60 22 50 22 Q 40 22 40 28 V 46 Z"/>
+  <path data-tone="accent" d="M 30 42 H 70 A 8 8 0 0 1 78 50 V 82 A 8 8 0 0 1 70 90 H 30 A 8 8 0 0 1 22 82 V 50 A 8 8 0 0 1 30 42 Z"/>
+  <path data-tone="paper" d="M 42 64 A 8 8 0 1 1 58 64 A 8 8 0 1 1 42 64 Z M 48 64 H 52 A 1 1 0 0 1 53 65 V 79 A 1 1 0 0 1 52 80 H 48 A 1 1 0 0 1 47 79 V 65 A 1 1 0 0 1 48 64 Z"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="amp,amplifier,guitar,speaker,rock,gig">
+  <title>A guitar amp with a grille cloth and a control panel.</title>
+  <desc>An amplifier cabinet. Rock, studios, gigs. Cabinet accent, grille ink, knobs paper, handle muted.</desc>
+  <path data-tone="accent" d="M 18 22 H 82 A 6 6 0 0 1 88 28 V 80 A 6 6 0 0 1 82 86 H 18 A 6 6 0 0 1 12 80 V 28 A 6 6 0 0 1 18 22 Z"/>
+  <path data-tone="ink" d="M 24 40 H 76 A 4 4 0 0 1 80 44 V 74 A 4 4 0 0 1 76 78 H 24 A 4 4 0 0 1 20 74 V 44 A 4 4 0 0 1 24 40 Z"/>
+  <path data-tone="paper" d="M 23 32 A 5 5 0 1 1 33 32 A 5 5 0 1 1 23 32 Z M 37 32 A 5 5 0 1 1 47 32 A 5 5 0 1 1 37 32 Z M 51 32 A 5 5 0 1 1 61 32 A 5 5 0 1 1 51 32 Z M 65 32 A 5 5 0 1 1 75 32 A 5 5 0 1 1 65 32 Z"/>
+  <path data-tone="muted" d="M 39 16 H 61 A 3 3 0 0 1 64 19 V 23 A 3 3 0 0 1 61 26 H 39 A 3 3 0 0 1 36 23 V 19 A 3 3 0 0 1 39 16 Z"/>
+</svg>

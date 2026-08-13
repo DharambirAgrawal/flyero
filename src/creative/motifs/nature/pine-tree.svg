@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="pine,conifer,christmas,forest,winter,evergreen">
+  <title>Conifer of three stacked triangles on a trunk.</title>
+  <desc>A pine / Christmas-tree silhouette. Winter, forests, holidays, alpine. Needles accent, trunk ink, snow cap paper.</desc>
+  <path data-tone="accent" d="M 50 8 L 78 38 L 22 38 Z M 50 28 L 84 58 L 16 58 Z M 50 48 L 88 80 L 12 80 Z"/>
+  <path data-tone="ink" d="M 45 78 H 55 A 1 1 0 0 1 56 79 V 93 A 1 1 0 0 1 55 94 H 45 A 1 1 0 0 1 44 93 V 79 A 1 1 0 0 1 45 78 Z"/>
+  <path data-tone="paper" d="M 50 8 L 62 22 L 38 22 Z"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="beer,mug,pint,pub,foam,cheers">
+  <title>A beer mug with a handle, foam head and a fill line.</title>
+  <desc>A pint mug. Pubs, sports, Oktoberfest, 'cheers'. Mug accent, beer accent2, foam paper, handle ink.</desc>
+  <path data-tone="accent" d="M 24 22 H 64 A 6 6 0 0 1 70 28 V 84 A 6 6 0 0 1 64 90 H 24 A 6 6 0 0 1 18 84 V 28 A 6 6 0 0 1 24 22 Z"/>
+  <path data-tone="accent2" d="M 26 40 H 62 A 4 4 0 0 1 66 44 V 82 A 4 4 0 0 1 62 86 H 26 A 4 4 0 0 1 22 82 V 44 A 4 4 0 0 1 26 40 Z"/>
+  <path data-tone="paper" d="M 24 16 H 64 A 8 8 0 0 1 72 24 V 30 A 8 8 0 0 1 64 38 H 24 A 8 8 0 0 1 16 30 V 24 A 8 8 0 0 1 24 16 Z M 22 20 A 6 6 0 1 1 34 20 A 6 6 0 1 1 22 20 Z M 43 14 A 7 7 0 1 1 57 14 A 7 7 0 1 1 43 14 Z M 62 22 A 6 6 0 1 1 74 22 A 6 6 0 1 1 62 22 Z"/>
+  <path data-tone="ink" fill-rule="evenodd" d="M 70 36 Q 92 36 92 58 Q 92 80 70 78 Z"/>
+</svg>

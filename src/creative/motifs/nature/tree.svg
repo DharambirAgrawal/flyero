@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="tree,forest,nature,growth,park,canopy">
+  <title>Broadleaf tree: round canopy on a short trunk.</title>
+  <desc>A generic deciduous tree. Parks, environment, growth, 'family tree' only if botanical. Canopy accent, trunk ink, inner canopy paper.</desc>
+  <path data-tone="ink" d="M 42 92 L 46 52 L 54 52 L 58 92 Z"/>
+  <path data-tone="accent" d="M 22 38 A 28 28 0 1 1 78 38 A 28 28 0 1 1 22 38 Z"/>
+  <path data-tone="paper" d="M 32 32 A 10 10 0 1 1 52 32 A 10 10 0 1 1 32 32 Z"/>
+</svg>

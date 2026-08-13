@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bookshelf,books,library,shelf,read,study">
+  <title>A three-shelf bookcase with books of mixed heights.</title>
+  <desc>A bookshelf. Libraries, education, 'well read'. Frame ink, books accent/accent2/paper, shelf muted.</desc>
+  <path data-tone="ink" fill-rule="evenodd" d="M 18 8 H 82 A 2 2 0 0 1 84 10 V 90 A 2 2 0 0 1 82 92 H 18 A 2 2 0 0 1 16 90 V 10 A 2 2 0 0 1 18 8 Z M 24 14 H 76 A 2 2 0 0 1 78 16 V 84 A 2 2 0 0 1 76 86 H 24 A 2 2 0 0 1 22 84 V 16 A 2 2 0 0 1 24 14 Z"/>
+  <path data-tone="muted" d="M 20 32 H 80 V 38 H 20 Z M 20 58 H 80 V 64 H 20 Z M 20 82 H 80 V 88 H 20 Z"/>
+  <path data-tone="accent" d="M 25 12 H 33 A 1 1 0 0 1 34 13 V 31 A 1 1 0 0 1 33 32 H 25 A 1 1 0 0 1 24 31 V 13 A 1 1 0 0 1 25 12 Z M 49 38 H 59 A 1 1 0 0 1 60 39 V 57 A 1 1 0 0 1 59 58 H 49 A 1 1 0 0 1 48 57 V 39 A 1 1 0 0 1 49 38 Z M 29 64 H 41 A 1 1 0 0 1 42 65 V 81 A 1 1 0 0 1 41 82 H 29 A 1 1 0 0 1 28 81 V 65 A 1 1 0 0 1 29 64 Z"/>
+  <path data-tone="accent2" d="M 39 14 H 47 A 1 1 0 0 1 48 15 V 31 A 1 1 0 0 1 47 32 H 39 A 1 1 0 0 1 38 31 V 15 A 1 1 0 0 1 39 14 Z M 65 40 H 73 A 1 1 0 0 1 74 41 V 57 A 1 1 0 0 1 73 58 H 65 A 1 1 0 0 1 64 57 V 41 A 1 1 0 0 1 65 40 Z M 57 66 H 71 A 1 1 0 0 1 72 67 V 81 A 1 1 0 0 1 71 82 H 57 A 1 1 0 0 1 56 81 V 67 A 1 1 0 0 1 57 66 Z"/>
+  <path data-tone="paper" d="M 53 16 H 59 A 1 1 0 0 1 60 17 V 31 A 1 1 0 0 1 59 32 H 53 A 1 1 0 0 1 52 31 V 17 A 1 1 0 0 1 53 16 Z M 27 42 H 33 A 1 1 0 0 1 34 43 V 57 A 1 1 0 0 1 33 58 H 27 A 1 1 0 0 1 26 57 V 43 A 1 1 0 0 1 27 42 Z M 47 68 H 53 A 1 1 0 0 1 54 69 V 81 A 1 1 0 0 1 53 82 H 47 A 1 1 0 0 1 46 81 V 69 A 1 1 0 0 1 47 68 Z"/>
+</svg>

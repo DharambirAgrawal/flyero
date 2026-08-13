@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Victory cup trophy with curved handles on a stepped pedestal.</title>
-  <path d="M 29 78 H 71 A 3 3 0 0 1 74 81 V 89 A 3 3 0 0 1 71 92 H 29 A 3 3 0 0 1 26 89 V 81 A 3 3 0 0 1 29 78 Z M 44 64 L 44 78 M 56 64 L 56 78 M 22 16 H 78 V 36 Q 78 64 50 64 Q 22 64 22 36 Z M 22 24 Q 8 24 8 38 Q 8 52 24 50 M 78 24 Q 92 24 92 38 Q 92 52 76 50" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="trophy,award,cup,winner,sports,prize,champion">
+  <title>Cup trophy with handles, a stem and a stepped base.</title>
+  <desc>Award cup: bowl, two handles, stem, stepped plinth. Wins, sports, sales kick-offs, 'employee of'. Not a medal (medal) and not a crown. Cup accent, handles accent2, stem ink, base paper.</desc>
+  <path data-tone="accent" d="M 28 14 H 72 Q 78 14 78 28 Q 78 52 50 58 Q 22 52 22 28 Q 22 14 28 14 Z"/>
+  <path data-tone="accent2" d="M 22 22 Q 8 22 8 38 Q 8 50 22 48 Z M 78 22 Q 92 22 92 38 Q 92 50 78 48 Z"/>
+  <path data-tone="ink" d="M 46 56 H 54 A 2 2 0 0 1 56 58 V 70 A 2 2 0 0 1 54 72 H 46 A 2 2 0 0 1 44 70 V 58 A 2 2 0 0 1 46 56 Z"/>
+  <path data-tone="paper" d="M 30 72 H 70 A 2 2 0 0 1 72 74 V 80 A 2 2 0 0 1 70 82 H 30 A 2 2 0 0 1 28 80 V 74 A 2 2 0 0 1 30 72 Z M 25 82 H 75 A 3 3 0 0 1 78 85 V 89 A 3 3 0 0 1 75 92 H 25 A 3 3 0 0 1 22 89 V 85 A 3 3 0 0 1 25 82 Z"/>
 </svg>

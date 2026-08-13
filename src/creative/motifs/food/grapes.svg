@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="grapes,wine,fruit,bunch,vine,purple">
+  <title>A hanging bunch of grapes with a leaf.</title>
+  <desc>A grape cluster. Wine, fruit, Mediterranean. Grapes accent, leaf paper, stem ink, highlight accent2.</desc>
+  <path data-tone="accent" d="M 38 36 A 12 12 0 1 1 62 36 A 12 12 0 1 1 38 36 Z M 24 48 A 12 12 0 1 1 48 48 A 12 12 0 1 1 24 48 Z M 52 48 A 12 12 0 1 1 76 48 A 12 12 0 1 1 52 48 Z M 30 64 A 12 12 0 1 1 54 64 A 12 12 0 1 1 30 64 Z M 46 64 A 12 12 0 1 1 70 64 A 12 12 0 1 1 46 64 Z M 38 78 A 12 12 0 1 1 62 78 A 12 12 0 1 1 38 78 Z"/>
+  <path data-tone="paper" d="M 56 24 A 14 10 0 1 1 84 24 A 14 10 0 1 1 56 24 Z"/>
+  <path data-tone="ink" d="M 49 12 H 51 A 1 1 0 0 1 52 13 V 31 A 1 1 0 0 1 51 32 H 49 A 1 1 0 0 1 48 31 V 13 A 1 1 0 0 1 49 12 Z"/>
+  <path data-tone="accent2" d="M 42 32 A 4 5 0 1 1 50 32 A 4 5 0 1 1 42 32 Z"/>
+</svg>

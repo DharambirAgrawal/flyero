@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="helicopter,chopper,rotor,rescue,air,fly">
+  <title>A helicopter with rotors, a cabin and skids.</title>
+  <desc>A chopper. News, rescue, luxury travel, 'above it all'. Cabin accent, rotors ink, tail accent2, windows paper.</desc>
+  <path data-tone="ink" d="M 10 28 H 90 A 2 2 0 0 1 92 30 V 32 A 2 2 0 0 1 90 34 H 10 A 2 2 0 0 1 8 32 V 30 A 2 2 0 0 1 10 28 Z M 49 16 H 51 A 1 1 0 0 1 52 17 V 31 A 1 1 0 0 1 51 32 H 49 A 1 1 0 0 1 48 31 V 17 A 1 1 0 0 1 49 16 Z"/>
+  <path data-tone="accent" d="M 12 52 A 28 18 0 1 1 68 52 A 28 18 0 1 1 12 52 Z M 66 46 H 90 A 2 2 0 0 1 92 48 V 52 A 2 2 0 0 1 90 54 H 66 A 2 2 0 0 1 64 52 V 48 A 2 2 0 0 1 66 46 Z"/>
+  <path data-tone="paper" d="M 22 50 A 10 8 0 1 1 42 50 A 10 8 0 1 1 22 50 Z M 40 50 A 8 8 0 1 1 56 50 A 8 8 0 1 1 40 50 Z"/>
+  <path data-tone="accent2" d="M 20 70 H 68 A 2 2 0 0 1 70 72 V 74 A 2 2 0 0 1 68 76 H 20 A 2 2 0 0 1 18 74 V 72 A 2 2 0 0 1 20 70 Z M 88 42 H 92 A 2 2 0 0 1 94 44 V 56 A 2 2 0 0 1 92 58 H 88 A 2 2 0 0 1 86 56 V 44 A 2 2 0 0 1 88 42 Z"/>
+</svg>

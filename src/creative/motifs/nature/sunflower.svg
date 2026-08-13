@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="sunflower,summer,farm,petal,seed,yellow">
+  <title>Sunflower: ring of petals around a seeded disc.</title>
+  <desc>A sunflower head. Summer, farms, Ukraine-adjacent solidarity, kitchens. Petals accent, disc ink, seeds paper.</desc>
+  <path data-tone="accent" d="M 70 50 A 8 12 0 1 1 86 50 A 8 12 0 1 1 70 50 Z M 66.25 64 A 8 12 0 1 1 82.25 64 A 8 12 0 1 1 66.25 64 Z M 56 74.25 A 8 12 0 1 1 72 74.25 A 8 12 0 1 1 56 74.25 Z M 42 78 A 8 12 0 1 1 58 78 A 8 12 0 1 1 42 78 Z M 28 74.25 A 8 12 0 1 1 44 74.25 A 8 12 0 1 1 28 74.25 Z M 17.75 64 A 8 12 0 1 1 33.75 64 A 8 12 0 1 1 17.75 64 Z M 14 50 A 8 12 0 1 1 30 50 A 8 12 0 1 1 14 50 Z M 17.75 36 A 8 12 0 1 1 33.75 36 A 8 12 0 1 1 17.75 36 Z M 28 25.75 A 8 12 0 1 1 44 25.75 A 8 12 0 1 1 28 25.75 Z M 42 22 A 8 12 0 1 1 58 22 A 8 12 0 1 1 42 22 Z M 56 25.75 A 8 12 0 1 1 72 25.75 A 8 12 0 1 1 56 25.75 Z M 66.25 36 A 8 12 0 1 1 82.25 36 A 8 12 0 1 1 66.25 36 Z"/>
+  <path data-tone="ink" d="M 30 50 A 20 20 0 1 1 70 50 A 20 20 0 1 1 30 50 Z"/>
+  <path data-tone="paper" d="M 41 46 A 3 3 0 1 1 47 46 A 3 3 0 1 1 41 46 Z M 53 48 A 3 3 0 1 1 59 48 A 3 3 0 1 1 53 48 Z M 47 56 A 3 3 0 1 1 53 56 A 3 3 0 1 1 47 56 Z M 39.5 54 A 2.5 2.5 0 1 1 44.5 54 A 2.5 2.5 0 1 1 39.5 54 Z"/>
+</svg>

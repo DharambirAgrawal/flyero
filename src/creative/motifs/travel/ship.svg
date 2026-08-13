@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="ship,sail,boat,sea,yacht,sailboat">
+  <title>A sailboat with a hull, a mast and a triangular sail.</title>
+  <desc>A small yacht / sailboat. Sea, holidays, 'set sail'. Hull accent, sail paper, mast ink, flag accent2.</desc>
+  <path data-tone="accent" d="M 14 70 L 86 70 L 76 88 L 24 88 Z"/>
+  <path data-tone="paper" d="M 50 16 L 78 66 L 50 66 Z"/>
+  <path data-tone="ink" d="M 49 12 H 51 A 1 1 0 0 1 52 13 V 69 A 1 1 0 0 1 51 70 H 49 A 1 1 0 0 1 48 69 V 13 A 1 1 0 0 1 49 12 Z"/>
+  <path data-tone="accent2" d="M 50 16 L 22 56 L 50 56 Z"/>
+</svg>

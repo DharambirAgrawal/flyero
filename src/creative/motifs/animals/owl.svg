@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="owl,wise,night,bird,school,hoot">
+  <title>A facing owl with big eyes, a beak and tufted ears.</title>
+  <desc>An owl. Night, wisdom, schools, Halloween-adjacent. Body accent, face paper, eyes ink, beak accent2.</desc>
+  <path data-tone="accent" d="M 20 56 A 30 34 0 1 1 80 56 A 30 34 0 1 1 20 56 Z M 28 28 L 22 12 L 38 24 Z M 72 28 L 78 12 L 62 24 Z"/>
+  <path data-tone="paper" d="M 24 48 A 12 12 0 1 1 48 48 A 12 12 0 1 1 24 48 Z M 52 48 A 12 12 0 1 1 76 48 A 12 12 0 1 1 52 48 Z"/>
+  <path data-tone="ink" d="M 31 48 A 5 5 0 1 1 41 48 A 5 5 0 1 1 31 48 Z M 59 48 A 5 5 0 1 1 69 48 A 5 5 0 1 1 59 48 Z"/>
+  <path data-tone="accent2" d="M 50 52 L 44 64 L 56 64 Z"/>
+</svg>

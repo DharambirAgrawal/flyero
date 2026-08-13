@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Flare-bottomed ringing bell with a hanger loop and clapper.</title>
-  <path d="M 44 14 A 6 6 0 1 1 56 14 A 6 6 0 1 1 44 14 Z M 32 68 C 32 40 40 24 50 24 C 60 24 68 40 68 68 L 78 76 L 22 76 Z M 22 76 Q 50 83 78 76 M 43 84 A 7 7 0 1 1 57 84 A 7 7 0 1 1 43 84 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bell,alert,wedding,church,school,notification">
+  <title>Bell with a clapper, a yoke and a sound-slit.</title>
+  <desc>A handbell or school bell. Alerts, weddings, churches, 'don't miss this'. Body accent, yoke ink, clapper paper, inner slit muted.</desc>
+  <path data-tone="accent" d="M 24 36 Q 24 16 50 12 Q 76 16 76 36 L 82 72 Q 82 80 50 80 Q 18 80 18 72 Z"/>
+  <path data-tone="ink" d="M 46 8 H 54 A 4 4 0 0 1 58 12 V 14 A 4 4 0 0 1 54 18 H 46 A 4 4 0 0 1 42 14 V 12 A 4 4 0 0 1 46 8 Z"/>
+  <path data-tone="paper" d="M 42 84 A 8 8 0 1 1 58 84 A 8 8 0 1 1 42 84 Z"/>
+  <path data-tone="muted" d="M 48 44 H 52 A 2 2 0 0 1 54 46 V 62 A 2 2 0 0 1 52 64 H 48 A 2 2 0 0 1 46 62 V 46 A 2 2 0 0 1 48 44 Z"/>
 </svg>

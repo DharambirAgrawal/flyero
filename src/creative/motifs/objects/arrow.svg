@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Blunt chevron arrow pointing right.</title>
-  <path d="M 3 39 H 59 V 17 L 97 50 L 59 83 V 61 H 3 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="arrow,chevron,direction,wayfinding,cta,next">
+  <title>Blunt chevron arrow pointing due right, with a lighter shaft.</title>
+  <desc>A wayfinding arrow along +x. CTAs, 'this way', process steps, maps. Shaft accent, head accent2, inner cut paper. Directional: tip at the right edge, vertically centred.</desc>
+  <path data-tone="accent" d="M 3 40 L 58 40 L 58 22 L 97 50 L 58 78 L 58 60 L 3 60 Z"/>
+  <path data-tone="paper" d="M 10 44 L 54 44 L 54 56 L 10 56 Z"/>
 </svg>

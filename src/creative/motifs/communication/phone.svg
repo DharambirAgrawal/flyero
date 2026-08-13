@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="phone,call,handset,contact,support,booking">
+  <title>Classic handset telephone with a coiled cord.</title>
+  <desc>A retro phone handset, not a smartphone (that's a different brief — use a rectangle photo). Support lines, contact us, bookings. Handset accent, ear/mouth paper, cord ink.</desc>
+  <path data-tone="accent" d="M 28 20 H 72 A 10 10 0 0 1 82 30 V 32 A 10 10 0 0 1 72 42 H 28 A 10 10 0 0 1 18 32 V 30 A 10 10 0 0 1 28 20 Z M 28 58 H 72 A 10 10 0 0 1 82 68 V 70 A 10 10 0 0 1 72 80 H 28 A 10 10 0 0 1 18 70 V 68 A 10 10 0 0 1 28 58 Z M 28 36 H 32 A 6 6 0 0 1 38 42 V 58 A 6 6 0 0 1 32 64 H 28 A 6 6 0 0 1 22 58 V 42 A 6 6 0 0 1 28 36 Z"/>
+  <path data-tone="paper" d="M 32 24 H 68 A 6 6 0 0 1 74 30 V 32 A 6 6 0 0 1 68 38 H 32 A 6 6 0 0 1 26 32 V 30 A 6 6 0 0 1 32 24 Z M 32 62 H 68 A 6 6 0 0 1 74 68 V 70 A 6 6 0 0 1 68 76 H 32 A 6 6 0 0 1 26 70 V 68 A 6 6 0 0 1 32 62 Z"/>
+  <path data-tone="ink" d="M 70 42 Q 92 42 92 62 Q 92 80 78 80 Q 78 72 86 62 Q 86 50 70 50 Z"/>
+</svg>

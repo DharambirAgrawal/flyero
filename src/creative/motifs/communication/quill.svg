@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="quill,pen,write,author,ink,feather,sign">
+  <title>A quill pen with a nib, a feather and an ink stroke.</title>
+  <desc>A writing quill. Authors, history, contracts, 'signed'. Feather accent, nib ink, shaft paper, stroke accent2.</desc>
+  <path data-tone="accent" d="M 18 22 Q 8 8 28 12 Q 70 28 82 70 Q 60 50 18 22 Z"/>
+  <path data-tone="paper" d="M 70 62 L 88 88 L 78 90 L 64 68 Z"/>
+  <path data-tone="ink" d="M 82 86 L 94 96 L 86 98 L 78 90 Z"/>
+  <path data-tone="accent2" d="M 20 78 Q 40 70 70 86 Q 40 82 20 78 Z"/>
+</svg>

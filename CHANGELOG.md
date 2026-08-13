@@ -6,6 +6,47 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-13 — motif library to 210, multi-layer recolour, searchable descriptions
+
+The existing ~40 marks were one flat colour with a one-line title, so every
+cake, balloon and leaf read as the same silhouette and an agent had to guess
+from the id. The loader already accepted `data-tone` layers; this pass uses
+that convention for real, and grows the library past the point where dumping
+every id into the design guide is reasonable.
+
+### Added
+- 210 hand-authored motifs under `src/creative/motifs/` (was 40), in twelve
+  subject folders: celebration, nature, communication, objects, food, travel,
+  music, sports, animals, home, fashion, weather. Original geometry, no
+  downloaded icon packs.
+- Every motif now carries `<desc>` (when to use it, what it is not, which
+  regions recolour) and `data-tags`, both searched by BM25 alongside id/title/
+  category. `search_motifs` returns those fields plus which theme slots a
+  multi-layer mark paints.
+- Filled marks are multi-layer by default (`data-tone` = ink / accent /
+  accent2 / muted / paper / ground) so a cake can have icing, candles and
+  flames in different slots of the *same* flyer palette — never baked-in hex.
+- `paintMotif` / `tonesFromInk` so figure, ground ornament and photo collage
+  all paint layers the same way. `motif-collage` can take any motif as its
+  subject, not a hardcoded travel eleven. Graphic languages sample from the
+  wider pools (botanical-frame is no longer only `leaf`).
+
+### Changed
+- `read_design_guide` lists category counts and tells the agent to
+  `search_motifs` rather than dumping 210 ids into every session.
+- Exact-id search results win over a longer id that repeats the same word
+  ("balloon" no longer loses to "hot-air-balloon").
+
+### Decisions recorded
+- Multi-colour motifs stay palette-slotted, not hex-coloured. A downloaded
+  illustration with baked fills is still a load-time error; `data-tone` is
+  the only way a region gets its own colour, and that colour is always one
+  of the flyer's six theme slots.
+- Line art (`fill="none"`) stays single-stroke and cannot mix with
+  `data-tone` — a sketched bow has no icing to recolour separately.
+
+---
+
 ## 2026-08-13 — agent-facing surface audit: trimmed payloads, reinforced guidance, motif folder, docs realignment
 
 A user session flagged the agent-native path directly: tool responses read as

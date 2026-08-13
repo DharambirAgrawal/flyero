@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="armchair,chair,lounge,read,seat,home">
+  <title>A lounge armchair with a high back and arms.</title>
+  <desc>An armchair. Reading, lounges, 'sit'. Back accent, seat paper, arms accent2, legs ink.</desc>
+  <path data-tone="accent" d="M 34 12 H 66 A 10 10 0 0 1 76 22 V 50 A 10 10 0 0 1 66 60 H 34 A 10 10 0 0 1 24 50 V 22 A 10 10 0 0 1 34 12 Z"/>
+  <path data-tone="paper" d="M 32 48 H 68 A 8 8 0 0 1 76 56 V 64 A 8 8 0 0 1 68 72 H 32 A 8 8 0 0 1 24 64 V 56 A 8 8 0 0 1 32 48 Z"/>
+  <path data-tone="accent2" d="M 18 36 H 22 A 6 6 0 0 1 28 42 V 70 A 6 6 0 0 1 22 76 H 18 A 6 6 0 0 1 12 70 V 42 A 6 6 0 0 1 18 36 Z M 78 36 H 82 A 6 6 0 0 1 88 42 V 70 A 6 6 0 0 1 82 76 H 78 A 6 6 0 0 1 72 70 V 42 A 6 6 0 0 1 78 36 Z"/>
+  <path data-tone="ink" d="M 30 70 H 34 A 2 2 0 0 1 36 72 V 86 A 2 2 0 0 1 34 88 H 30 A 2 2 0 0 1 28 86 V 72 A 2 2 0 0 1 30 70 Z M 66 70 H 70 A 2 2 0 0 1 72 72 V 86 A 2 2 0 0 1 70 88 H 66 A 2 2 0 0 1 64 86 V 72 A 2 2 0 0 1 66 70 Z"/>
+</svg>

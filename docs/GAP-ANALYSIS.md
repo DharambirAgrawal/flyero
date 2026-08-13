@@ -546,11 +546,14 @@ reasons in point 3. Revisit only if an explicit, scoped need shows up that
 shading genuinely cannot reach (e.g. a specific photographic texture no
 gradient can fake) — not as a default upgrade path.
 
-**Contributing more motifs**: `MOTIF_DATA` in `shapes.ts` is the place —
-single-tone path marks, theme-recoloured at render time, same convention as
-the ones already there. That's different from an *asset* (a logo or a
+**Contributing more motifs**: drop an SVG in `src/creative/motifs/<subject>/`.
+Filename is the id; `<title>`, `<desc>` and `data-tags` are how an agent
+finds it; `data-tone` on every path is how a mark gets independently
+recolourable regions (icing vs cake vs flame) against the flyer's palette.
+Never a baked-in hex. That's different from an *asset* (a logo or a
 supplied full-colour image via `POST /v1/assets`), which embeds as-is and is
 not theme-recoloured. Know which one you're adding before you add it.
+See `src/creative/motifs/README.md`.
 
 ### 2026-08-05 — checked two free asset sources; decided against both, for now
 

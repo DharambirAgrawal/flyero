@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="soccer,football,ball,sport,match,fifa">
+  <title>A soccer ball with pentagon patches.</title>
+  <desc>A football (soccer). Matches, kids, 'the beautiful game'. Ball paper, patches ink, rim accent.</desc>
+  <path data-tone="paper" d="M 10 50 A 40 40 0 1 1 90 50 A 40 40 0 1 1 10 50 Z"/>
+  <path data-tone="ink" d="M 50 36 L 55.88 41.91 L 63.31 45.67 L 59.51 53.09 L 58.23 61.33 L 50 60 L 41.77 61.33 L 40.49 53.09 L 36.69 45.67 L 44.12 41.91 Z M 20 32 A 8 8 0 1 1 36 32 A 8 8 0 1 1 20 32 Z M 64 32 A 8 8 0 1 1 80 32 A 8 8 0 1 1 64 32 Z M 16 64 A 8 8 0 1 1 32 64 A 8 8 0 1 1 16 64 Z M 68 64 A 8 8 0 1 1 84 64 A 8 8 0 1 1 68 64 Z M 42 82 A 8 8 0 1 1 58 82 A 8 8 0 1 1 42 82 Z"/>
+  <path data-tone="accent" fill-rule="evenodd" d="M 10 50 A 40 40 0 1 1 90 50 A 40 40 0 1 1 10 50 Z M 16 50 A 34 34 0 1 1 84 50 A 34 34 0 1 1 16 50 Z"/>
+</svg>

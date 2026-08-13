@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="piano,keys,keyboard,jazz,concert,notes">
+  <title>A short run of piano keys, white with black sharps.</title>
+  <desc>Keyboard fragment. Jazz, lessons, concerts, 'play it'. Whites paper, blacks ink, board accent.</desc>
+  <path data-tone="accent" d="M 12 22 H 88 A 4 4 0 0 1 92 26 V 74 A 4 4 0 0 1 88 78 H 12 A 4 4 0 0 1 8 74 V 26 A 4 4 0 0 1 12 22 Z"/>
+  <path data-tone="paper" d="M 14 26 H 24 A 2 2 0 0 1 26 28 V 72 A 2 2 0 0 1 24 74 H 14 A 2 2 0 0 1 12 72 V 28 A 2 2 0 0 1 14 26 Z M 30 26 H 40 A 2 2 0 0 1 42 28 V 72 A 2 2 0 0 1 40 74 H 30 A 2 2 0 0 1 28 72 V 28 A 2 2 0 0 1 30 26 Z M 46 26 H 56 A 2 2 0 0 1 58 28 V 72 A 2 2 0 0 1 56 74 H 46 A 2 2 0 0 1 44 72 V 28 A 2 2 0 0 1 46 26 Z M 62 26 H 72 A 2 2 0 0 1 74 28 V 72 A 2 2 0 0 1 72 74 H 62 A 2 2 0 0 1 60 72 V 28 A 2 2 0 0 1 62 26 Z M 78 26 H 86 A 2 2 0 0 1 88 28 V 72 A 2 2 0 0 1 86 74 H 78 A 2 2 0 0 1 76 72 V 28 A 2 2 0 0 1 78 26 Z"/>
+  <path data-tone="ink" d="M 23 26 H 29 A 1 1 0 0 1 30 27 V 53 A 1 1 0 0 1 29 54 H 23 A 1 1 0 0 1 22 53 V 27 A 1 1 0 0 1 23 26 Z M 39 26 H 45 A 1 1 0 0 1 46 27 V 53 A 1 1 0 0 1 45 54 H 39 A 1 1 0 0 1 38 53 V 27 A 1 1 0 0 1 39 26 Z M 71 26 H 77 A 1 1 0 0 1 78 27 V 53 A 1 1 0 0 1 77 54 H 71 A 1 1 0 0 1 70 53 V 27 A 1 1 0 0 1 71 26 Z"/>
+</svg>

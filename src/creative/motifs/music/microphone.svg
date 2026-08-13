@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="mic,microphone,podcast,stage,speech,karaoke">
+  <title>A handheld mic with a grille and a tapered handle.</title>
+  <desc>A stage microphone. Podcasts, karaoke, speeches, concerts. Grille accent, handle ink, band paper, clip accent2.</desc>
+  <path data-tone="accent" d="M 30 28 A 20 24 0 1 1 70 28 A 20 24 0 1 1 30 28 Z"/>
+  <path data-tone="paper" d="M 40 44 H 60 A 2 2 0 0 1 62 46 V 50 A 2 2 0 0 1 60 52 H 40 A 2 2 0 0 1 38 50 V 46 A 2 2 0 0 1 40 44 Z"/>
+  <path data-tone="ink" d="M 48 50 H 52 A 6 6 0 0 1 58 56 V 86 A 6 6 0 0 1 52 92 H 48 A 6 6 0 0 1 42 86 V 56 A 6 6 0 0 1 48 50 Z"/>
+  <path data-tone="accent2" d="M 48 52 H 52 A 2 2 0 0 1 54 54 V 62 A 2 2 0 0 1 52 64 H 48 A 2 2 0 0 1 46 62 V 54 A 2 2 0 0 1 48 52 Z"/>
+</svg>

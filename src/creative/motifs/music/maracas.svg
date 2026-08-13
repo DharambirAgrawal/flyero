@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="maracas,shaker,latin,percussion,party,rhythm">
+  <title>A pair of maracas crossed, with dotted heads.</title>
+  <desc>Shakers. Latin music, kids, parties. Heads accent and accent2, handles ink, dots paper.</desc>
+  <path data-tone="accent" d="M 14 32 A 18 22 0 1 1 50 32 A 18 22 0 1 1 14 32 Z"/>
+  <path data-tone="accent2" d="M 52 36 A 16 20 0 1 1 84 36 A 16 20 0 1 1 52 36 Z"/>
+  <path data-tone="ink" d="M 32 50 L 22 92 L 30 94 L 40 52 Z M 68 52 L 78 92 L 86 90 L 76 50 Z"/>
+  <path data-tone="paper" d="M 25 28 A 3 3 0 1 1 31 28 A 3 3 0 1 1 25 28 Z M 33 36 A 3 3 0 1 1 39 36 A 3 3 0 1 1 33 36 Z M 61 32 A 3 3 0 1 1 67 32 A 3 3 0 1 1 61 32 Z M 69 40 A 3 3 0 1 1 75 40 A 3 3 0 1 1 69 40 Z"/>
+</svg>

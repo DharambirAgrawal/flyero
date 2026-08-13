@@ -6,12 +6,15 @@ import { ensureContrast, mix, withAlpha } from "../creative/color.js";
 import { shadowFor } from "../core/canvas/light.js";
 import {
   MOTIFS,
+  MOTIF_NAMES,
   arcBands,
   blobPath,
   dashedRoutePath,
   ellipsePath,
   motifTransform,
+  paintMotif,
   polyline,
+  tonesFromInk,
   routeMidpoint,
   sparklePath,
   squigglePath,
@@ -197,7 +200,18 @@ const photoCluster: ComponentModule = {
               const my = routeMid.y + Math.cos(rad) * off * side;
               return (
                 <g transform={motifTransform(mx - size / 2, my - size / 2, size, routeMid.angle)}>
-                  <path d={MOTIFS[motif].d} fill={accent} fillRule={MOTIFS[motif].fillRule} />
+                  {paintMotif(MOTIFS[motif], accent, tonesFromInk(accent)).map((p, i) => (
+                    <path
+                      key={i}
+                      d={p.d}
+                      fill={p.fill}
+                      fillRule={p.fillRule}
+                      stroke={p.stroke}
+                      strokeWidth={p.strokeWidth}
+                      strokeLinecap={p.stroke ? "round" : undefined}
+                      strokeLinejoin={p.stroke ? "round" : undefined}
+                    />
+                  ))}
                 </g>
               );
             })()
@@ -509,21 +523,7 @@ const motifCollage: ComponentModule = {
     motion: "marks assemble",
   },
   props: z.object({
-    subject: z
-      .enum([
-        "plane",
-        "pin",
-        "suitcase",
-        "camera",
-        "mountain",
-        "sun",
-        "cloud",
-        "leaf",
-        "arrow",
-        "ticket",
-        "compass",
-      ])
-      .default("sun"),
+    subject: z.enum(MOTIF_NAMES as [MotifName, ...MotifName[]]).default("sun"),
     /** How the supporting marks are arranged around the subject. */
     arrangement: z.enum(["halo", "stack", "scatter"]).default("halo"),
   }),
@@ -579,7 +579,25 @@ const motifCollage: ComponentModule = {
         </Group>
 
         <g transform={motifTransform(cx - size / 2, cy - size / 2, size, 0)}>
-          <path d={MOTIFS[subject].d} fill={ink} fillRule={MOTIFS[subject].fillRule} />
+          {paintMotif(MOTIFS[subject], ink, {
+            ink,
+            accent,
+            accent2: theme.palette.accent2,
+            muted: mutedInkFor(theme, box),
+            paper: theme.palette.bg,
+            ground: mix(theme.palette.bg, theme.palette.accent, 0.3),
+          }).map((p, i) => (
+            <path
+              key={i}
+              d={p.d}
+              fill={p.fill}
+              fillRule={p.fillRule}
+              stroke={p.stroke}
+              strokeWidth={p.strokeWidth}
+              strokeLinecap={p.stroke ? "round" : undefined}
+              strokeLinejoin={p.stroke ? "round" : undefined}
+            />
+          ))}
         </g>
 
         <Group name={`${id}-accents`}>

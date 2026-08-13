@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="pencil,write,school,draw,edit,draft">
+  <title>A diagonal pencil with ferrule, eraser and a sharpened tip.</title>
+  <desc>A writing pencil. School, drafts, 'edit', design. Body accent, wood accent2, graphite ink, eraser paper.</desc>
+  <path data-tone="accent" d="M 22 70 L 70 22 L 82 34 L 34 82 Z"/>
+  <path data-tone="accent2" d="M 70 22 L 88 12 L 96 20 L 82 34 Z"/>
+  <path data-tone="ink" d="M 88 12 L 98 8 L 96 20 Z"/>
+  <path data-tone="paper" d="M 22 70 L 12 80 L 18 86 L 34 82 Z"/>
+</svg>

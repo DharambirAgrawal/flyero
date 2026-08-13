@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="lotus,yoga,spa,wellness,bloom,meditation">
+  <title>Lotus flower of layered petals on a small pad.</title>
+  <desc>A lotus bloom from above. Wellness, yoga, Asia-adjacent spirituality, spas. Outer petals accent, inner accent2, centre paper.</desc>
+  <path data-tone="accent" d="M 40 34 A 10 16 0 1 1 60 34 A 10 16 0 1 1 40 34 Z M 55.56 39.27 A 10 16 0 1 1 75.56 39.27 A 10 16 0 1 1 55.56 39.27 Z M 62 52 A 10 16 0 1 1 82 52 A 10 16 0 1 1 62 52 Z M 55.56 64.73 A 10 16 0 1 1 75.56 64.73 A 10 16 0 1 1 55.56 64.73 Z M 40 70 A 10 16 0 1 1 60 70 A 10 16 0 1 1 40 70 Z M 24.44 64.73 A 10 16 0 1 1 44.44 64.73 A 10 16 0 1 1 24.44 64.73 Z M 18 52 A 10 16 0 1 1 38 52 A 10 16 0 1 1 18 52 Z M 24.44 39.27 A 10 16 0 1 1 44.44 39.27 A 10 16 0 1 1 24.44 39.27 Z"/>
+  <path data-tone="accent2" d="M 43 42 A 7 11 0 1 1 57 42 A 7 11 0 1 1 43 42 Z M 54.41 48.91 A 7 11 0 1 1 68.41 48.91 A 7 11 0 1 1 54.41 48.91 Z M 50.05 60.09 A 7 11 0 1 1 64.05 60.09 A 7 11 0 1 1 50.05 60.09 Z M 35.95 60.09 A 7 11 0 1 1 49.95 60.09 A 7 11 0 1 1 35.95 60.09 Z M 31.59 48.91 A 7 11 0 1 1 45.59 48.91 A 7 11 0 1 1 31.59 48.91 Z"/>
+  <path data-tone="paper" d="M 42 52 A 8 8 0 1 1 58 52 A 8 8 0 1 1 42 52 Z"/>
+</svg>

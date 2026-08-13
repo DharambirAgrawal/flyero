@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="dumbbell,gym,weight,fitness,lift,train">
+  <title>A dumbbell with two plates and a grip.</title>
+  <desc>A hand weight. Gyms, fitness, 'get strong'. Plates ink, grip accent, collars paper.</desc>
+  <path data-tone="ink" d="M 10 30 H 20 A 4 4 0 0 1 24 34 V 66 A 4 4 0 0 1 20 70 H 10 A 4 4 0 0 1 6 66 V 34 A 4 4 0 0 1 10 30 Z M 80 30 H 90 A 4 4 0 0 1 94 34 V 66 A 4 4 0 0 1 90 70 H 80 A 4 4 0 0 1 76 66 V 34 A 4 4 0 0 1 80 30 Z"/>
+  <path data-tone="accent" d="M 26 44 H 74 A 4 4 0 0 1 78 48 V 52 A 4 4 0 0 1 74 56 H 26 A 4 4 0 0 1 22 52 V 48 A 4 4 0 0 1 26 44 Z"/>
+  <path data-tone="paper" d="M 25 42 H 29 A 1 1 0 0 1 30 43 V 57 A 1 1 0 0 1 29 58 H 25 A 1 1 0 0 1 24 57 V 43 A 1 1 0 0 1 25 42 Z M 71 42 H 75 A 1 1 0 0 1 76 43 V 57 A 1 1 0 0 1 75 58 H 71 A 1 1 0 0 1 70 57 V 43 A 1 1 0 0 1 71 42 Z"/>
+</svg>

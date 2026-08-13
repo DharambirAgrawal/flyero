@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="snowman,winter,snow,holiday,carrot,cold">
+  <title>A two-ball snowman with a carrot nose and stick arms.</title>
+  <desc>A snowman. Winter, holidays, kids. Snow paper, buttons ink, nose accent, arms muted.</desc>
+  <path data-tone="paper" d="M 32 32 A 18 18 0 1 1 68 32 A 18 18 0 1 1 32 32 Z M 24 68 A 26 26 0 1 1 76 68 A 26 26 0 1 1 24 68 Z"/>
+  <path data-tone="ink" d="M 41 28 A 3 3 0 1 1 47 28 A 3 3 0 1 1 41 28 Z M 53 28 A 3 3 0 1 1 59 28 A 3 3 0 1 1 53 28 Z M 47 58 A 3 3 0 1 1 53 58 A 3 3 0 1 1 47 58 Z M 47 68 A 3 3 0 1 1 53 68 A 3 3 0 1 1 47 68 Z M 47 78 A 3 3 0 1 1 53 78 A 3 3 0 1 1 47 78 Z"/>
+  <path data-tone="accent" d="M 50 34 L 68 38 L 50 40 Z"/>
+  <path data-tone="muted" d="M 24 58 L 8 48 L 12 46 L 26 56 Z M 76 58 L 94 46 L 90 44 L 74 56 Z"/>
+</svg>

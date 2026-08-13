@@ -876,11 +876,9 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   /**
    * Search the motif library instead of reading every id.
    *
-   * `read_design_guide` still lists every motif (cheap today — see
-   * `src/creative/motifs/`'s own header comment on why this isn't
-   * embeddings), but a growing library shouldn't force every session to read
-   * that whole list to find one shape. Ranked lexical search over id, title
-   * and category — see `searchMotifs` in `src/components/shapes.ts`.
+   * `read_design_guide` no longer lists every mark — the library is 200+
+   * and a dump would drown the session. Ranked lexical search over id,
+   * title, desc, tags and category — see `searchMotifs`.
    */
   app.get<{ Querystring: { q?: string; limit?: string } }>("/v1/schema/motifs", async (request, reply) => {
     const q = request.query.q?.trim();

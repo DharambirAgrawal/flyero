@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Five-pointed regal crown with jewel circles on each peak.</title>
-  <path d="M 18 72 H 82 A 3 3 0 0 1 85 75 V 83 A 3 3 0 0 1 82 86 H 18 A 3 3 0 0 1 15 83 V 75 A 3 3 0 0 1 18 72 Z M 15 72 L 15 35 L 32 55 L 50 20 L 68 55 L 85 35 L 85 72 Z M 11 30 A 4 4 0 1 1 19 30 A 4 4 0 1 1 11 30 Z M 46 15 A 4 4 0 1 1 54 15 A 4 4 0 1 1 46 15 Z M 81 30 A 4 4 0 1 1 89 30 A 4 4 0 1 1 81 30 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="crown,royal,king,queen,award,winner,jewels,princess">
+  <title>Heraldic crown with three spikes, a band and inset jewels.</title>
+  <desc>A small royal crown: band, three triangular spikes, circular jewels. Awards, 'treat yourself', kids' make-believe, a winner. Not a trophy (trophy) and not a hat. Band accent, spikes accent2, jewels paper, inner band ink.</desc>
+  <path data-tone="accent" d="M 18 58 H 82 A 4 4 0 0 1 86 62 V 76 A 4 4 0 0 1 82 80 H 18 A 4 4 0 0 1 14 76 V 62 A 4 4 0 0 1 18 58 Z"/>
+  <path data-tone="accent2" d="M 14 58 L 14 28 L 32 48 L 50 16 L 68 48 L 86 28 L 86 58 Z"/>
+  <path data-tone="paper" d="M 27 52 A 5 5 0 1 1 37 52 A 5 5 0 1 1 27 52 Z M 45 52 A 5 5 0 1 1 55 52 A 5 5 0 1 1 45 52 Z M 63 52 A 5 5 0 1 1 73 52 A 5 5 0 1 1 63 52 Z M 45 22 A 5 5 0 1 1 55 22 A 5 5 0 1 1 45 22 Z"/>
+  <path data-tone="ink" d="M 20 72 H 80 A 2 2 0 0 1 82 74 V 76 A 2 2 0 0 1 80 78 H 20 A 2 2 0 0 1 18 76 V 74 A 2 2 0 0 1 20 72 Z"/>
 </svg>

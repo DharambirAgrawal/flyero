@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="banana,fruit,yellow,breakfast,peel">
+  <title>A peeled-looking banana curve with a stem.</title>
+  <desc>A banana. Fruit, potassium, breakfast, comedy. Body accent, inner paper, stem ink, tip muted.</desc>
+  <path data-tone="accent" d="M 22 28 Q 12 60 36 86 Q 70 96 88 64 Q 70 72 48 70 Q 28 58 28 36 Z"/>
+  <path data-tone="paper" d="M 30 36 Q 24 58 42 78 Q 62 86 76 66 Q 60 72 46 68 Q 32 56 34 40 Z"/>
+  <path data-tone="ink" d="M 22 28 L 18 16 L 30 22 L 28 32 Z"/>
+</svg>

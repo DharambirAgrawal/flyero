@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>One rounded sprinkle — a single confetti piece, meant to be scattered.</title>
-  <path d="M 38 38 H 62 A 8 8 0 0 1 70 46 V 54 A 8 8 0 0 1 62 62 H 38 A 8 8 0 0 1 30 54 V 46 A 8 8 0 0 1 38 38 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="confetti,party,celebration,scatter,bits,festival">
+  <title>Scattered ticks, dots and tiny squares of celebratory bits.</title>
+  <desc>A handful of mixed confetti pieces — not a full-page field (that's a decoration). Sprinkle near a headline or a cake. Pieces split across accent, accent2 and paper so a burst reads as multi-coloured, not one flat stamp.</desc>
+  <path data-tone="accent" d="M 13 18 H 21 A 1 1 0 0 1 22 19 V 23 A 1 1 0 0 1 21 24 H 13 A 1 1 0 0 1 12 23 V 19 A 1 1 0 0 1 13 18 Z M 65 22 A 5 5 0 1 1 75 22 A 5 5 0 1 1 65 22 Z M 41 70 H 47 A 1 1 0 0 1 48 71 V 77 A 1 1 0 0 1 47 78 H 41 A 1 1 0 0 1 40 77 V 71 A 1 1 0 0 1 41 70 Z M 18 80 L 28 74 L 24 88 Z"/>
+  <path data-tone="accent2" d="M 28 28 A 4 4 0 1 1 36 28 A 4 4 0 1 1 28 28 Z M 79 48 H 89 A 1 1 0 0 1 90 49 V 52 A 1 1 0 0 1 89 53 H 79 A 1 1 0 0 1 78 52 V 49 A 1 1 0 0 1 79 48 Z M 60 78 L 72 70 L 68 88 Z M 17 52 A 5 5 0 1 1 27 52 A 5 5 0 1 1 17 52 Z"/>
+  <path data-tone="paper" d="M 53 16 H 58 A 1 1 0 0 1 59 17 V 22 A 1 1 0 0 1 58 23 H 53 A 1 1 0 0 1 52 22 V 17 A 1 1 0 0 1 53 16 Z M 81 78 A 5 5 0 1 1 91 78 A 5 5 0 1 1 81 78 Z M 9 60 H 16 A 1 1 0 0 1 17 61 V 63 A 1 1 0 0 1 16 64 H 9 A 1 1 0 0 1 8 63 V 61 A 1 1 0 0 1 9 60 Z M 48 48 L 58 42 L 54 56 Z"/>
 </svg>

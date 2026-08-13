@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="moon,night,lunar,sleep,sky,full-moon">
+  <title>Full moon disc with two crater marks.</title>
+  <desc>A round moon, not a crescent (crescent-moon). Night, sleep, lunar, calm. Disc paper, craters muted, rim accent.</desc>
+  <path data-tone="paper" d="M 14 50 A 36 36 0 1 1 86 50 A 36 36 0 1 1 14 50 Z"/>
+  <path data-tone="muted" d="M 30 40 A 8 8 0 1 1 46 40 A 8 8 0 1 1 30 40 Z M 48 58 A 12 12 0 1 1 72 58 A 12 12 0 1 1 48 58 Z"/>
+  <path data-tone="accent" fill-rule="evenodd" d="M 14 50 A 36 36 0 1 1 86 50 A 36 36 0 1 1 14 50 Z M 20 50 A 30 30 0 1 1 80 50 A 30 30 0 1 1 20 50 Z"/>
+</svg>

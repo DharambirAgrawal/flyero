@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="hot-air-balloon,balloon,ride,festival,sky,travel">
+  <title>A hot-air balloon envelope over a hanging basket.</title>
+  <desc>A balloon you ride in — not the party helium balloon. Travel, festivals, 'rise'. Envelope accent, stripe paper, basket ink, ropes muted.</desc>
+  <path data-tone="accent" d="M 18 38 A 32 36 0 1 1 82 38 A 32 36 0 1 1 18 38 Z"/>
+  <path data-tone="paper" d="M 50 8 L 62 50 L 38 50 Z"/>
+  <path data-tone="ink" d="M 39 78 H 61 A 3 3 0 0 1 64 81 V 91 A 3 3 0 0 1 61 94 H 39 A 3 3 0 0 1 36 91 V 81 A 3 3 0 0 1 39 78 Z"/>
+  <path data-tone="muted" d="M 38 70 L 40 78 L 44 78 L 42 70 Z M 58 70 L 56 78 L 60 78 L 62 70 Z"/>
+</svg>

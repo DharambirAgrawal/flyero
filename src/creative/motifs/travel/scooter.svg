@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="scooter,kick,city,ride,last-mile,zip">
+  <title>A kick scooter with a deck, a stem and two wheels.</title>
+  <desc>A standing scooter. Cities, kids, last-mile, 'zip'. Deck accent, stem ink, wheels muted, bars paper.</desc>
+  <path data-tone="accent" d="M 22 62 H 78 A 4 4 0 0 1 82 66 V 68 A 4 4 0 0 1 78 72 H 22 A 4 4 0 0 1 18 68 V 66 A 4 4 0 0 1 22 62 Z"/>
+  <path data-tone="ink" d="M 72 22 H 76 A 2 2 0 0 1 78 24 V 70 A 2 2 0 0 1 76 72 H 72 A 2 2 0 0 1 70 70 V 24 A 2 2 0 0 1 72 22 Z"/>
+  <path data-tone="paper" d="M 62 16 H 82 A 4 4 0 0 1 86 20 V 22 A 4 4 0 0 1 82 26 H 62 A 4 4 0 0 1 58 22 V 20 A 4 4 0 0 1 62 16 Z"/>
+  <path data-tone="muted" d="M 18 80 A 10 10 0 1 1 38 80 A 10 10 0 1 1 18 80 Z M 68 80 A 10 10 0 1 1 88 80 A 10 10 0 1 1 68 80 Z"/>
+</svg>

@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Slanted retail price tag with a punched hole near the top corner.</title>
-  <path d="M 30 10 L 70 10 L 90 30 L 90 85 A 5 5 0 0 1 85 90 L 15 90 A 5 5 0 0 1 10 85 L 10 30 Z M 44 24 A 6 6 0 1 1 56 24 A 6 6 0 1 1 44 24 Z" fill-rule="evenodd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="tag,price,label,sale,gift-tag,market,retail">
+  <title>Price or gift tag with a punched hole, string and a folded corner.</title>
+  <desc>Retail tag: rounded rectangle, hole, loop of string, dog-eared corner. Sales, markets, handmade goods, 'from:'. Hole uses evenodd. Body accent, corner paper, string ink.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 26 22 H 74 A 8 8 0 0 1 82 30 V 78 A 8 8 0 0 1 74 86 H 26 A 8 8 0 0 1 18 78 V 30 A 8 8 0 0 1 26 22 Z M 43 36 A 7 7 0 1 1 57 36 A 7 7 0 1 1 43 36 Z"/>
+  <path data-tone="paper" d="M 66 22 L 82 22 L 82 38 Z"/>
+  <path data-tone="ink" d="M 50 22 Q 42 8 50 4 Q 62 8 54 22 Z"/>
+  <path data-tone="accent2" d="M 32 52 H 68 A 2 2 0 0 1 70 54 V 58 A 2 2 0 0 1 68 60 H 32 A 2 2 0 0 1 30 58 V 54 A 2 2 0 0 1 32 52 Z M 32 66 H 56 A 2 2 0 0 1 58 68 V 70 A 2 2 0 0 1 56 72 H 32 A 2 2 0 0 1 30 70 V 68 A 2 2 0 0 1 32 66 Z"/>
 </svg>

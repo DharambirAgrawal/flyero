@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="chat,typing,dots,sms,message,im">
+  <title>A round message bubble with three typing dots.</title>
+  <desc>The 'someone is typing' bubble. Chat apps, SMS, community. Distinct from speech-bubble (which is rectangular). Body accent, dots paper, tail ink.</desc>
+  <path data-tone="accent" d="M 10 46 A 40 30 0 1 1 90 46 A 40 30 0 1 1 10 46 Z M 28 70 L 22 92 L 46 74 Z"/>
+  <path data-tone="paper" d="M 26 46 A 6 6 0 1 1 38 46 A 6 6 0 1 1 26 46 Z M 44 46 A 6 6 0 1 1 56 46 A 6 6 0 1 1 44 46 Z M 62 46 A 6 6 0 1 1 74 46 A 6 6 0 1 1 62 46 Z"/>
+</svg>

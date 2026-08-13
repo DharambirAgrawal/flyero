@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="baseball,ball,stitch,sport,pitch,mlb">
+  <title>A baseball with red stitching.</title>
+  <desc>A baseball. US sport, summer, 'play ball'. Ball paper, stitches accent, rim ink.</desc>
+  <path data-tone="paper" d="M 12 50 A 38 38 0 1 1 88 50 A 38 38 0 1 1 12 50 Z"/>
+  <path data-tone="accent" d="M 28 24 Q 50 40 72 24 Q 50 36 28 24 Z M 28 76 Q 50 60 72 76 Q 50 64 28 76 Z"/>
+  <path data-tone="ink" fill-rule="evenodd" d="M 12 50 A 38 38 0 1 1 88 50 A 38 38 0 1 1 12 50 Z M 18 50 A 32 32 0 1 1 82 50 A 32 32 0 1 1 18 50 Z"/>
+</svg>

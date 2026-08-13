@@ -45,10 +45,10 @@ const STOPWORDS = new Set([
  * automatically; a bad synonym pollutes every query that touches it.
  */
 export const SYNONYMS: Record<string, string[]> = {
-  birthday: ["celebration", "party"],
+  birthday: ["celebration", "party", "cake"],
   party: ["celebration"],
   celebrate: ["celebration"],
-  wedding: ["celebration"],
+  wedding: ["celebration", "flower"],
   anniversary: ["celebration"],
   festive: ["celebration"],
   holiday: ["celebration"],
@@ -58,9 +58,20 @@ export const SYNONYMS: Record<string, string[]> = {
   talk: ["communication", "speech"],
   chat: ["communication", "speech"],
   message: ["communication", "speech"],
-  travel: ["objects"],
-  drink: ["objects"],
-  food: ["objects"],
+  travel: ["objects", "plane", "suitcase"],
+  drink: ["objects", "coffee"],
+  food: ["objects", "cake"],
+  animal: ["animals"],
+  pet: ["animals", "dog", "cat"],
+  sport: ["sports"],
+  music: ["music", "guitar"],
+  work: ["objects", "laptop"],
+  home: ["house"],
+  fashion: ["fashion"],
+  bakery: ["cake", "cupcake", "cookie"],
+  coffee: ["coffee-cup"],
+  flight: ["plane", "travel"],
+  map: ["travel", "pin"],
 };
 
 function tokenize(text: string): string[] {

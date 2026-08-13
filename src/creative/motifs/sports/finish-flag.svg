@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="flag,finish,race,chequered,win,f1">
+  <title>A chequered racing flag on a pole.</title>
+  <desc>The finish / racing flag. Motorsport, wins, 'you're done'. Pole ink, checks accent and paper, tip accent2.</desc>
+  <path data-tone="ink" d="M 17 8 H 21 A 1 1 0 0 1 22 9 V 91 A 1 1 0 0 1 21 92 H 17 A 1 1 0 0 1 16 91 V 9 A 1 1 0 0 1 17 8 Z"/>
+  <path data-tone="accent" d="M 22 12 H 40 V 28 H 22 Z M 58 12 H 76 V 28 H 58 Z M 40 28 H 58 V 44 H 40 Z M 22 44 H 40 V 60 H 22 Z M 58 44 H 76 V 60 H 58 Z"/>
+  <path data-tone="paper" d="M 40 12 H 58 V 28 H 40 Z M 22 28 H 40 V 44 H 22 Z M 58 28 H 76 V 44 H 58 Z M 40 44 H 58 V 60 H 40 Z"/>
+</svg>

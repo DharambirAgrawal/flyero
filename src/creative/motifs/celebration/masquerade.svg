@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="mask,masquerade,carnival,theatre,venice,mystery">
+  <title>Masquerade eye-mask with a scrolled edge and a side ribbon.</title>
+  <desc>A carnival mask covering the eyes, two evenodd eye holes, a ribbon tail. Venetian parties, theatre, mystery, Halloween-adjacent. Mask accent, holes negative, scroll accent2, ribbon ink.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 8 42 Q 8 22 28 24 Q 50 16 72 24 Q 92 22 92 42 Q 92 62 70 64 Q 50 72 30 64 Q 8 62 8 42 Z M 32 44 A 10 8 0 1 1 32 44.1 Z M 68 44 A 10 8 0 1 1 68 44.1 Z"/>
+  <path data-tone="accent2" d="M 8 40 L 4 28 L 16 32 Z M 92 40 L 96 28 L 84 32 Z"/>
+  <path data-tone="ink" d="M 88 50 Q 98 62 90 80 Q 86 64 82 54 Z"/>
+</svg>

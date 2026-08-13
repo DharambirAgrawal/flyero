@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="fork,knife,cutlery,restaurant,menu,eat">
+  <title>A crossed fork and knife.</title>
+  <desc>Cutlery pair. Restaurants, menus, 'table's ready'. Fork accent, knife ink, handles paper.</desc>
+  <path data-tone="accent" d="M 30 8 H 34 A 2 2 0 0 1 36 10 V 90 A 2 2 0 0 1 34 92 H 30 A 2 2 0 0 1 28 90 V 10 A 2 2 0 0 1 30 8 Z M 23 8 H 25 A 1 1 0 0 1 26 9 V 29 A 1 1 0 0 1 25 30 H 23 A 1 1 0 0 1 22 29 V 9 A 1 1 0 0 1 23 8 Z M 33 8 H 35 A 1 1 0 0 1 36 9 V 29 A 1 1 0 0 1 35 30 H 33 A 1 1 0 0 1 32 29 V 9 A 1 1 0 0 1 33 8 Z M 39 8 H 41 A 1 1 0 0 1 42 9 V 29 A 1 1 0 0 1 41 30 H 39 A 1 1 0 0 1 38 29 V 9 A 1 1 0 0 1 39 8 Z"/>
+  <path data-tone="ink" d="M 58 10 L 78 10 L 72 88 L 62 88 Z"/>
+  <path data-tone="paper" d="M 27 70 H 37 A 3 3 0 0 1 40 73 V 89 A 3 3 0 0 1 37 92 H 27 A 3 3 0 0 1 24 89 V 73 A 3 3 0 0 1 27 70 Z M 63 70 H 71 A 3 3 0 0 1 74 73 V 89 A 3 3 0 0 1 71 92 H 63 A 3 3 0 0 1 60 89 V 73 A 3 3 0 0 1 63 70 Z"/>
+</svg>

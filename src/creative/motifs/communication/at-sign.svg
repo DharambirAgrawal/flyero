@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="at,email,mention,contact,social,address">
+  <title>The @ at-sign: a spiral inside a ring.</title>
+  <desc>Email / mention mark. Contact, social, newsletters. Ring accent, spiral ink, inner paper.</desc>
+  <path data-tone="accent" d="M 10 50 A 40 40 0 1 1 90 50 A 40 40 0 1 1 10 50 Z"/>
+  <path data-tone="paper" d="M 22 50 A 28 28 0 1 1 78 50 A 28 28 0 1 1 22 50 Z"/>
+  <path data-tone="ink" d="M 36 50 A 14 16 0 1 1 64 50 A 14 16 0 1 1 36 50 Z M 64 50 Q 64 22 50 22 Q 28 22 28 50 Q 28 78 50 78 Q 70 78 74 60 L 66 58 Q 64 70 50 70 Q 36 70 36 50 Q 36 30 50 30 Q 56 30 56 50 Z"/>
+</svg>

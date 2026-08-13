@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="horse,equine,stable,race,mane,ride">
+  <title>A horse head in profile with a mane and a muzzle.</title>
+  <desc>A horse. Stables, racing, 'wild'. Face accent, mane ink, blaze paper, muzzle muted.</desc>
+  <path data-tone="accent" d="M 20 48 A 22 28 0 1 1 64 48 A 22 28 0 1 1 20 48 Z M 42 68 L 78 78 L 82 64 L 54 58 Z"/>
+  <path data-tone="ink" d="M 28 28 L 18 8 L 40 24 L 36 48 Z"/>
+  <path data-tone="paper" d="M 41 36 H 43 A 3 3 0 0 1 46 39 V 61 A 3 3 0 0 1 43 64 H 41 A 3 3 0 0 1 38 61 V 39 A 3 3 0 0 1 41 36 Z"/>
+  <path data-tone="muted" d="M 68 72 A 10 8 0 1 1 88 72 A 10 8 0 1 1 68 72 Z"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="wind,breeze,air,weather,blow,gust">
+  <title>Three streaming wind lines, longer on top.</title>
+  <desc>A wind mark. Weather, 'fresh air', movement. Lines accent, tips paper, extra curl accent2.</desc>
+  <path data-tone="accent" d="M 8 32 H 70 Q 88 32 88 22 Q 88 12 74 14 L 74 22 Q 80 22 80 24 Q 80 28 70 28 H 8 Z"/>
+  <path data-tone="accent2" d="M 8 50 H 62 Q 80 50 80 40 Q 80 32 68 34 L 68 42 H 8 Z"/>
+  <path data-tone="paper" d="M 8 68 H 54 Q 70 68 70 60 Q 70 54 60 56 L 60 64 H 8 Z"/>
+</svg>

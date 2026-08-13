@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="puzzle,jigsaw,piece,fit,team,game">
+  <title>A jigsaw puzzle piece with a knob and two holes.</title>
+  <desc>One puzzle piece. Teamwork, fit, kids, 'it all fits'. Body accent, knob accent2, holes evenodd paper-coloured via negative, highlight paper.</desc>
+  <path data-tone="accent" d="M 18 38 H 38 Q 38 22 50 22 Q 62 22 62 38 H 82 V 58 Q 98 58 98 70 Q 98 82 82 82 V 90 H 62 Q 62 78 50 78 Q 38 78 38 90 H 18 V 70 Q 4 70 4 58 Q 4 46 18 46 Z"/>
+  <path data-tone="paper" d="M 26 42 A 6 8 0 1 1 38 42 A 6 8 0 1 1 26 42 Z"/>
+</svg>

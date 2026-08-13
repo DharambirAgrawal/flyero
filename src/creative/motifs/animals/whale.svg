@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="whale,ocean,marine,big,conservation,spout">
+  <title>A whale in profile with a tail fluke and a spout.</title>
+  <desc>A whale. Ocean, conservation, 'big', travel. Body accent, belly paper, tail accent2, spout muted.</desc>
+  <path data-tone="accent" d="M 10 56 A 36 20 0 1 1 82 56 A 36 20 0 1 1 10 56 Z M 78 56 L 96 36 L 92 64 Z"/>
+  <path data-tone="paper" d="M 22 64 A 24 10 0 1 1 70 64 A 24 10 0 1 1 22 64 Z"/>
+  <path data-tone="accent2" d="M 16 50 L 8 36 L 24 48 Z"/>
+  <path data-tone="muted" d="M 36 28 A 4 10 0 1 1 44 28 A 4 10 0 1 1 36 28 Z M 43 20 A 3 8 0 1 1 49 20 A 3 8 0 1 1 43 20 Z"/>
+</svg>

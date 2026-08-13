@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="tulip,spring,flower,garden,holland,bloom">
+  <title>Tulip bloom of three petals on a stem with one leaf.</title>
+  <desc>A single tulip. Spring, Netherlands, romance, gardens. Petals accent, inner petal accent2, stem ink, leaf paper.</desc>
+  <path data-tone="accent" d="M 50 18 L 78 48 L 50 58 L 22 48 Z"/>
+  <path data-tone="accent2" d="M 50 22 L 64 46 L 50 54 L 36 46 Z"/>
+  <path data-tone="ink" d="M 49 56 H 51 A 2 2 0 0 1 53 58 V 90 A 2 2 0 0 1 51 92 H 49 A 2 2 0 0 1 47 90 V 58 A 2 2 0 0 1 49 56 Z"/>
+  <path data-tone="paper" d="M 52 70 Q 78 62 80 80 Q 60 78 52 86 Z"/>
+</svg>

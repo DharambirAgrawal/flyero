@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="scissors,cut,craft,hair,stationery,snip">
+  <title>Open scissors with two loops and crossing blades.</title>
+  <desc>A pair of scissors. Craft, hair, 'cut', stationery. Blades accent, loops paper (evenodd), pivot ink.</desc>
+  <path data-tone="accent" d="M 20 78 L 70 18 L 78 26 L 28 86 Z M 20 22 L 70 82 L 78 74 L 28 14 Z"/>
+  <path data-tone="paper" fill-rule="evenodd" d="M 8 80 A 14 14 0 1 1 36 80 A 14 14 0 1 1 8 80 Z M 15 80 A 7 7 0 1 1 29 80 A 7 7 0 1 1 15 80 Z M 8 20 A 14 14 0 1 1 36 20 A 14 14 0 1 1 8 20 Z M 15 20 A 7 7 0 1 1 29 20 A 7 7 0 1 1 15 20 Z"/>
+  <path data-tone="ink" d="M 45 50 A 5 5 0 1 1 55 50 A 5 5 0 1 1 45 50 Z"/>
+</svg>

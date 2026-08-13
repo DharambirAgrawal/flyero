@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="postcard,mail,travel,stamp,hello,wish">
+  <title>A postcard with a stamp, a divider and address lines.</title>
+  <desc>The back of a postcard. Travel, mail, 'wish you were here'. Card paper, stamp accent, divider ink, lines muted.</desc>
+  <path data-tone="paper" d="M 12 22 H 88 A 4 4 0 0 1 92 26 V 74 A 4 4 0 0 1 88 78 H 12 A 4 4 0 0 1 8 74 V 26 A 4 4 0 0 1 12 22 Z"/>
+  <path data-tone="accent" d="M 64 28 H 82 A 2 2 0 0 1 84 30 V 44 A 2 2 0 0 1 82 46 H 64 A 2 2 0 0 1 62 44 V 30 A 2 2 0 0 1 64 28 Z"/>
+  <path data-tone="ink" d="M 49 28 H 51 A 1 1 0 0 1 52 29 V 71 A 1 1 0 0 1 51 72 H 49 A 1 1 0 0 1 48 71 V 29 A 1 1 0 0 1 49 28 Z"/>
+  <path data-tone="muted" d="M 15 48 H 41 A 1 1 0 0 1 42 49 V 50 A 1 1 0 0 1 41 51 H 15 A 1 1 0 0 1 14 50 V 49 A 1 1 0 0 1 15 48 Z M 15 56 H 41 A 1 1 0 0 1 42 57 V 58 A 1 1 0 0 1 41 59 H 15 A 1 1 0 0 1 14 58 V 57 A 1 1 0 0 1 15 56 Z M 15 64 H 35 A 1 1 0 0 1 36 65 V 66 A 1 1 0 0 1 35 67 H 15 A 1 1 0 0 1 14 66 V 65 A 1 1 0 0 1 15 64 Z"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="pinata,piñata,party,kids,star,mexico,tassel">
+  <title>Star-shaped piñata with hanging tassels.</title>
+  <desc>A festive piñata: star body, three tassels. Kids' parties, Mexican-inspired celebrations. Body accent, inner star paper, tassels accent2 and ink.</desc>
+  <path data-tone="accent" d="M 50 2 L 60.58 27.44 L 88.04 29.64 L 67.12 47.56 L 73.51 74.36 L 50 60 L 26.49 74.36 L 32.88 47.56 L 11.96 29.64 L 39.42 27.44 Z"/>
+  <path data-tone="paper" d="M 50 28 L 54.11 38.34 L 65.22 39.06 L 56.66 46.16 L 59.4 56.94 L 50 51 L 40.6 56.94 L 43.34 46.16 L 34.78 39.06 L 45.89 38.34 Z"/>
+  <path data-tone="accent2" d="M 38 70 H 40 A 2 2 0 0 1 42 72 V 90 A 2 2 0 0 1 40 92 H 38 A 2 2 0 0 1 36 90 V 72 A 2 2 0 0 1 38 70 Z M 60 70 H 62 A 2 2 0 0 1 64 72 V 90 A 2 2 0 0 1 62 92 H 60 A 2 2 0 0 1 58 90 V 72 A 2 2 0 0 1 60 70 Z"/>
+  <path data-tone="ink" d="M 49 68 H 51 A 2 2 0 0 1 53 70 V 92 A 2 2 0 0 1 51 94 H 49 A 2 2 0 0 1 47 92 V 70 A 2 2 0 0 1 49 68 Z"/>
+</svg>

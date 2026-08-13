@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Artist palette: an oval body, a thumbhole, and four paint-daub holes.</title>
-  <path d="M 4 46 A 44 38 0 1 1 92 46 A 44 38 0 1 1 4 46 Z M 61 74 A 9 8 0 1 1 79 74 A 9 8 0 1 1 61 74 Z M 20 30 A 6 6 0 1 1 32 30 A 6 6 0 1 1 20 30 Z M 40 18 A 6 6 0 1 1 52 18 A 6 6 0 1 1 40 18 Z M 60 28 A 6 6 0 1 1 72 28 A 6 6 0 1 1 60 28 Z M 72 50 A 6 6 0 1 1 84 50 A 6 6 0 1 1 72 50 Z" fill-rule="evenodd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="palette,paint,art,artist,colour,design,studio">
+  <title>Painter's palette with a thumb hole and four paint wells.</title>
+  <desc>An artist's kidney palette: body, thumb hole (evenodd), four colour blobs. Design, art school, 'make it yours'. Body accent, hole negative, paints ink / accent2 / paper / muted.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 8 50 A 40 32 0 1 1 88 50 A 40 32 0 1 1 8 50 Z M 12 58 A 10 10 0 1 1 32 58 A 10 10 0 1 1 12 58 Z"/>
+  <path data-tone="ink" d="M 33 32 A 7 7 0 1 1 47 32 A 7 7 0 1 1 33 32 Z"/>
+  <path data-tone="accent2" d="M 55 30 A 7 7 0 1 1 69 30 A 7 7 0 1 1 55 30 Z"/>
+  <path data-tone="paper" d="M 65 50 A 7 7 0 1 1 79 50 A 7 7 0 1 1 65 50 Z"/>
+  <path data-tone="muted" d="M 51 68 A 7 7 0 1 1 65 68 A 7 7 0 1 1 51 68 Z"/>
 </svg>

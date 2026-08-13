@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="vine,leaf,wine,garden,curl,botanical,frame">
+  <title>A curling vine with three leaves along the spiral.</title>
+  <desc>A decorative vine coil. Frames, wine, gardens, 'growth'. Stem ink, leaves accent, tendril paper.</desc>
+  <path data-tone="ink" d="M 16 80 Q 16 20 50 20 Q 84 20 84 50 Q 84 72 64 72 Q 50 72 50 58 Z"/>
+  <path data-tone="accent" d="M 18 36 A 10 14 0 1 1 38 36 A 10 14 0 1 1 18 36 Z M 38 18 A 12 10 0 1 1 62 18 A 12 10 0 1 1 38 18 Z M 68 40 A 10 14 0 1 1 88 40 A 10 14 0 1 1 68 40 Z"/>
+  <path data-tone="paper" d="M 56 62 A 8 10 0 1 1 72 62 A 8 10 0 1 1 56 62 Z"/>
+</svg>

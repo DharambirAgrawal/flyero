@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Single curved leaf silhouette, pointed tip.</title>
-  <path d="M 90 10 C 90 60 57 93 10 90 C 10 40 43 7 90 10 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="leaf,plant,eco,nature,growth,botanical,green">
+  <title>Simple leaf with a curved blade, a midrib and a short stem.</title>
+  <desc>Botanical leaf: teardrop blade, centre vein, tiny stem. Eco, food, wellness, growth, florists. Not maple-leaf or oak-leaf or fern — those are distinct species. Blade accent, vein paper, stem ink.</desc>
+  <path data-tone="accent" d="M 50 8 Q 88 40 50 92 Q 12 40 50 8 Z"/>
+  <path data-tone="paper" d="M 50 18 L 50 82 L 54 82 L 54 18 Z"/>
+  <path data-tone="ink" d="M 50 92 L 46 100 L 54 100 Z"/>
 </svg>

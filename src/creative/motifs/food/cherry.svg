@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="cherry,fruit,pair,dessert,cocktail,red">
+  <title>A pair of cherries on joined stems.</title>
+  <desc>Two cherries. Desserts, cocktails, 'the cherry on top'. Fruit accent, stems ink, highlights paper, leaf accent2.</desc>
+  <path data-tone="accent" d="M 16 68 A 18 18 0 1 1 52 68 A 18 18 0 1 1 16 68 Z M 50 72 A 16 16 0 1 1 82 72 A 16 16 0 1 1 50 72 Z"/>
+  <path data-tone="ink" d="M 34 52 Q 50 12 66 58 L 62 58 Q 50 22 36 52 Z"/>
+  <path data-tone="paper" d="M 23 62 A 5 6 0 1 1 33 62 A 5 6 0 1 1 23 62 Z M 56 66 A 4 5 0 1 1 64 66 A 4 5 0 1 1 56 66 Z"/>
+  <path data-tone="accent2" d="M 46 18 A 10 6 0 1 1 66 18 A 10 6 0 1 1 46 18 Z"/>
+</svg>

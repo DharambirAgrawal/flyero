@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="dice,die,game,chance,luck,pips">
+  <title>A six-sided die showing five pips in perspective.</title>
+  <desc>A die. Games, chance, 'roll the dice', nightlife. Body accent, pips ink, top face paper, side accent2.</desc>
+  <path data-tone="accent" d="M 20 38 L 50 22 L 80 38 L 80 78 L 50 94 L 20 78 Z"/>
+  <path data-tone="paper" d="M 20 38 L 50 22 L 80 38 L 50 54 Z"/>
+  <path data-tone="accent2" d="M 50 54 L 80 38 L 80 78 L 50 94 Z"/>
+  <path data-tone="ink" d="M 46 40 A 4 4 0 1 1 54 40 A 4 4 0 1 1 46 40 Z M 32 66 A 4 4 0 1 1 40 66 A 4 4 0 1 1 32 66 Z M 46 70 A 4 4 0 1 1 54 70 A 4 4 0 1 1 46 70 Z M 60 66 A 4 4 0 1 1 68 66 A 4 4 0 1 1 60 66 Z M 47 54 A 3 3 0 1 1 53 54 A 3 3 0 1 1 47 54 Z"/>
+</svg>

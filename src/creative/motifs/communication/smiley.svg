@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Face with two eyes and a curved mouth, cut through as holes.</title>
-  <path d="M 4 50 A 46 46 0 1 1 96 50 A 46 46 0 1 1 4 50 Z M 28 40 A 6 6 0 1 1 40 40 A 6 6 0 1 1 28 40 Z M 60 40 A 6 6 0 1 1 72 40 A 6 6 0 1 1 60 40 Z M 30 58 Q 50 80 70 58 Q 50 68 30 58 Z" fill-rule="evenodd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="smiley,smile,face,happy,emoji,joy,friendly">
+  <title>Classic smiley: disc face, two eyes and a wide smile.</title>
+  <desc>A round smiling face. Joy, friendliness, stickers, kawaii. Not a wink and not a laugh — those are separate. Face accent, eyes ink, smile paper (the mouth is a cut crescent via evenodd on an ink layer).</desc>
+  <path data-tone="accent" d="M 10 50 A 40 40 0 1 1 90 50 A 40 40 0 1 1 10 50 Z"/>
+  <path data-tone="paper" d="M 16 50 A 34 34 0 1 1 84 50 A 34 34 0 1 1 16 50 Z"/>
+  <path data-tone="ink" d="M 30 42 A 6 6 0 1 1 42 42 A 6 6 0 1 1 30 42 Z M 58 42 A 6 6 0 1 1 70 42 A 6 6 0 1 1 58 42 Z M 28 58 Q 50 78 72 58 Q 50 70 28 58 Z"/>
 </svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="key,unlock,access,security,skeleton,door">
+  <title>A skeleton key with a ring bow, a shaft and a bit.</title>
+  <desc>An old-fashioned key. Access, unlock, security, 'the key to'. Bow paper (evenodd hole), shaft accent, bit ink.</desc>
+  <path data-tone="paper" fill-rule="evenodd" d="M 10 50 A 18 18 0 1 1 46 50 A 18 18 0 1 1 10 50 Z M 20 50 A 8 8 0 1 1 36 50 A 8 8 0 1 1 20 50 Z"/>
+  <path data-tone="accent" d="M 44 46 H 88 A 2 2 0 0 1 90 48 V 52 A 2 2 0 0 1 88 54 H 44 A 2 2 0 0 1 42 52 V 48 A 2 2 0 0 1 44 46 Z"/>
+  <path data-tone="ink" d="M 80 46 H 90 A 2 2 0 0 1 92 48 V 68 A 2 2 0 0 1 90 70 H 80 A 2 2 0 0 1 78 68 V 48 A 2 2 0 0 1 80 46 Z M 71 54 H 77 A 1 1 0 0 1 78 55 V 61 A 1 1 0 0 1 77 62 H 71 A 1 1 0 0 1 70 61 V 55 A 1 1 0 0 1 71 54 Z"/>
+</svg>

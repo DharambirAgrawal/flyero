@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="paperclip,office,attach,clip,stationery">
+  <title>A paperclip of two nested loops.</title>
+  <desc>A paperclip. Office, attach, 'don't forget'. Body accent, inner loop paper, highlight muted.</desc>
+  <path data-tone="accent" d="M 38 16 V 72 Q 38 88 50 88 Q 70 88 70 68 V 28 Q 70 16 60 16 Q 52 16 52 26 V 64 Q 52 72 50 72 Q 46 72 46 64 V 16 Z"/>
+  <path data-tone="paper" d="M 50 22 H 50 A 2 2 0 0 1 52 24 V 60 A 2 2 0 0 1 50 62 H 50 A 2 2 0 0 1 48 60 V 24 A 2 2 0 0 1 50 22 Z"/>
+</svg>

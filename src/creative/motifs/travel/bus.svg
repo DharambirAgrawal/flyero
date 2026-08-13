@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bus,transit,tour,city,school,coach">
+  <title>A city bus with a stripe, three windows and two wheels.</title>
+  <desc>A bus. Transit, tours, school, cities. Body accent, stripe paper, windows ink, wheels muted.</desc>
+  <path data-tone="accent" d="M 14 28 H 86 A 8 8 0 0 1 94 36 V 68 A 8 8 0 0 1 86 76 H 14 A 8 8 0 0 1 6 68 V 36 A 8 8 0 0 1 14 28 Z"/>
+  <path data-tone="paper" d="M 6 48 H 94 V 58 H 6 Z"/>
+  <path data-tone="ink" d="M 18 34 H 30 A 2 2 0 0 1 32 36 V 44 A 2 2 0 0 1 30 46 H 18 A 2 2 0 0 1 16 44 V 36 A 2 2 0 0 1 18 34 Z M 42 34 H 54 A 2 2 0 0 1 56 36 V 44 A 2 2 0 0 1 54 46 H 42 A 2 2 0 0 1 40 44 V 36 A 2 2 0 0 1 42 34 Z M 66 34 H 78 A 2 2 0 0 1 80 36 V 44 A 2 2 0 0 1 78 46 H 66 A 2 2 0 0 1 64 44 V 36 A 2 2 0 0 1 66 34 Z"/>
+  <path data-tone="muted" d="M 16 80 A 10 10 0 1 1 36 80 A 10 10 0 1 1 16 80 Z M 64 80 A 10 10 0 1 1 84 80 A 10 10 0 1 1 64 80 Z"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="drum,snare,beat,band,rhythm,percussion">
+  <title>A snare drum with a batter head and two lugs.</title>
+  <desc>A drum. Bands, rhythm, parades, 'beat'. Shell accent, head paper, lugs ink, stripe accent2.</desc>
+  <path data-tone="accent" d="M 20 38 H 80 A 4 4 0 0 1 84 42 V 74 A 4 4 0 0 1 80 78 H 20 A 4 4 0 0 1 16 74 V 42 A 4 4 0 0 1 20 38 Z"/>
+  <path data-tone="paper" d="M 16 38 A 34 12 0 1 1 84 38 A 34 12 0 1 1 16 38 Z"/>
+  <path data-tone="accent2" d="M 16 54 H 84 V 62 H 16 Z"/>
+  <path data-tone="ink" d="M 23 38 H 27 A 1 1 0 0 1 28 39 V 77 A 1 1 0 0 1 27 78 H 23 A 1 1 0 0 1 22 77 V 39 A 1 1 0 0 1 23 38 Z M 73 38 H 77 A 1 1 0 0 1 78 39 V 77 A 1 1 0 0 1 77 78 H 73 A 1 1 0 0 1 72 77 V 39 A 1 1 0 0 1 73 38 Z"/>
+</svg>

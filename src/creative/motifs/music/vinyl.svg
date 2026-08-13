@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="vinyl,record,lp,dj,music,retro">
+  <title>A vinyl record with a label and a centre hole.</title>
+  <desc>An LP. Music, DJs, retro, 'on the turntable'. Disc ink, grooves muted, label accent, hole paper.</desc>
+  <path data-tone="ink" d="M 8 50 A 42 42 0 1 1 92 50 A 42 42 0 1 1 8 50 Z"/>
+  <path data-tone="muted" fill-rule="evenodd" d="M 16 50 A 34 34 0 1 1 84 50 A 34 34 0 1 1 16 50 Z M 22 50 A 28 28 0 1 1 78 50 A 28 28 0 1 1 22 50 Z"/>
+  <path data-tone="accent" d="M 34 50 A 16 16 0 1 1 66 50 A 16 16 0 1 1 34 50 Z"/>
+  <path data-tone="paper" d="M 45 50 A 5 5 0 1 1 55 50 A 5 5 0 1 1 45 50 Z"/>
+</svg>

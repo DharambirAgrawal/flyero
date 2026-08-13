@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="snowflake,winter,snow,cold,holiday,ice">
+  <title>Six-armed snowflake with forked tips.</title>
+  <desc>A symmetric snowflake. Winter, holidays, cold, 'unique'. Arms accent, hub paper, tips accent2.</desc>
+  <path data-tone="accent" d="M 50 50 L 77.13 43.07 L 92 50 L 77.13 56.93 Z M 50 50 L 69.56 70.03 L 71 86.37 L 57.57 76.96 Z M 50 50 L 42.43 76.96 L 29 86.37 L 30.44 70.03 Z M 50 50 L 22.87 56.93 L 8 50 L 22.87 43.07 Z M 50 50 L 30.44 29.97 L 29 13.63 L 42.43 23.04 Z M 50 50 L 57.57 23.04 L 71 13.63 L 69.56 29.97 Z"/>
+  <path data-tone="paper" d="M 42 50 A 8 8 0 1 1 58 50 A 8 8 0 1 1 42 50 Z"/>
+</svg>

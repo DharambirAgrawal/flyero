@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Rounded rect plus a tail — a speech/chat bubble.</title>
-  <path d="M 23 8 H 77 A 18 18 0 0 1 95 26 V 54 A 18 18 0 0 1 77 72 H 23 A 18 18 0 0 1 5 54 V 26 A 18 18 0 0 1 23 8 Z M 25 70 L 45 70 L 18 96 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="speech,chat,bubble,talk,quote,message,testimonial">
+  <title>Rounded chat bubble with a tail and three inner dots.</title>
+  <desc>A talk balloon: rounded rectangle, triangular tail, three dots inside. Chat products, testimonials, quotes, community. Pair a second bubble (chat-dots or a word part) for a conversation. Body accent, dots paper, tail accent.</desc>
+  <path data-tone="accent" d="M 26 10 H 74 A 16 16 0 0 1 90 26 V 52 A 16 16 0 0 1 74 68 H 26 A 16 16 0 0 1 10 52 V 26 A 16 16 0 0 1 26 10 Z M 22 66 L 40 66 L 16 92 Z"/>
+  <path data-tone="paper" d="M 27 38 A 5 5 0 1 1 37 38 A 5 5 0 1 1 27 38 Z M 45 38 A 5 5 0 1 1 55 38 A 5 5 0 1 1 45 38 Z M 63 38 A 5 5 0 1 1 73 38 A 5 5 0 1 1 63 38 Z"/>
 </svg>

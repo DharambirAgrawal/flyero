@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="popper,party,confetti,surprise,new-year,cannon">
+  <title>Party popper cannon with a burst of streamers from the mouth.</title>
+  <desc>A cracked popper: cone body, ring mouth, three streamers flying out. New year, surprise, launches. Body accent, mouth paper, streamers accent2 and ink.</desc>
+  <path data-tone="accent" d="M 18 70 L 58 28 L 70 40 L 30 82 Z"/>
+  <path data-tone="paper" d="M 54 32 A 10 8 0 1 1 74 32 A 10 8 0 1 1 54 32 Z"/>
+  <path data-tone="accent2" d="M 70 28 Q 86 12 92 8 Q 88 22 74 34 Z M 72 36 Q 94 32 98 28 Q 90 44 70 42 Z"/>
+  <path data-tone="ink" d="M 68 40 Q 88 54 96 62 Q 80 54 66 44 Z"/>
+</svg>

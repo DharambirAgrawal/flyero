@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="butterfly,wings,spring,garden,insect,transform">
+  <title>Butterfly with four wings, a body and spotted inners.</title>
+  <desc>A butterfly, wings spread. Spring, gardens, transformation, kids. Wings accent, inners paper, body ink, spots accent2.</desc>
+  <path data-tone="accent" d="M 8 38 A 20 24 0 1 1 48 38 A 20 24 0 1 1 8 38 Z M 52 38 A 20 24 0 1 1 92 38 A 20 24 0 1 1 52 38 Z M 14 68 A 16 16 0 1 1 46 68 A 16 16 0 1 1 14 68 Z M 54 68 A 16 16 0 1 1 86 68 A 16 16 0 1 1 54 68 Z"/>
+  <path data-tone="paper" d="M 18 38 A 10 12 0 1 1 38 38 A 10 12 0 1 1 18 38 Z M 62 38 A 10 12 0 1 1 82 38 A 10 12 0 1 1 62 38 Z"/>
+  <path data-tone="ink" d="M 44 52 A 6 28 0 1 1 56 52 A 6 28 0 1 1 44 52 Z M 45 22 A 5 5 0 1 1 55 22 A 5 5 0 1 1 45 22 Z"/>
+  <path data-tone="accent2" d="M 20 36 A 4 4 0 1 1 28 36 A 4 4 0 1 1 20 36 Z M 72 36 A 4 4 0 1 1 80 36 A 4 4 0 1 1 72 36 Z"/>
+</svg>

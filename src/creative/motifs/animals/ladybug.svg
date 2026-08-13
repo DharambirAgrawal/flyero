@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="ladybug,ladybird,beetle,garden,luck,spots">
+  <title>A ladybird with a spotted shell and a tiny head.</title>
+  <desc>A ladybug. Gardens, luck, kids, spring. Shell accent, spots ink, head muted, highlight paper.</desc>
+  <path data-tone="accent" d="M 26 54 A 28 26 0 1 1 82 54 A 28 26 0 1 1 26 54 Z"/>
+  <path data-tone="ink" d="M 35 44 A 5 5 0 1 1 45 44 A 5 5 0 1 1 35 44 Z M 57 42 A 5 5 0 1 1 67 42 A 5 5 0 1 1 57 42 Z M 53 64 A 5 5 0 1 1 63 64 A 5 5 0 1 1 53 64 Z M 38 66 A 4 4 0 1 1 46 66 A 4 4 0 1 1 38 66 Z M 53 32 H 55 A 1 1 0 0 1 56 33 V 71 A 1 1 0 0 1 55 72 H 53 A 1 1 0 0 1 52 71 V 33 A 1 1 0 0 1 53 32 Z"/>
+  <path data-tone="muted" d="M 18 48 A 10 10 0 1 1 38 48 A 10 10 0 1 1 18 48 Z"/>
+  <path data-tone="paper" d="M 38 42 A 6 5 0 1 1 50 42 A 6 5 0 1 1 38 42 Z"/>
+</svg>

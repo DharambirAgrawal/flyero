@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="envelope,mail,letter,invite,post,message">
+  <title>Closed envelope with a triangular flap and a heart seal.</title>
+  <desc>A letter envelope. Mail, invites, newsletters, 'you've got mail'. Body accent, flap accent2, seal paper, edge ink.</desc>
+  <path data-tone="accent" d="M 14 28 H 86 A 4 4 0 0 1 90 32 V 76 A 4 4 0 0 1 86 80 H 14 A 4 4 0 0 1 10 76 V 32 A 4 4 0 0 1 14 28 Z"/>
+  <path data-tone="accent2" d="M 10 28 L 50 58 L 90 28 Z"/>
+  <path data-tone="paper" d="M 42 52 A 8 8 0 1 1 58 52 A 8 8 0 1 1 42 52 Z"/>
+  <path data-tone="ink" d="M 10 28 L 50 58 L 90 28 L 90 34 L 50 64 L 10 34 Z"/>
+</svg>

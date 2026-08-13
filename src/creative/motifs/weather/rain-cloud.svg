@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="rain,cloud,weather,storm,drops,wet">
+  <title>A cloud shedding three raindrops.</title>
+  <desc>Rain weather. Forecasts, umbrellas, 'bring a coat'. Distinct from the dry cloud. Cloud paper, rain accent, darker belly muted.</desc>
+  <path data-tone="paper" d="M 16 36 A 16 16 0 1 1 48 36 A 16 16 0 1 1 16 36 Z M 30 28 A 20 20 0 1 1 70 28 A 20 20 0 1 1 30 28 Z M 54 38 A 16 16 0 1 1 86 38 A 16 16 0 1 1 54 38 Z M 28 36 H 72 A 8 8 0 0 1 80 44 V 46 A 8 8 0 0 1 72 54 H 28 A 8 8 0 0 1 20 46 V 44 A 8 8 0 0 1 28 36 Z"/>
+  <path data-tone="muted" d="M 22 50 A 28 6 0 1 1 78 50 A 28 6 0 1 1 22 50 Z"/>
+  <path data-tone="accent" d="M 28 62 L 22 82 L 34 62 Z M 50 64 L 44 88 L 56 64 Z M 70 62 L 64 82 L 76 62 Z"/>
+</svg>

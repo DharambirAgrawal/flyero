@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="turtle,shell,slow,ocean,pond,reptile">
+  <title>A turtle with a patterned shell, a head and flippers.</title>
+  <desc>A turtle. Slow, ocean or pond, longevity. Shell accent, scutes paper, head ink, flippers accent2.</desc>
+  <path data-tone="accent" d="M 18 52 A 32 24 0 1 1 82 52 A 32 24 0 1 1 18 52 Z"/>
+  <path data-tone="paper" d="M 42 52 A 8 8 0 1 1 58 52 A 8 8 0 1 1 42 52 Z M 28 48 A 6 6 0 1 1 40 48 A 6 6 0 1 1 28 48 Z M 60 48 A 6 6 0 1 1 72 48 A 6 6 0 1 1 60 48 Z M 34 64 A 6 6 0 1 1 46 64 A 6 6 0 1 1 34 64 Z M 54 64 A 6 6 0 1 1 66 64 A 6 6 0 1 1 54 64 Z"/>
+  <path data-tone="ink" d="M 12 52 A 10 8 0 1 1 32 52 A 10 8 0 1 1 12 52 Z"/>
+  <path data-tone="accent2" d="M 16 70 A 12 6 0 1 1 40 70 A 12 6 0 1 1 16 70 Z M 60 70 A 12 6 0 1 1 84 70 A 12 6 0 1 1 60 70 Z M 68 52 A 10 6 0 1 1 88 52 A 10 6 0 1 1 68 52 Z"/>
+</svg>

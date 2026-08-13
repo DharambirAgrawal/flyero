@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Angular lightning bolt.</title>
-  <path d="M 58 2 L 18 54 L 42 54 L 34 98 L 84 40 L 56 40 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="lightning,bolt,energy,storm,flash,speed,power">
+  <title>Jagged lightning bolt with a highlight edge.</title>
+  <desc>A thunderbolt: classic zigzag. Energy, speed, storms, sales 'flash'. Weather or power, not a generic 'AI' decoration. Body accent, inner highlight paper.</desc>
+  <path data-tone="accent" d="M 58 4 L 28 48 L 46 48 L 36 96 L 78 40 L 56 40 Z"/>
+  <path data-tone="paper" d="M 54 12 L 36 46 L 48 46 L 44 72 L 66 42 L 52 42 Z"/>
 </svg>

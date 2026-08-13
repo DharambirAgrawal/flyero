@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="hat,brim,fedora,fashion,summer,cap">
+  <title>A brimmed hat with a band.</title>
+  <desc>A sun / fedora-ish hat. Fashion, summer, 'tip of the hat'. Crown accent, brim muted, band paper, dent ink.</desc>
+  <path data-tone="muted" d="M 8 68 A 42 12 0 1 1 92 68 A 42 12 0 1 1 8 68 Z"/>
+  <path data-tone="accent" d="M 26 44 A 24 22 0 1 1 74 44 A 24 22 0 1 1 26 44 Z"/>
+  <path data-tone="paper" d="M 30 52 H 70 A 2 2 0 0 1 72 54 V 58 A 2 2 0 0 1 70 60 H 30 A 2 2 0 0 1 28 58 V 54 A 2 2 0 0 1 30 52 Z"/>
+  <path data-tone="ink" d="M 40 36 A 10 6 0 1 1 60 36 A 10 6 0 1 1 40 36 Z"/>
+</svg>

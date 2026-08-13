@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="pretzel,bakery,knot,salt,german,snack">
+  <title>A knotted pretzel with three salt dots.</title>
+  <desc>A pretzel. Bakeries, German food, snacks, stadiums. Body accent, holes paper (evenodd), salt paper, shine muted.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 20 60 Q 12 28 36 22 Q 50 18 50 36 Q 50 18 64 22 Q 88 28 80 60 Q 72 84 50 78 Q 28 84 20 60 Z M 38 58 A 8 8 0 1 1 38 58.1 Z M 62 58 A 8 8 0 1 1 62 58.1 Z"/>
+  <path data-tone="paper" d="M 33 40 A 3 3 0 1 1 39 40 A 3 3 0 1 1 33 40 Z M 47 32 A 3 3 0 1 1 53 32 A 3 3 0 1 1 47 32 Z M 61 40 A 3 3 0 1 1 67 40 A 3 3 0 1 1 61 40 Z"/>
+</svg>

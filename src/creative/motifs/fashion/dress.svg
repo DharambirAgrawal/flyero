@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="dress,fashion,gown,outfit,wear,event">
+  <title>A sleeveless dress on a simple form.</title>
+  <desc>A dress. Fashion, events, 'the outfit'. Bodice accent, skirt accent2, waist paper, hem ink.</desc>
+  <path data-tone="accent" d="M 38 12 L 62 12 L 66 42 L 34 42 Z"/>
+  <path data-tone="paper" d="M 44 40 H 56 A 2 2 0 0 1 58 42 V 46 A 2 2 0 0 1 56 48 H 44 A 2 2 0 0 1 42 46 V 42 A 2 2 0 0 1 44 40 Z"/>
+  <path data-tone="accent2" d="M 34 46 L 66 46 L 82 90 L 18 90 Z"/>
+  <path data-tone="ink" d="M 22 86 H 78 A 2 2 0 0 1 80 88 V 90 A 2 2 0 0 1 78 92 H 22 A 2 2 0 0 1 20 90 V 88 A 2 2 0 0 1 22 86 Z"/>
+</svg>

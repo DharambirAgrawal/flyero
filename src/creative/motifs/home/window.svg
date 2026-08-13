@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="window,pane,glass,view,light,home">
+  <title>A four-pane window with a frame and a sill.</title>
+  <desc>A window. Light, views, 'open up', architecture. Frame accent, panes paper, cross ink, sill muted.</desc>
+  <path data-tone="accent" d="M 20 12 H 80 A 4 4 0 0 1 84 16 V 76 A 4 4 0 0 1 80 80 H 20 A 4 4 0 0 1 16 76 V 16 A 4 4 0 0 1 20 12 Z"/>
+  <path data-tone="paper" d="M 23 18 H 47 A 1 1 0 0 1 48 19 V 43 A 1 1 0 0 1 47 44 H 23 A 1 1 0 0 1 22 43 V 19 A 1 1 0 0 1 23 18 Z M 53 18 H 77 A 1 1 0 0 1 78 19 V 43 A 1 1 0 0 1 77 44 H 53 A 1 1 0 0 1 52 43 V 19 A 1 1 0 0 1 53 18 Z M 23 48 H 47 A 1 1 0 0 1 48 49 V 73 A 1 1 0 0 1 47 74 H 23 A 1 1 0 0 1 22 73 V 49 A 1 1 0 0 1 23 48 Z M 53 48 H 77 A 1 1 0 0 1 78 49 V 73 A 1 1 0 0 1 77 74 H 53 A 1 1 0 0 1 52 73 V 49 A 1 1 0 0 1 53 48 Z"/>
+  <path data-tone="ink" d="M 46 18 H 54 V 74 H 46 Z M 22 44 H 78 V 52 H 22 Z"/>
+  <path data-tone="muted" d="M 14 78 H 86 A 2 2 0 0 1 88 80 V 86 A 2 2 0 0 1 86 88 H 14 A 2 2 0 0 1 12 86 V 80 A 2 2 0 0 1 14 78 Z"/>
+</svg>

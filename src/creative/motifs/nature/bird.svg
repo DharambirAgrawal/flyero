@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bird,songbird,wing,nature,freedom,morning">
+  <title>A small bird in profile, facing right, with a wing and beak.</title>
+  <desc>A simple songbird. Nature, freedom, morning, parks. Not a plane. Body accent, wing accent2, belly paper, beak ink.</desc>
+  <path data-tone="accent" d="M 20 52 A 28 20 0 1 1 76 52 A 28 20 0 1 1 20 52 Z M 60 42 A 12 12 0 1 1 84 42 A 12 12 0 1 1 60 42 Z"/>
+  <path data-tone="accent2" d="M 26 56 A 16 10 0 1 1 58 56 A 16 10 0 1 1 26 56 Z"/>
+  <path data-tone="paper" d="M 38 62 A 14 8 0 1 1 66 62 A 14 8 0 1 1 38 62 Z"/>
+  <path data-tone="ink" d="M 82 42 L 96 46 L 82 50 Z M 73 40 A 3 3 0 1 1 79 40 A 3 3 0 1 1 73 40 Z"/>
+</svg>

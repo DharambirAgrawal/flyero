@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Two lobes meeting at a point — the classic silhouette.</title>
-  <path d="M 50 88 C 20 65 5 45 5 28 C 5 10 25 2 50 20 C 75 2 95 10 95 28 C 95 45 80 65 50 88 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="heart,love,romance,health,like,charity">
+  <title>Classic heart with a highlight on the left lobe.</title>
+  <desc>A love heart: two lobes and a point, plus a paper highlight. Romance, health, 'we heart X', charities. Not a medical cross. Body accent, highlight paper, point shade muted.</desc>
+  <path data-tone="accent" d="M 50 88 Q 12 56 20 32 Q 26 16 42 20 Q 50 24 50 32 Q 50 24 58 20 Q 74 16 80 32 Q 88 56 50 88 Z"/>
+  <path data-tone="paper" d="M 28 34 A 8 10 0 1 1 44 34 A 8 10 0 1 1 28 34 Z"/>
 </svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="plant,pot,houseplant,indoor,green,office">
+  <title>A potted plant with three leaves in a tapered pot.</title>
+  <desc>A houseplant. Interiors, offices, 'grow'. Pot accent, soil ink, leaves paper and accent2.</desc>
+  <path data-tone="accent" d="M 28 52 L 72 52 L 66 88 L 34 88 Z"/>
+  <path data-tone="ink" d="M 30 48 H 70 A 2 2 0 0 1 72 50 V 54 A 2 2 0 0 1 70 56 H 30 A 2 2 0 0 1 28 54 V 50 A 2 2 0 0 1 30 48 Z"/>
+  <path data-tone="paper" d="M 24 32 A 12 18 0 1 1 48 32 A 12 18 0 1 1 24 32 Z M 52 30 A 12 18 0 1 1 76 30 A 12 18 0 1 1 52 30 Z"/>
+  <path data-tone="accent2" d="M 36 22 A 14 20 0 1 1 64 22 A 14 20 0 1 1 36 22 Z"/>
+</svg>

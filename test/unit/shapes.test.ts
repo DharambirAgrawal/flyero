@@ -308,8 +308,22 @@ describe("motifs", () => {
     // motif with no <title> defeats that, silently, for every future author.
     for (const name of MOTIF_NAMES) {
       expect(MOTIFS[name].title, `${name} has no <title>`).toBeTruthy();
+      expect(MOTIFS[name].title!.length, `${name} title is too short`).toBeGreaterThan(12);
+      expect(MOTIFS[name].desc, `${name} has no <desc>`).toBeTruthy();
+      expect(MOTIFS[name].desc!.length, `${name} desc is too short to search`).toBeGreaterThan(40);
+      expect(MOTIFS[name].tags?.length, `${name} has no data-tags`).toBeGreaterThanOrEqual(3);
       expect(MOTIFS[name].category, `${name} is not in a subfolder`).toBeTruthy();
     }
+  });
+
+  it("the library is large enough that guessing ids is the wrong move", () => {
+    expect(MOTIF_NAMES.length).toBeGreaterThanOrEqual(200);
+  });
+
+  it("most filled motifs are multi-layer so they recolour in more than one slot", () => {
+    const filled = MOTIF_NAMES.filter((n) => !MOTIFS[n]!.stroke);
+    const layered = filled.filter((n) => (MOTIFS[n]!.layers?.length ?? 0) >= 2);
+    expect(layered.length / filled.length).toBeGreaterThan(0.8);
   });
 
   it("the real balloon-bunch motif is a genuine multi-layer demo", () => {
@@ -347,6 +361,7 @@ describe("multi-colour motifs (data-tone layers)", () => {
         "two-tone.svg",
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
           <title>Two-tone test shape</title>
+          <desc>A fixture shape for testing layer parsing, nothing more.</desc>
           <path data-tone="accent" d="M 10 10 L 40 10 L 40 40 Z"/>
           <path data-tone="ink" d="M 60 60 L 90 60 L 90 90 Z"/>
         </svg>`,
@@ -372,6 +387,7 @@ describe("multi-colour motifs (data-tone layers)", () => {
         "shared.svg",
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
           <title>Shared tone test</title>
+          <desc>A fixture shape for testing layer parsing, nothing more.</desc>
           <path data-tone="ink" d="M 1 1 L 2 2 Z"/>
           <path data-tone="ink" d="M 3 3 L 4 4 Z"/>
           <path data-tone="accent" d="M 5 5 L 6 6 Z"/>
@@ -394,10 +410,43 @@ describe("multi-colour motifs (data-tone layers)", () => {
         "plain.svg",
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
           <title>Plain</title>
+          <desc>A fixture shape for testing that single-colour motifs have no layers field.</desc>
           <path d="M 1 1 L 2 2 Z"/>
         </svg>`,
       );
       expect(loadMotifData(dir)["plain"]!.layers).toBeUndefined();
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects a motif with no <title>, naming the file", () => {
+    makeDir();
+    try {
+      put(
+        "no-title.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <desc>Has a description but no title.</desc>
+          <path d="M 1 1 L 2 2 Z"/>
+        </svg>`,
+      );
+      expect(() => loadMotifData(dir)).toThrow(/no-title\.svg has no <title>/);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects a motif with no <desc>, naming the file", () => {
+    makeDir();
+    try {
+      put(
+        "no-desc.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Has a title but no description</title>
+          <path d="M 1 1 L 2 2 Z"/>
+        </svg>`,
+      );
+      expect(() => loadMotifData(dir)).toThrow(/no-desc\.svg has no <desc>/);
     } finally {
       cleanup();
     }
@@ -490,11 +539,15 @@ describe("motif search", () => {
     expect(searchMotifs("qwqwqwzzznomatch")).toEqual([]);
   });
 
-  it("matches a synonym even when the literal word never appears", () => {
-    // "birthday" doesn't appear in any motif's id or title — this only
-    // proves the synonym table (src/lib/search.ts) actually fires.
+  it("matches a synonym even when the literal word never appears in an id", () => {
+    // "birthday" is a synonym for celebration — party-hat lives in that folder.
     const results = searchMotifs("birthday");
     expect(results.map((r) => r.id)).toContain("party-hat");
+  });
+
+  it("finds a motif by a word that only lives in the desc, not the id", () => {
+    const results = searchMotifs("bakery");
+    expect(results.map((r) => r.id)).toContain("cake");
   });
 
   it("respects the limit", () => {

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="sparkler,spark,new-year,wedding,night,firework">
+  <title>A hand-held sparkler stick throwing six sparks.</title>
+  <desc>One lit sparkler: thin stick, bright head, radiating sparks. New year, weddings, night parties. Stick ink, head accent, sparks accent2, tips paper.</desc>
+  <path data-tone="ink" d="M 49 40 H 51 A 2 2 0 0 1 53 42 V 94 A 2 2 0 0 1 51 96 H 49 A 2 2 0 0 1 47 94 V 42 A 2 2 0 0 1 49 40 Z"/>
+  <path data-tone="accent" d="M 40 32 A 10 10 0 1 1 60 32 A 10 10 0 1 1 40 32 Z"/>
+  <path data-tone="accent2" d="M 50 32 L 50 4 L 55.32 14.8 Z M 50 32 L 74.25 18 L 67.55 28.01 Z M 50 32 L 74.25 46 L 62.23 45.2 Z M 50 32 L 50 60 L 44.68 49.2 Z M 50 32 L 25.75 46 L 32.45 35.99 Z M 50 32 L 25.75 18 L 37.77 18.8 Z"/>
+  <path data-tone="paper" d="M 46 32 A 4 4 0 1 1 54 32 A 4 4 0 1 1 46 32 Z"/>
+</svg>

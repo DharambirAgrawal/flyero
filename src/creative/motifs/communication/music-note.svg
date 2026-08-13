@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Twin eighth notes linked by a beam.</title>
-  <path d="M 15 75 A 10 7 0 1 1 35 75 A 10 7 0 1 1 15 75 Z M 55 65 A 10 7 0 1 1 75 65 A 10 7 0 1 1 55 65 Z M 35 73 L 35 22 L 75 12 L 75 63 M 35 34 L 75 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="music,note,song,concert,audio,melody">
+  <title>Eighth note with a round head, stem and flag.</title>
+  <desc>A single beamed eighth note. Concerts, playlists, schools, dance. Not headphones, vinyl, or a guitar. Head ink, stem accent, flag accent2.</desc>
+  <path data-tone="ink" d="M 16 78 A 16 12 0 1 1 48 78 A 16 12 0 1 1 16 78 Z"/>
+  <path data-tone="accent" d="M 45 18 H 50 A 1 1 0 0 1 51 19 V 77 A 1 1 0 0 1 50 78 H 45 A 1 1 0 0 1 44 77 V 19 A 1 1 0 0 1 45 18 Z"/>
+  <path data-tone="accent2" d="M 51 18 Q 82 10 84 36 Q 84 46 70 42 Q 60 30 51 34 Z"/>
 </svg>

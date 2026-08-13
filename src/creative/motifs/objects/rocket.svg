@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="rocket,launch,space,startup,ship,blast">
+  <title>A rocket pointing up-right with fins, a window and a flame.</title>
+  <desc>A cartoon rocket. Launches, startups, space, 'we're off'. Body accent, window paper, fins ink, flame accent2. Not directional-along-+x (it is a launch, not a route rider).</desc>
+  <path data-tone="accent" d="M 58 8 Q 88 40 58 72 Q 40 56 40 40 Q 40 24 58 8 Z"/>
+  <path data-tone="paper" d="M 50 40 A 8 8 0 1 1 66 40 A 8 8 0 1 1 50 40 Z"/>
+  <path data-tone="ink" d="M 40 48 L 18 72 L 40 62 Z M 48 64 L 28 88 L 52 74 Z"/>
+  <path data-tone="accent2" d="M 42 68 L 30 96 L 50 78 L 38 96 L 54 70 Z"/>
+</svg>

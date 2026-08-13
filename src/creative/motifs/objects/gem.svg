@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="gem,jewel,diamond,luxury,precious,crystal">
+  <title>A faceted gem: octagon crown, a table and pavilion cuts.</title>
+  <desc>A jewel. Luxury, value, 'precious', jewellery. Table paper, crown accent, pavilion accent2, outline ink.</desc>
+  <path data-tone="accent" d="M 20 38 L 32 18 L 68 18 L 80 38 L 50 88 Z"/>
+  <path data-tone="paper" d="M 32 18 L 68 18 L 60 38 L 40 38 Z"/>
+  <path data-tone="accent2" d="M 20 38 L 40 38 L 50 88 Z M 80 38 L 60 38 L 50 88 Z"/>
+  <path data-tone="ink" d="M 40 38 L 60 38 L 50 88 Z"/>
+</svg>

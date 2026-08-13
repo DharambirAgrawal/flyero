@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="necklace,jewellery,pendant,beads,gift,luxury">
+  <title>A necklace of beads with a pendant.</title>
+  <desc>Jewellery chain. Gifts, luxury, 'the finishing touch'. Beads accent, pendant accent2, chain ink, jewel paper.</desc>
+  <path data-tone="ink" d="M 18 28 Q 18 8 50 8 Q 82 8 82 28 Q 82 36 74 36 Q 74 16 50 16 Q 26 16 26 36 Q 18 36 18 28 Z"/>
+  <path data-tone="accent" d="M 20 40 A 6 6 0 1 1 32 40 A 6 6 0 1 1 20 40 Z M 32 48 A 6 6 0 1 1 44 48 A 6 6 0 1 1 32 48 Z M 56 48 A 6 6 0 1 1 68 48 A 6 6 0 1 1 56 48 Z M 68 40 A 6 6 0 1 1 80 40 A 6 6 0 1 1 68 40 Z"/>
+  <path data-tone="accent2" d="M 50 52 L 62 78 L 50 88 L 38 78 Z"/>
+  <path data-tone="paper" d="M 44 72 A 6 6 0 1 1 56 72 A 6 6 0 1 1 44 72 Z"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="shell,seashell,beach,ocean,conch,summer">
+  <title>A spiral seashell with three growing ridges.</title>
+  <desc>A conch-like shell. Beaches, summer, collecting, mermaid-adjacent. Body accent, ridges ink, lip paper.</desc>
+  <path data-tone="accent" d="M 22 72 Q 12 40 36 24 Q 64 10 82 32 Q 92 52 70 78 Q 48 94 22 72 Z"/>
+  <path data-tone="ink" d="M 36 70 Q 32 50 48 40 Q 62 32 70 48 M 36 70 L 40 74 L 38 68 Z"/>
+  <path data-tone="paper" d="M 44 44 A 8 10 0 1 1 60 44 A 8 10 0 1 1 44 44 Z"/>
+</svg>

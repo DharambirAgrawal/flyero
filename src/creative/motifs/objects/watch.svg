@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="watch,time,clock,wrist,hour,now">
+  <title>A wristwatch with a round face, hands and a strap.</title>
+  <desc>An analog watch. Time, punctuality, luxury, 'now'. Face paper, rim accent, hands ink, strap muted.</desc>
+  <path data-tone="muted" d="M 28 8 H 72 A 6 6 0 0 1 78 14 V 20 A 6 6 0 0 1 72 26 H 28 A 6 6 0 0 1 22 20 V 14 A 6 6 0 0 1 28 8 Z M 28 74 H 72 A 6 6 0 0 1 78 80 V 86 A 6 6 0 0 1 72 92 H 28 A 6 6 0 0 1 22 86 V 80 A 6 6 0 0 1 28 74 Z"/>
+  <path data-tone="accent" d="M 22 50 A 28 28 0 1 1 78 50 A 28 28 0 1 1 22 50 Z"/>
+  <path data-tone="paper" d="M 30 50 A 20 20 0 1 1 70 50 A 20 20 0 1 1 30 50 Z"/>
+  <path data-tone="ink" d="M 49 32 H 51 A 1 1 0 0 1 52 33 V 51 A 1 1 0 0 1 51 52 H 49 A 1 1 0 0 1 48 51 V 33 A 1 1 0 0 1 49 32 Z M 49 48 H 63 A 1 1 0 0 1 64 49 V 51 A 1 1 0 0 1 63 52 H 49 A 1 1 0 0 1 48 51 V 49 A 1 1 0 0 1 49 48 Z M 47 50 A 3 3 0 1 1 53 50 A 3 3 0 1 1 47 50 Z"/>
+</svg>

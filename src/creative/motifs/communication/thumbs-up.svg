@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="thumbs-up,like,yes,approve,review,ok">
+  <title>A thumbs-up fist with a raised thumb.</title>
+  <desc>Approval gesture. Likes, reviews, 'yes', social proof (without inventing numbers). Hand accent, cuff paper, thumb accent2, nail paper.</desc>
+  <path data-tone="accent" d="M 32 42 H 68 A 10 10 0 0 1 78 52 V 72 A 10 10 0 0 1 68 82 H 32 A 10 10 0 0 1 22 72 V 52 A 10 10 0 0 1 32 42 Z M 46 12 H 48 A 8 8 0 0 1 56 20 V 44 A 8 8 0 0 1 48 52 H 46 A 8 8 0 0 1 38 44 V 20 A 8 8 0 0 1 46 12 Z"/>
+  <path data-tone="accent2" d="M 46 12 H 48 A 6 6 0 0 1 54 18 V 28 A 6 6 0 0 1 48 34 H 46 A 6 6 0 0 1 40 28 V 18 A 6 6 0 0 1 46 12 Z"/>
+  <path data-tone="paper" d="M 26 70 H 74 A 4 4 0 0 1 78 74 V 80 A 4 4 0 0 1 74 84 H 26 A 4 4 0 0 1 22 80 V 74 A 4 4 0 0 1 26 70 Z M 43 16 A 5 4 0 1 1 53 16 A 5 4 0 1 1 43 16 Z"/>
+</svg>

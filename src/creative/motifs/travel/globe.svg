@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="globe,world,earth,travel,international,map">
+  <title>A globe with a stand, an equator and a meridian.</title>
+  <desc>A world globe. Travel, international, education, 'worldwide'. Sphere accent, stand ink, lines paper, ocean band accent2.</desc>
+  <path data-tone="accent" d="M 18 42 A 32 32 0 1 1 82 42 A 32 32 0 1 1 18 42 Z"/>
+  <path data-tone="accent2" d="M 18 42 A 32 10 0 1 1 82 42 A 32 10 0 1 1 18 42 Z"/>
+  <path data-tone="paper" d="M 50 10 V 74 M 22 28 Q 50 36 78 28 M 22 56 Q 50 48 78 56 M 50 10 L 52 10 L 52 74 L 50 74 Z"/>
+  <path data-tone="ink" d="M 47 72 H 53 A 1 1 0 0 1 54 73 V 85 A 1 1 0 0 1 53 86 H 47 A 1 1 0 0 1 46 85 V 73 A 1 1 0 0 1 47 72 Z M 28 90 A 22 6 0 1 1 72 90 A 22 6 0 1 1 28 90 Z"/>
+</svg>

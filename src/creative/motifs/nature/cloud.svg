@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Simple rounded cloud silhouette.</title>
-  <path d="M 27 79 A 18 18 0 0 1 27 43 A 24 24 0 0 1 71 35 A 20 20 0 0 1 79 79 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="cloud,weather,sky,soft,puff,daydream">
+  <title>Fluffy cloud of three overlapping puffs on a flat base.</title>
+  <desc>A simple weather cloud: three bumps, flat underside. Sky, softness, SaaS 'cloud' only if the brief is actually about weather or lightness — not a generic tech mark. Body paper, shade muted, silver lining accent.</desc>
+  <path data-tone="paper" d="M 12 52 A 20 20 0 1 1 52 52 A 20 20 0 1 1 12 52 Z M 26 42 A 24 24 0 1 1 74 42 A 24 24 0 1 1 26 42 Z M 52 54 A 18 18 0 1 1 88 54 A 18 18 0 1 1 52 54 Z M 26 52 H 74 A 10 10 0 0 1 84 62 V 66 A 10 10 0 0 1 74 76 H 26 A 10 10 0 0 1 16 66 V 62 A 10 10 0 0 1 26 52 Z"/>
+  <path data-tone="muted" d="M 20 66 A 30 8 0 1 1 80 66 A 30 8 0 1 1 20 66 Z"/>
+  <path data-tone="accent" d="M 34 38 A 16 6 0 1 1 66 38 A 16 6 0 1 1 34 38 Z"/>
 </svg>

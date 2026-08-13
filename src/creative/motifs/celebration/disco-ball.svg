@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="disco,ball,dance,party,mirror,nightclub,70s">
+  <title>Disco ball: a hanging sphere tiled with diamond facets.</title>
+  <desc>A mirrored dance-floor ball on a short chain. Nightlife, 70s, weddings, 'let's dance'. Ball accent, facets paper and accent2, chain ink.</desc>
+  <path data-tone="ink" d="M 47 4 H 53 A 1 1 0 0 1 54 5 V 17 A 1 1 0 0 1 53 18 H 47 A 1 1 0 0 1 46 17 V 5 A 1 1 0 0 1 47 4 Z M 46 4 A 4 4 0 1 1 54 4 A 4 4 0 1 1 46 4 Z"/>
+  <path data-tone="accent" d="M 16 58 A 34 34 0 1 1 84 58 A 34 34 0 1 1 16 58 Z"/>
+  <path data-tone="paper" d="M 50 28 L 62 42 L 50 50 L 38 42 Z M 50 50 L 66 58 L 50 72 L 34 58 Z"/>
+  <path data-tone="accent2" d="M 62 42 L 80 50 L 66 58 L 50 50 Z M 38 42 L 50 50 L 34 58 L 20 50 Z"/>
+</svg>

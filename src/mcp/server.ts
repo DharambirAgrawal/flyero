@@ -762,12 +762,12 @@ export function buildMcpServer(): McpServer {
     {
       title: "Search the motif library",
       description:
-        "Search the vector motif library used by composed-figure's `draw: { kind: 'motif' }` — a growing " +
-        "set of single-tone, theme-recolourable shapes (balloon, cake, sun, speech-bubble, …), organised " +
-        "by subject (celebration, nature, communication, objects). Returns ranked matches with each " +
-        "motif's real description — read the description, not just the id, before picking one. Prefer " +
-        "this over guessing an id or reading read_design_guide's whole motif list once the library is " +
-        "large; it never goes stale because it reads the same files that list is generated from.",
+        "Search the vector motif library used by composed-figure's `draw: { kind: 'motif' }` — 200+ " +
+        "theme-recolourable marks (some multi-layer via data-tone: icing, flames, highlights each " +
+        "resolve against the flyer's own palette). Organised by subject (celebration, nature, food, " +
+        "travel, animals, …). Returns ranked matches with each motif's title, desc, tags, and which " +
+        "theme slots it paints — read those, not just the id, before picking one. Prefer this over " +
+        "guessing an id; the design guide no longer lists every mark.",
       inputSchema: {
         query: z.string().describe("What you're looking for, e.g. 'birthday cake' or 'speech bubble'."),
         limit: z.number().int().min(1).max(20).optional().describe("Max results. Default 8."),

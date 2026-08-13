@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="basketball,ball,court,nba,sport,hoop">
+  <title>A basketball with the classic rib lines.</title>
+  <desc>A basketball. Courts, schools, NBA-adjacent. Ball accent, ribs ink, highlight paper.</desc>
+  <path data-tone="accent" d="M 10 50 A 40 40 0 1 1 90 50 A 40 40 0 1 1 10 50 Z"/>
+  <path data-tone="ink" d="M 50 10 V 90 M 12 40 Q 50 50 88 40 M 12 60 Q 50 50 88 60 M 48 10 H 52 V 90 H 48 Z"/>
+  <path data-tone="paper" d="M 28 34 A 8 10 0 1 1 44 34 A 8 10 0 1 1 28 34 Z"/>
+</svg>

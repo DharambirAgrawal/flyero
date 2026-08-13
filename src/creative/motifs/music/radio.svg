@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="radio,broadcast,vintage,speaker,tune,am">
+  <title>A retro radio with a speaker grille, a dial and an antenna.</title>
+  <desc>A wireless set. Broadcast, podcasts, vintage. Body accent, speaker ink, dial paper, antenna muted.</desc>
+  <path data-tone="accent" d="M 20 28 H 80 A 8 8 0 0 1 88 36 V 76 A 8 8 0 0 1 80 84 H 20 A 8 8 0 0 1 12 76 V 36 A 8 8 0 0 1 20 28 Z"/>
+  <path data-tone="ink" d="M 24 38 H 52 A 4 4 0 0 1 56 42 V 70 A 4 4 0 0 1 52 74 H 24 A 4 4 0 0 1 20 70 V 42 A 4 4 0 0 1 24 38 Z"/>
+  <path data-tone="paper" d="M 60 48 A 12 12 0 1 1 84 48 A 12 12 0 1 1 60 48 Z"/>
+  <path data-tone="muted" d="M 71 12 H 73 A 1 1 0 0 1 74 13 V 31 A 1 1 0 0 1 73 32 H 71 A 1 1 0 0 1 70 31 V 13 A 1 1 0 0 1 71 12 Z M 67 12 A 5 5 0 1 1 77 12 A 5 5 0 1 1 67 12 Z M 68 48 A 4 4 0 1 1 76 48 A 4 4 0 1 1 68 48 Z"/>
+</svg>

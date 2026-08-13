@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="kettle,tea,boil,kitchen,whistle,stovetop">
+  <title>A stovetop kettle with a spout, handle and whistle cap.</title>
+  <desc>A kettle. Tea, mornings, kitchens. Body accent, handle ink, spout accent2, cap paper.</desc>
+  <path data-tone="accent" d="M 20 58 A 28 24 0 1 1 76 58 A 28 24 0 1 1 20 58 Z"/>
+  <path data-tone="ink" d="M 28 44 Q 16 28 36 22 Q 44 32 34 46 Z"/>
+  <path data-tone="accent2" d="M 72 50 L 92 38 L 90 56 L 74 58 Z"/>
+  <path data-tone="paper" d="M 40 32 A 8 8 0 1 1 56 32 A 8 8 0 1 1 40 32 Z"/>
+</svg>

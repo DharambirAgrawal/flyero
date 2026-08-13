@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="cookie,biscuit,chocolate,bakery,snack,chip">
+  <title>A round cookie with five chocolate chips.</title>
+  <desc>A choc-chip cookie. Bakeries, snacks, 'homemade'. Dough accent, chips ink, bite evenodd paper-side, highlight paper.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 14 50 A 36 36 0 1 1 86 50 A 36 36 0 1 1 14 50 Z M 8 28 A 10 10 0 1 1 28 28 A 10 10 0 1 1 8 28 Z"/>
+  <path data-tone="ink" d="M 33 42 A 5 5 0 1 1 43 42 A 5 5 0 1 1 33 42 Z M 54 36 A 4 4 0 1 1 62 36 A 4 4 0 1 1 54 36 Z M 57 58 A 5 5 0 1 1 67 58 A 5 5 0 1 1 57 58 Z M 36 62 A 4 4 0 1 1 44 62 A 4 4 0 1 1 36 62 Z M 46 50 A 4 4 0 1 1 54 50 A 4 4 0 1 1 46 50 Z"/>
+  <path data-tone="paper" d="M 30 34 A 6 5 0 1 1 42 34 A 6 5 0 1 1 30 34 Z"/>
+</svg>

@@ -14,6 +14,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { mix } from "../creative/color.js";
 import type { Rng } from "../lib/rng.js";
 import { search, type SearchDocument } from "../lib/search.js";
 
@@ -641,6 +642,15 @@ export type Motif = {
   stroke?: boolean;
   /** From the SVG's own `<title>` — a short, human (and agent) readable description. */
   title?: string;
+  /**
+   * From the SVG's own `<desc>` — the longer usage note an agent actually
+   * needs (what it looks like, when to reach for it, what it is not). Title
+   * is the one-liner; this is the paragraph. Searched at the same weight as
+   * the title, so a query for "bakery" can find a cake whose id never says so.
+   */
+  desc?: string;
+  /** From `data-tags` on the `<svg>` — extra search terms that wouldn't fit a sentence. */
+  tags?: string[];
   /** The subfolder it was found in (e.g. "celebration"), if any. */
   category?: string;
   /**
@@ -659,57 +669,6 @@ export type Motif = {
  * 45° off course; the convention exists so that cannot recur.
  */
 export const DIRECTIONAL_MOTIFS = ["plane", "arrow"] as const;
-
-/** Ray marks for the sun, computed once rather than typed out eight times. */
-function sunRays(inner: number, outer: number, width: number, count: number): string {
-  let d = "";
-  for (let i = 0; i < count; i++) {
-    const a = (i / count) * TAU;
-    const nx = -Math.sin(a) * width;
-    const ny = Math.cos(a) * width;
-    const x0 = 50 + Math.cos(a) * inner;
-    const y0 = 50 + Math.sin(a) * inner;
-    const x1 = 50 + Math.cos(a) * outer;
-    const y1 = 50 + Math.sin(a) * outer;
-    d +=
-      `M ${n(x0 + nx)} ${n(y0 + ny)} L ${n(x1 + nx * 0.6)} ${n(y1 + ny * 0.6)}` +
-      ` L ${n(x1 - nx * 0.6)} ${n(y1 - ny * 0.6)} L ${n(x0 - nx)} ${n(y0 - ny)} Z `;
-  }
-  return d.trim();
-}
-
-/**
- * Six overlapping petal circles around a centre disc. `nonzero` (the default
- * fill rule) unions same-direction loops rather than punching holes, so this
- * reads as one solid daisy silhouette — the doodle/Memphis flower every
- * scrapbook and Y2K reference scatters across the page.
- */
-function flowerPath(petals = 6, petalR = 20, ringR = 22, centerR = 14): string {
-  let d = "";
-  for (let i = 0; i < petals; i++) {
-    const a = (i / petals) * TAU;
-    d += `${ellipsePath(50 + Math.cos(a) * ringR, 50 + Math.sin(a) * ringR, petalR, petalR)} `;
-  }
-  return d.trim() + " " + ellipsePath(50, 50, centerR, centerR);
-}
-
-/**
- * Nested bottom-anchored half-discs. With `evenodd`, each ring alternates
- * filled/gap as it crosses one more boundary than the ring outside it, so six
- * concentric arches drawn this way render as three solid bands over a hollow
- * centre — a rainbow, built from the same `archPath` the photo-frame arch
- * uses, not a new primitive.
- */
-function rainbowPath(bands = 6, outerW = 96, step = 16): string {
-  let d = "";
-  for (let i = 0; i < bands; i++) {
-    const w = outerW - i * step;
-    if (w <= 0) break;
-    const h = w / 2;
-    d += `${archPath({ x: 50 - w / 2, y: 96 - h, w, h })} `;
-  }
-  return d.trim();
-}
 
 /**
  * Every motif, loaded from `src/creative/motifs/**\/*.svg` — one file per
@@ -756,15 +715,13 @@ function rainbowPath(bands = 6, outerW = 96, step = 16): string {
  *   the single-colour case. Cannot combine with `fill="none"` line art in
  *   the same file (sketched line art is inherently one stroke colour).
  * - Directional motifs point along +x (due right) — callers rotate to aim.
- * - **`<title>One short sentence.</title>`, first child of `<svg>`, is what
- *   this list is for**: not decoration, an actual field every motif here
- *   carries (see the ids and titles listed in `read_design_guide`'s
- *   composed-figure section, live off this loader — never edit that prose
- *   by hand, it drifts the moment it does). No fallback synthesises one from
- *   the filename, on purpose: a motif with only an id and no description is
- *   exactly the kind of thing that gets picked by guessing what the name
- *   probably looks like, which is the failure this field exists to prevent
- *   as the library grows past the point anyone has looked at every file.
+ * - **`<title>One short sentence.</title>`** — the one-liner. Required; no
+ *   fallback synthesises one from the filename.
+ * - **`<desc>…</desc>`** — the paragraph an agent actually needs: what it
+ *   looks like, when to reach for it, what it is not, which regions recolour.
+ *   Searched at the same weight as the title.
+ * - **`data-tags="cake,birthday,bakery"`** on the `<svg>` — extra search
+ *   terms that wouldn't read naturally in a sentence. Comma-separated.
  *
  * What does NOT belong here: a real multi-colour illustration with actual
  * baked-in colour choices (an icon-pack export, a downloaded illustration),
@@ -790,11 +747,30 @@ function svgAttr(tag: string, name: string): string | undefined {
   return tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
 }
 
+function unescapeSvgText(text: string): string {
+  return text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim();
+}
+
 /** First `<title>…</title>` text content, if the file has one. */
 function svgTitle(xml: string): string | undefined {
   const text = xml.match(/<title>([\s\S]*?)<\/title>/)?.[1];
   if (text === undefined) return undefined;
-  return text.replace(/&lt;/g, "<").replace(/&amp;/g, "&").trim();
+  return unescapeSvgText(text);
+}
+
+/** First `<desc>…</desc>` text content, if the file has one. */
+function svgDesc(xml: string): string | undefined {
+  const text = xml.match(/<desc>([\s\S]*?)<\/desc>/)?.[1];
+  if (text === undefined) return undefined;
+  return unescapeSvgText(text);
+}
+
+/** `data-tags` on the root `<svg>`, split on commas. */
+function svgTags(xml: string): string[] | undefined {
+  const raw = xml.match(/<svg\b[^>]*\bdata-tags="([^"]*)"/)?.[1];
+  if (!raw) return undefined;
+  const tags = raw.split(",").map((t) => t.trim()).filter(Boolean);
+  return tags.length > 0 ? tags : undefined;
 }
 
 /**
@@ -922,6 +898,18 @@ export function loadMotifData(dir: string = MOTIFS_DIR): Record<string, Motif> {
       );
     }
     const title = svgTitle(xml);
+    const desc = svgDesc(xml);
+    const tags = svgTags(xml);
+    // Both the motifs README and CLAUDE.md's "Creative library conventions"
+    // say these are required — enforce it here too, not just in prose. A
+    // library heading toward hundreds of files needs the load-time check;
+    // "an agent will notice the empty description" does not scale.
+    if (!title) {
+      throw new Error(`Motif file ${relFile} has no <title> — every motif needs one (see src/creative/motifs/README.md).`);
+    }
+    if (!desc) {
+      throw new Error(`Motif file ${relFile} has no <desc> — every motif needs one (see src/creative/motifs/README.md).`);
+    }
     // The subfolder a motif was found in (e.g. "celebration"), or undefined
     // for one placed directly in motifs/ — purely descriptive metadata for
     // search/browsing, never part of the id.
@@ -931,6 +919,8 @@ export function loadMotifData(dir: string = MOTIFS_DIR): Record<string, Motif> {
       ...(fillRule ? { fillRule } : {}),
       ...(stroke ? { stroke } : {}),
       ...(title ? { title } : {}),
+      ...(desc ? { desc } : {}),
+      ...(tags ? { tags } : {}),
       ...(category ? { category } : {}),
       ...(layers ? { layers } : {}),
     };
@@ -949,8 +939,12 @@ export const MOTIF_NAMES = Object.keys(MOTIFS) as MotifName[];
 export type MotifSearchResult = {
   id: string;
   title?: string;
+  desc?: string;
+  tags?: string[];
   category?: string;
   stroke: boolean;
+  /** Theme slots this motif paints, when it is multi-layer. Absent for a single-colour mark. */
+  tones?: MotifTone[];
   score: number;
 };
 
@@ -958,8 +952,8 @@ export type MotifSearchResult = {
  * Real, ranked search over the motif library — not a dump of every id for an
  * agent (or a person) to read through, and not ad-hoc point-scoring either.
  * BM25 (`src/lib/search.ts` — read that file's header for why this is BM25
- * and not embeddings) over id/title/category, id weighted highest so an
- * exact or near id match still wins ties.
+ * and not embeddings) over id/title/desc/tags/category, id weighted highest
+ * so an exact or near id match still wins ties.
  */
 export function searchMotifs(query: string, limit = 8): MotifSearchResult[] {
   const documents: SearchDocument[] = MOTIF_NAMES.map((id) => {
@@ -969,14 +963,40 @@ export function searchMotifs(query: string, limit = 8): MotifSearchResult[] {
       fields: [
         { text: id, weight: 3 },
         { text: motif.title ?? "", weight: 2 },
+        { text: motif.desc ?? "", weight: 2 },
+        { text: (motif.tags ?? []).join(" "), weight: 2 },
         { text: motif.category ?? "", weight: 1 },
       ],
     };
   });
-  const hits = search(documents, query, limit);
-  return hits.map((h) => {
+  const hits = search(documents, query, Math.max(limit, 16));
+  const q = query.trim().toLowerCase();
+  if (MOTIFS[q] && !hits.some((h) => h.id === q)) {
+    hits.unshift({ id: q, score: Number.POSITIVE_INFINITY });
+  }
+  return hits
+    .sort((a, b) => {
+      // An exact id match must win even when a longer id repeats the same
+      // word in its desc (searching "balloon" should not lose to
+      // "hot-air-balloon"). BM25 alone treats both as the term "balloon".
+      const aExact = a.id === q ? 1 : 0;
+      const bExact = b.id === q ? 1 : 0;
+      if (aExact !== bExact) return bExact - aExact;
+      return b.score - a.score || a.id.localeCompare(b.id);
+    })
+    .slice(0, limit)
+    .map((h) => {
     const motif = MOTIFS[h.id]!;
-    return { id: h.id, title: motif.title, category: motif.category, stroke: Boolean(motif.stroke), score: h.score };
+    return {
+      id: h.id,
+      title: motif.title,
+      desc: motif.desc,
+      tags: motif.tags,
+      category: motif.category,
+      stroke: Boolean(motif.stroke),
+      ...(motif.layers ? { tones: motif.layers.map((l) => l.tone) } : {}),
+      score: h.score,
+    };
   });
 }
 
@@ -989,6 +1009,62 @@ export function motifTransform(x: number, y: number, size: number, rotate = 0): 
   const scale = size / 100;
   const spin = rotate === 0 ? "" : ` rotate(${n(rotate)} ${n(size / 2)} ${n(size / 2)})`;
   return `translate(${n(x)} ${n(y)})${spin} scale(${n(scale)})`;
+}
+
+/**
+ * Resolved fills for every theme slot, derived from a single ink colour —
+ * what decoration uses, because ornament is planned against one `decorInk`
+ * rather than the full palette. Paper goes light, ink goes dark, accent2
+ * sits between; the mark still reads as multi-region instead of a flat
+ * silhouette, without inventing a second palette.
+ */
+export function tonesFromInk(ink: string): Record<MotifTone, string> {
+  // Decor ink is often `withAlpha(...)` — 8-digit hex. `mix` only accepts
+  // 6-digit, so peel the alpha, mix the opaque colour, then put the same
+  // alpha back so a wash stays a wash across every layer.
+  const raw = ink.replace("#", "");
+  const opaque = `#${raw.length === 8 ? raw.slice(0, 6) : raw}`;
+  const alpha = raw.length === 8 ? raw.slice(6) : "";
+  const withA = (hex: string) => (alpha ? `${hex}${alpha}` : hex);
+  return {
+    ink: withA(mix(opaque, "#111111", 0.45)),
+    accent: ink,
+    accent2: withA(mix(opaque, "#ffffff", 0.28)),
+    muted: withA(mix(opaque, "#ffffff", 0.42)),
+    paper: withA(mix(opaque, "#ffffff", 0.72)),
+    ground: withA(mix(opaque, "#000000", 0.18)),
+  };
+}
+
+export type MotifPaint = {
+  d: string;
+  fill: string;
+  fillRule?: "evenodd";
+  stroke?: string;
+  strokeWidth?: number;
+};
+
+/**
+ * Turns a loaded motif plus resolved slot colours into the path props a
+ * renderer actually paints. Single-colour, multi-layer and line-art all
+ * come out of this one function so figure / ground / photo cannot drift.
+ */
+export function paintMotif(
+  motif: Motif,
+  primary: string,
+  tones: Record<MotifTone, string>,
+): MotifPaint[] {
+  if (motif.stroke) {
+    return [{ d: motif.d, fill: "none", stroke: primary, strokeWidth: 2.5 }];
+  }
+  if (motif.layers && motif.layers.length > 0) {
+    return motif.layers.map((layer) => ({
+      d: layer.d,
+      fill: tones[layer.tone],
+      fillRule: layer.fillRule,
+    }));
+  }
+  return [{ d: motif.d, fill: primary, fillRule: motif.fillRule }];
 }
 
 // ---------------------------------------------------------------------------

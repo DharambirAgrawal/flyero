@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="frog,pond,leap,amphibian,green,cute">
+  <title>A sitting frog with big eyes and a smile.</title>
+  <desc>A frog. Ponds, spring, 'leap', kids. Body accent, belly paper, eyes paper with ink pupils, smile ink.</desc>
+  <path data-tone="accent" d="M 18 60 A 32 24 0 1 1 82 60 A 32 24 0 1 1 18 60 Z M 16 72 A 12 12 0 1 1 40 72 A 12 12 0 1 1 16 72 Z M 60 72 A 12 12 0 1 1 84 72 A 12 12 0 1 1 60 72 Z"/>
+  <path data-tone="paper" d="M 34 66 A 16 12 0 1 1 66 66 A 16 12 0 1 1 34 66 Z M 22 36 A 12 12 0 1 1 46 36 A 12 12 0 1 1 22 36 Z M 54 36 A 12 12 0 1 1 78 36 A 12 12 0 1 1 54 36 Z"/>
+  <path data-tone="ink" d="M 30 36 A 4 4 0 1 1 38 36 A 4 4 0 1 1 30 36 Z M 62 36 A 4 4 0 1 1 70 36 A 4 4 0 1 1 62 36 Z M 38 62 Q 50 72 62 62 Q 50 68 38 62 Z"/>
+</svg>

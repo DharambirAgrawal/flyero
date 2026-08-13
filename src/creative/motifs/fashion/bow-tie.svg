@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bow-tie,formal,wedding,tuxedo,dress-up,neck">
+  <title>A bow-tie with two loops, a knot and clipped ends.</title>
+  <desc>A bow tie. Formal, weddings, waiters, 'dress up'. Distinct from the gift bow. Loops accent, knot paper, ends accent2.</desc>
+  <path data-tone="accent" d="M 8 50 L 36 28 L 40 72 Z M 92 50 L 64 28 L 60 72 Z"/>
+  <path data-tone="paper" d="M 44 36 H 56 A 4 4 0 0 1 60 40 V 60 A 4 4 0 0 1 56 64 H 44 A 4 4 0 0 1 40 60 V 40 A 4 4 0 0 1 44 36 Z"/>
+  <path data-tone="accent2" d="M 8 50 L 4 36 L 16 44 Z M 92 50 L 96 36 L 84 44 Z"/>
+</svg>

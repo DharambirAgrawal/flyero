@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Maritime anchor with a ring, shank, stock and fluke arms.</title>
-  <path d="M 43 14 A 7 7 0 1 1 57 14 A 7 7 0 1 1 43 14 Z M 50 21 L 50 84 M 22 34 L 78 34 M 20 58 C 20 84 80 84 80 58 M 14 64 L 20 58 L 26 66 M 86 64 L 80 58 L 74 66" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="anchor,nautical,ship,harbour,marine,stability">
+  <title>Ship's anchor with a ring, a stock and two flukes.</title>
+  <desc>Nautical anchor: ring, crossbar, shaft, two curved flukes. Marine, stability, harbour, tattoos, 'stay'. Ring paper, shaft accent, flukes ink.</desc>
+  <path data-tone="paper" fill-rule="evenodd" d="M 40 16 A 10 10 0 1 1 60 16 A 10 10 0 1 1 40 16 Z M 45 16 A 5 5 0 1 1 55 16 A 5 5 0 1 1 45 16 Z"/>
+  <path data-tone="accent" d="M 47 22 H 53 A 1 1 0 0 1 54 23 V 71 A 1 1 0 0 1 53 72 H 47 A 1 1 0 0 1 46 71 V 23 A 1 1 0 0 1 47 22 Z M 30 36 H 70 A 2 2 0 0 1 72 38 V 42 A 2 2 0 0 1 70 44 H 30 A 2 2 0 0 1 28 42 V 38 A 2 2 0 0 1 30 36 Z"/>
+  <path data-tone="ink" d="M 18 86 Q 18 64 50 72 Q 82 64 82 86 Q 70 96 50 86 Q 30 96 18 86 Z"/>
 </svg>

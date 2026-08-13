@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bed,sleep,hotel,rest,bedroom,pillow">
+  <title>A made bed with a headboard, pillow and blanket.</title>
+  <desc>A bed. Hotels, rest, bedrooms, 'sleep well'. Frame ink, mattress paper, blanket accent, pillow accent2.</desc>
+  <path data-tone="ink" d="M 16 28 H 20 A 4 4 0 0 1 24 32 V 80 A 4 4 0 0 1 20 84 H 16 A 4 4 0 0 1 12 80 V 32 A 4 4 0 0 1 16 28 Z M 18 72 H 82 A 2 2 0 0 1 84 74 V 80 A 2 2 0 0 1 82 82 H 18 A 2 2 0 0 1 16 80 V 74 A 2 2 0 0 1 18 72 Z"/>
+  <path data-tone="paper" d="M 28 44 H 80 A 4 4 0 0 1 84 48 V 68 A 4 4 0 0 1 80 72 H 28 A 4 4 0 0 1 24 68 V 48 A 4 4 0 0 1 28 44 Z"/>
+  <path data-tone="accent" d="M 28 52 H 80 A 4 4 0 0 1 84 56 V 68 A 4 4 0 0 1 80 72 H 28 A 4 4 0 0 1 24 68 V 56 A 4 4 0 0 1 28 52 Z"/>
+  <path data-tone="accent2" d="M 34 36 H 50 A 6 6 0 0 1 56 42 V 46 A 6 6 0 0 1 50 52 H 34 A 6 6 0 0 1 28 46 V 42 A 6 6 0 0 1 34 36 Z"/>
+</svg>

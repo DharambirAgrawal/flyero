@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="glasses,spectacles,read,vision,nerd,see">
+  <title>A pair of round spectacles with a bridge and arms.</title>
+  <desc>Reading glasses. Wisdom, editors, 'see clearly', education. Lenses paper in accent rims, bridge ink.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 6 52 A 22 22 0 1 1 50 52 A 22 22 0 1 1 6 52 Z M 14 52 A 14 14 0 1 1 42 52 A 14 14 0 1 1 14 52 Z M 50 52 A 22 22 0 1 1 94 52 A 22 22 0 1 1 50 52 Z M 58 52 A 14 14 0 1 1 86 52 A 14 14 0 1 1 58 52 Z"/>
+  <path data-tone="paper" d="M 14 52 A 14 14 0 1 1 42 52 A 14 14 0 1 1 14 52 Z M 58 52 A 14 14 0 1 1 86 52 A 14 14 0 1 1 58 52 Z"/>
+  <path data-tone="ink" d="M 48 48 H 52 A 2 2 0 0 1 54 50 V 52 A 2 2 0 0 1 52 54 H 48 A 2 2 0 0 1 46 52 V 50 A 2 2 0 0 1 48 48 Z M 8 48 L 2 40 L 10 44 Z M 92 48 L 98 40 L 90 44 Z"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="fireworks,burst,new-year,celebration,spark,night">
+  <title>A firework burst: centre spark and eight trailing sparks.</title>
+  <desc>One exploding firework, not a sky full. New year, national days, grand openings. Centre accent, trails accent2, tips paper.</desc>
+  <path data-tone="accent" d="M 42 50 A 8 8 0 1 1 58 50 A 8 8 0 1 1 42 50 Z"/>
+  <path data-tone="accent2" d="M 64 50 L 94 50 L 95.45 53.73 Z M 59.9 59.9 L 81.11 81.11 L 79.5 84.77 Z M 50 64 L 50 94 L 46.27 95.45 Z M 40.1 59.9 L 18.89 81.11 L 15.23 79.5 Z M 36 50 L 6 50 L 4.55 46.27 Z M 40.1 40.1 L 18.89 18.89 L 20.5 15.23 Z M 50 36 L 50 6 L 53.73 4.55 Z M 59.9 40.1 L 81.11 18.89 L 84.77 20.5 Z"/>
+  <path data-tone="paper" d="M 93 50 A 3 3 0 1 1 99 50 A 3 3 0 1 1 93 50 Z M 79.53 82.53 A 3 3 0 1 1 85.53 82.53 A 3 3 0 1 1 79.53 82.53 Z M 47 96 A 3 3 0 1 1 53 96 A 3 3 0 1 1 47 96 Z M 14.47 82.53 A 3 3 0 1 1 20.47 82.53 A 3 3 0 1 1 14.47 82.53 Z M 1 50 A 3 3 0 1 1 7 50 A 3 3 0 1 1 1 50 Z M 14.47 17.47 A 3 3 0 1 1 20.47 17.47 A 3 3 0 1 1 14.47 17.47 Z M 47 4 A 3 3 0 1 1 53 4 A 3 3 0 1 1 47 4 Z M 79.53 17.47 A 3 3 0 1 1 85.53 17.47 A 3 3 0 1 1 79.53 17.47 Z"/>
+</svg>

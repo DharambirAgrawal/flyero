@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="mushroom,toadstool,forest,forage,whimsy,fungus">
+  <title>Toadstool with a spotted cap and a short stem.</title>
+  <desc>A fairytale mushroom: dome cap, spots, stem. Woods, foraging, whimsy. Cap accent, spots paper, stem muted, gill line ink.</desc>
+  <path data-tone="accent" d="M 14 40 A 36 22 0 1 1 86 40 A 36 22 0 1 1 14 40 Z"/>
+  <path data-tone="paper" d="M 31 36 A 5 5 0 1 1 41 36 A 5 5 0 1 1 31 36 Z M 46 28 A 6 6 0 1 1 58 28 A 6 6 0 1 1 46 28 Z M 62 38 A 4 4 0 1 1 70 38 A 4 4 0 1 1 62 38 Z"/>
+  <path data-tone="muted" d="M 48 48 H 52 A 8 8 0 0 1 60 56 V 80 A 8 8 0 0 1 52 88 H 48 A 8 8 0 0 1 40 80 V 56 A 8 8 0 0 1 48 48 Z"/>
+  <path data-tone="ink" d="M 34 50 A 16 4 0 1 1 66 50 A 16 4 0 1 1 34 50 Z"/>
+</svg>

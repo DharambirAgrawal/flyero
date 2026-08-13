@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="wand,magic,star,spell,wizard,sparkle">
+  <title>A magic wand with a star tip and sparkles.</title>
+  <desc>A wand. Magic, makeovers, 'ta-da', kids. Stick ink, star accent, sparkles paper and accent2.</desc>
+  <path data-tone="ink" d="M 32 68 L 78 96 L 72 100 L 26 72 Z"/>
+  <path data-tone="accent" d="M 28 6 L 33.29 20.72 L 48.92 21.2 L 36.56 30.78 L 40.93 45.8 L 28 37 L 15.07 45.8 L 19.44 30.78 L 7.08 21.2 L 22.71 20.72 Z"/>
+  <path data-tone="paper" d="M 58 22 A 4 4 0 1 1 66 22 A 4 4 0 1 1 58 22 Z M 75 40 A 3 3 0 1 1 81 40 A 3 3 0 1 1 75 40 Z"/>
+  <path data-tone="accent2" d="M 84 10 L 86.12 15.88 L 92 18 L 86.12 20.12 L 84 26 L 81.88 20.12 L 76 18 L 81.88 15.88 Z"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="map,fold,travel,route,navigate,paper">
+  <title>A folded map with a pin mark and a route line.</title>
+  <desc>A paper map. Navigation, trips, 'you are here'. Panels paper and accent, fold ink, pin accent2.</desc>
+  <path data-tone="paper" d="M 12 28 L 40 20 L 40 80 L 12 72 Z"/>
+  <path data-tone="accent" d="M 40 20 L 70 28 L 70 80 L 40 80 Z"/>
+  <path data-tone="accent2" d="M 70 28 L 90 18 L 90 70 L 70 80 Z"/>
+  <path data-tone="ink" d="M 49 44 A 5 5 0 1 1 59 44 A 5 5 0 1 1 49 44 Z M 54 44 L 54 58 L 56 58 L 56 44 Z"/>
+</svg>

@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Ring donut — a hole punched through a round pastry.</title>
-  <path d="M 6 50 A 44 44 0 1 1 94 50 A 44 44 0 1 1 6 50 Z M 32 50 A 18 18 0 1 1 68 50 A 18 18 0 1 1 32 50 Z" fill-rule="evenodd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="donut,doughnut,bakery,sweet,icing,treat,breakfast">
+  <title>Ring doughnut with icing and three sprinkles, hole punched through.</title>
+  <desc>A donut: ring (evenodd hole), icing cap, three sprinkles. Bakeries, treats, offices, 'Friday'. Dough accent, icing paper, sprinkles accent2, hole negative.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 14 54 A 36 36 0 1 1 86 54 A 36 36 0 1 1 14 54 Z M 36 54 A 14 14 0 1 1 64 54 A 14 14 0 1 1 36 54 Z"/>
+  <path data-tone="paper" fill-rule="evenodd" d="M 18 50 A 32 32 0 1 1 82 50 A 32 32 0 1 1 18 50 Z M 34 50 A 16 16 0 1 1 66 50 A 16 16 0 1 1 34 50 Z"/>
+  <path data-tone="accent2" d="M 32 32 H 38 A 2 2 0 0 1 40 34 V 34 A 2 2 0 0 1 38 36 H 32 A 2 2 0 0 1 30 34 V 34 A 2 2 0 0 1 32 32 Z M 62 28 H 62 A 2 2 0 0 1 64 30 V 36 A 2 2 0 0 1 62 38 H 62 A 2 2 0 0 1 60 36 V 30 A 2 2 0 0 1 62 28 Z M 68 48 H 74 A 2 2 0 0 1 76 50 V 50 A 2 2 0 0 1 74 52 H 68 A 2 2 0 0 1 66 50 V 50 A 2 2 0 0 1 68 48 Z"/>
 </svg>

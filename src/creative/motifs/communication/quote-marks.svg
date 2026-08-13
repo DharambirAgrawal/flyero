@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="quote,testimonial,pull-quote,speech,typography">
+  <title>A pair of opening quotation marks.</title>
+  <desc>Typographic quotes. Testimonials, pull-quotes, interviews. Use as a mark beside a word part, not as the quote itself. Marks accent, inner counters paper.</desc>
+  <path data-tone="accent" d="M 16 38 A 16 16 0 1 1 48 38 A 16 16 0 1 1 16 38 Z M 24 50 L 20 78 L 40 58 Z M 52 38 A 16 16 0 1 1 84 38 A 16 16 0 1 1 52 38 Z M 60 50 L 56 78 L 76 58 Z"/>
+  <path data-tone="paper" d="M 26 36 A 6 6 0 1 1 38 36 A 6 6 0 1 1 26 36 Z M 62 36 A 6 6 0 1 1 74 36 A 6 6 0 1 1 62 36 Z"/>
+</svg>

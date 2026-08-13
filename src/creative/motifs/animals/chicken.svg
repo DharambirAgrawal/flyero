@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="chicken,hen,farm,egg,bird,rooster">
+  <title>A hen with a comb, a wing and a tail.</title>
+  <desc>A chicken. Farms, eggs, 'home to roost'. Body accent, wing paper, comb accent2, legs ink.</desc>
+  <path data-tone="accent" d="M 22 56 A 26 22 0 1 1 74 56 A 26 22 0 1 1 22 56 Z M 56 42 A 14 14 0 1 1 84 42 A 14 14 0 1 1 56 42 Z M 22 48 L 8 36 L 18 56 L 8 64 L 24 58 Z"/>
+  <path data-tone="paper" d="M 32 58 A 12 10 0 1 1 56 58 A 12 10 0 1 1 32 58 Z"/>
+  <path data-tone="accent2" d="M 64 30 L 62 16 L 72 22 L 80 16 L 76 30 Z"/>
+  <path data-tone="ink" d="M 41 76 H 43 A 1 1 0 0 1 44 77 V 91 A 1 1 0 0 1 43 92 H 41 A 1 1 0 0 1 40 91 V 77 A 1 1 0 0 1 41 76 Z M 51 76 H 53 A 1 1 0 0 1 54 77 V 91 A 1 1 0 0 1 53 92 H 51 A 1 1 0 0 1 50 91 V 77 A 1 1 0 0 1 51 76 Z M 80 42 L 92 40 L 80 48 Z"/>
+</svg>

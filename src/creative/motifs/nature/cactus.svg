@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="cactus,desert,saguaro,succulent,southwest,plant">
+  <title>Saguaro cactus with two arms and clustered spines.</title>
+  <desc>A desert cactus: main column, two arms, a few spines. Southwest, dry humour, succulents. Body accent, arms accent2, spines ink, pot paper.</desc>
+  <path data-tone="accent" d="M 50 22 H 50 A 8 8 0 0 1 58 30 V 76 A 8 8 0 0 1 50 84 H 50 A 8 8 0 0 1 42 76 V 30 A 8 8 0 0 1 50 22 Z"/>
+  <path data-tone="accent2" d="M 28 40 H 38 A 6 6 0 0 1 44 46 V 46 A 6 6 0 0 1 38 52 H 28 A 6 6 0 0 1 22 46 V 46 A 6 6 0 0 1 28 40 Z M 62 32 H 72 A 6 6 0 0 1 78 38 V 38 A 6 6 0 0 1 72 44 H 62 A 6 6 0 0 1 56 38 V 38 A 6 6 0 0 1 62 32 Z"/>
+  <path data-tone="ink" d="M 48 28 H 50 V 36 H 48 Z M 52 48 H 54 V 56 H 52 Z M 46 60 H 48 V 68 H 46 Z"/>
+  <path data-tone="paper" d="M 37 80 H 63 A 3 3 0 0 1 66 83 V 91 A 3 3 0 0 1 63 94 H 37 A 3 3 0 0 1 34 91 V 83 A 3 3 0 0 1 37 80 Z"/>
+</svg>

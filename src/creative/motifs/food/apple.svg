@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="apple,fruit,school,health,teacher,snack">
+  <title>An apple with a leaf, a stem and a highlight.</title>
+  <desc>A whole apple. Schools, health, fruit, teachers. Body accent, leaf paper, stem ink, highlight paper.</desc>
+  <path data-tone="accent" d="M 18 56 A 32 32 0 1 1 82 56 A 32 32 0 1 1 18 56 Z"/>
+  <path data-tone="paper" d="M 30 44 A 8 10 0 1 1 46 44 A 8 10 0 1 1 30 44 Z M 50 28 A 12 8 0 1 1 74 28 A 12 8 0 1 1 50 28 Z"/>
+  <path data-tone="ink" d="M 48 16 H 52 A 1 1 0 0 1 53 17 V 31 A 1 1 0 0 1 52 32 H 48 A 1 1 0 0 1 47 31 V 17 A 1 1 0 0 1 48 16 Z"/>
+</svg>

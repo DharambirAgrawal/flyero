@@ -33,8 +33,8 @@ const ROLE_DESCRIPTION: Record<MediaAssetType, string> = {
 
 /**
  * The curated asset library — full-colour, multi-tone images the user drops
- * in themselves, distinct from `src/creative/motifs/` (single-tone, vector,
- * theme-recoloured) and distinct from a job's uploaded assets (`POST
+ * in themselves, distinct from `src/creative/motifs/` (vector marks,
+ * theme-recoloured — single-layer or multi-layer via `data-tone`) and distinct from a job's uploaded assets (`POST
  * /v1/assets`, ephemeral, per-job). This is the "I have images I want
  * Flyero to be able to reach for on every future job, permanently" folder.
  *

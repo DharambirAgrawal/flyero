@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Two loop ellipses, a knot and two V-notched tails — a corner bow.</title>
-  <path d="M 10 42 A 20 14 0 1 1 50 42 A 20 14 0 1 1 10 42 Z M 50 42 A 20 14 0 1 1 90 42 A 20 14 0 1 1 50 42 Z M 42 42 A 8 8 0 1 1 58 42 A 8 8 0 1 1 42 42 Z M 44 48 L 34 92 L 46 78 M 56 48 L 66 92 L 54 78" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bow,ribbon,gift,ballet,invitation,line-art,sketch">
+  <title>Sketched ribbon bow with two loops and trailing tails.</title>
+  <desc>Line-art bow — gift wrap, ballet, a name on an invitation, a 'just because'. LINE ART. Prefer a filled gift when you need a present, not just the knot. Not a bow-tie (that's fashion/bow-tie).</desc>
+  <path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M 50 48 Q 22 18 18 42 Q 20 62 50 52 Q 80 62 82 42 Q 78 18 50 48 M 50 52 Q 46 70 28 92 M 50 52 Q 54 70 72 92 M 42 48 H 58"/>
 </svg>

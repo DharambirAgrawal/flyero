@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Ticket stub with two bites out of its long sides.</title>
-  <path d="M 3 26 H 97 V 42 A 9 9 0 0 0 97 60 V 76 H 3 V 60 A 9 9 0 0 0 3 42 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="ticket,admit,event,concert,stub,raffle,cinema">
+  <title>Admit-one ticket with perforated stubs and a star punch.</title>
+  <desc>Event ticket: rounded strip, notched perforation, a star punch. Concerts, travel, cinema, raffles. Body accent, stubs paper, star punch evenodd, stripe ink.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 12 30 H 88 A 6 6 0 0 1 94 36 V 64 A 6 6 0 0 1 88 70 H 12 A 6 6 0 0 1 6 64 V 36 A 6 6 0 0 1 12 30 Z M 16 50 A 8 8 0 1 1 32 50 A 8 8 0 1 1 16 50 Z"/>
+  <path data-tone="paper" d="M 12 30 H 18 A 6 6 0 0 1 24 36 V 64 A 6 6 0 0 1 18 70 H 12 A 6 6 0 0 1 6 64 V 36 A 6 6 0 0 1 12 30 Z"/>
+  <path data-tone="ink" d="M 49 38 H 83 A 1 1 0 0 1 84 39 V 43 A 1 1 0 0 1 83 44 H 49 A 1 1 0 0 1 48 43 V 39 A 1 1 0 0 1 49 38 Z M 49 50 H 75 A 1 1 0 0 1 76 51 V 54 A 1 1 0 0 1 75 55 H 49 A 1 1 0 0 1 48 54 V 51 A 1 1 0 0 1 49 50 Z M 49 62 H 67 A 1 1 0 0 1 68 63 V 65 A 1 1 0 0 1 67 66 H 49 A 1 1 0 0 1 48 65 V 63 A 1 1 0 0 1 49 62 Z"/>
 </svg>

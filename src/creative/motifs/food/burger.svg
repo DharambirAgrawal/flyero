@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="burger,hamburger,food,diner,beef,lunch">
+  <title>A hamburger: bun, patty, lettuce and a sesame top.</title>
+  <desc>A stacked burger. Fast food, diners, 'the works'. Buns accent, patty ink, lettuce paper, tomato accent2.</desc>
+  <path data-tone="accent" d="M 14 28 A 36 16 0 1 1 86 28 A 36 16 0 1 1 14 28 Z M 14 72 A 36 14 0 1 1 86 72 A 36 14 0 1 1 14 72 Z"/>
+  <path data-tone="ink" d="M 20 48 H 80 A 4 4 0 0 1 84 52 V 56 A 4 4 0 0 1 80 60 H 20 A 4 4 0 0 1 16 56 V 52 A 4 4 0 0 1 20 48 Z"/>
+  <path data-tone="paper" d="M 18 46 L 30 40 L 50 46 L 70 40 L 82 46 L 82 50 L 18 50 Z"/>
+  <path data-tone="accent2" d="M 22 58 H 78 A 2 2 0 0 1 80 60 V 62 A 2 2 0 0 1 78 64 H 22 A 2 2 0 0 1 20 62 V 60 A 2 2 0 0 1 22 58 Z M 35 22 A 3 3 0 1 1 41 22 A 3 3 0 1 1 35 22 Z M 51 18 A 3 3 0 1 1 57 18 A 3 3 0 1 1 51 18 Z M 63 24 A 3 3 0 1 1 69 24 A 3 3 0 1 1 63 24 Z"/>
+</svg>

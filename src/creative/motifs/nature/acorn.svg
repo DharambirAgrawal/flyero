@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="acorn,oak,autumn,nut,forest,fall">
+  <title>Acorn with a textured cap and a pointed nut.</title>
+  <desc>A single acorn. Autumn, oaks, squirrels, 'from little acorns'. Nut accent, cap ink, highlight paper.</desc>
+  <path data-tone="accent" d="M 28 62 A 22 28 0 1 1 72 62 A 22 28 0 1 1 28 62 Z"/>
+  <path data-tone="ink" d="M 24 36 A 26 16 0 1 1 76 36 A 26 16 0 1 1 24 36 Z M 48 12 H 52 A 2 2 0 0 1 54 14 V 26 A 2 2 0 0 1 52 28 H 48 A 2 2 0 0 1 46 26 V 14 A 2 2 0 0 1 48 12 Z"/>
+  <path data-tone="paper" d="M 36 58 A 6 8 0 1 1 48 58 A 6 8 0 1 1 36 58 Z"/>
+</svg>

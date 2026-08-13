@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="palm,tropical,beach,holiday,tree,island">
+  <title>Palm: a curved trunk and a crown of five fronds.</title>
+  <desc>A tropical palm. Beaches, holidays, cocktails, 'escape'. Trunk ink, fronds accent, coconuts accent2.</desc>
+  <path data-tone="ink" d="M 46 92 Q 40 50 52 28 L 58 30 Q 48 52 54 92 Z"/>
+  <path data-tone="accent" d="M 52 28 L 20 18 L 28 32 Z M 52 28 L 14 36 L 30 42 Z M 52 28 L 52 4 L 60 20 Z M 52 28 L 86 16 L 74 32 Z M 52 28 L 90 40 L 72 44 Z"/>
+  <path data-tone="accent2" d="M 44 36 A 4 4 0 1 1 52 36 A 4 4 0 1 1 44 36 Z M 52 38 A 4 4 0 1 1 60 38 A 4 4 0 1 1 52 38 Z"/>
+</svg>

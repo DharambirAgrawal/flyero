@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="lamp,light,desk,home,read,shade">
+  <title>A table lamp with a shade, a stem and a round base.</title>
+  <desc>A desk lamp. Home, reading, evenings, interiors. Shade accent, stem ink, base muted, glow paper.</desc>
+  <path data-tone="accent" d="M 22 18 L 78 18 L 70 48 L 30 48 Z"/>
+  <path data-tone="paper" d="M 30 48 L 70 48 L 62 42 L 38 42 Z"/>
+  <path data-tone="ink" d="M 47 48 H 53 A 1 1 0 0 1 54 49 V 75 A 1 1 0 0 1 53 76 H 47 A 1 1 0 0 1 46 75 V 49 A 1 1 0 0 1 47 48 Z"/>
+  <path data-tone="muted" d="M 28 84 A 22 8 0 1 1 72 84 A 22 8 0 1 1 28 84 Z"/>
+</svg>

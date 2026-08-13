@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="magnifier,search,inspect,zoom,find,lens">
+  <title>A magnifying glass with a round lens and a handle.</title>
+  <desc>Search / inspect. Research, detective, 'look closer', QA. Rim accent, lens paper, handle ink, highlight accent2.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 10 40 A 30 30 0 1 1 70 40 A 30 30 0 1 1 10 40 Z M 20 40 A 20 20 0 1 1 60 40 A 20 20 0 1 1 20 40 Z"/>
+  <path data-tone="paper" d="M 20 40 A 20 20 0 1 1 60 40 A 20 20 0 1 1 20 40 Z"/>
+  <path data-tone="ink" d="M 58 58 L 92 92 L 84 98 L 52 64 Z"/>
+  <path data-tone="accent2" d="M 24 32 A 8 10 0 1 1 40 32 A 8 10 0 1 1 24 32 Z"/>
+</svg>

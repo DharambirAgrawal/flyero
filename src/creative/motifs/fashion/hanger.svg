@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="hanger,clothes,fashion,wardrobe,retail,laundry">
+  <title>A clothes hanger with a hook and a straight bar.</title>
+  <desc>A hanger. Fashion, laundry, retail, 'hang it up'. Hook ink, shoulders accent, bar paper.</desc>
+  <path data-tone="ink" fill-rule="evenodd" d="M 40 16 A 10 10 0 1 1 60 16 A 10 10 0 1 1 40 16 Z M 45 16 A 5 5 0 1 1 55 16 A 5 5 0 1 1 45 16 Z"/>
+  <path data-tone="accent" d="M 50 24 L 8 64 L 16 70 L 50 36 L 84 70 L 92 64 Z"/>
+  <path data-tone="paper" d="M 19 66 H 81 A 3 3 0 0 1 84 69 V 71 A 3 3 0 0 1 81 74 H 19 A 3 3 0 0 1 16 71 V 69 A 3 3 0 0 1 19 66 Z"/>
+</svg>

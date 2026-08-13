@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="lipstick,makeup,beauty,glam,cosmetic,red">
+  <title>A lipstick bullet raised from its tube.</title>
+  <desc>A lipstick. Beauty, glam, 'the look'. Bullet accent, tube ink, band paper, cap accent2.</desc>
+  <path data-tone="accent" d="M 38 8 L 62 18 L 62 40 L 38 40 Z"/>
+  <path data-tone="ink" d="M 38 40 H 62 A 4 4 0 0 1 66 44 V 80 A 4 4 0 0 1 62 84 H 38 A 4 4 0 0 1 34 80 V 44 A 4 4 0 0 1 38 40 Z"/>
+  <path data-tone="paper" d="M 34 48 H 66 V 56 H 34 Z"/>
+  <path data-tone="accent2" d="M 38 84 H 62 A 2 2 0 0 1 64 86 V 90 A 2 2 0 0 1 62 92 H 38 A 2 2 0 0 1 36 90 V 86 A 2 2 0 0 1 38 84 Z"/>
+</svg>

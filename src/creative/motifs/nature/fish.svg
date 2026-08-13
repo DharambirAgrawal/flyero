@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="fish,sea,swim,seafood,aquarium,marine">
+  <title>A fish facing right, with a tail, eye and fin.</title>
+  <desc>A simple fish. Seafood, aquariums, swimming, 'plenty'. Body accent, tail accent2, belly paper, eye ink.</desc>
+  <path data-tone="accent" d="M 16 50 A 30 18 0 1 1 76 50 A 30 18 0 1 1 16 50 Z"/>
+  <path data-tone="accent2" d="M 76 50 L 96 28 L 90 50 L 96 72 Z"/>
+  <path data-tone="paper" d="M 28 56 A 18 8 0 1 1 64 56 A 18 8 0 1 1 28 56 Z"/>
+  <path data-tone="ink" d="M 24 46 A 4 4 0 1 1 32 46 A 4 4 0 1 1 24 46 Z M 50 36 L 62 28 L 54 42 Z"/>
+</svg>

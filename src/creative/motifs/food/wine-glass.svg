@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="wine,glass,red,dinner,vineyard,toast">
+  <title>A wine glass with a stem, foot and a wine fill.</title>
+  <desc>A stemmed wine glass. Dinners, vineyards, toasts. Distinct from champagne flute and cocktail. Glass accent, wine accent2, foot ink, highlight paper.</desc>
+  <path data-tone="accent" d="M 28 12 H 72 Q 72 12 68 40 Q 64 58 50 62 Q 36 58 32 40 Q 28 12 28 12 Z M 47 62 H 53 A 1 1 0 0 1 54 63 V 81 A 1 1 0 0 1 53 82 H 47 A 1 1 0 0 1 46 81 V 63 A 1 1 0 0 1 47 62 Z M 32 90 A 18 6 0 1 1 68 90 A 18 6 0 1 1 32 90 Z"/>
+  <path data-tone="accent2" d="M 32 28 H 68 Q 68 28 66 42 Q 62 56 50 58 Q 38 56 34 42 Q 32 28 32 28 Z"/>
+  <path data-tone="paper" d="M 36 22 A 6 10 0 1 1 48 22 A 6 10 0 1 1 36 22 Z"/>
+</svg>

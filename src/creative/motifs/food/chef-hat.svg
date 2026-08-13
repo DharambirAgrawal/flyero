@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="chef,hat,toque,cook,kitchen,restaurant">
+  <title>A puffy chef's toque on a band.</title>
+  <desc>A chef hat. Restaurants, cooking classes, food brands. Puff paper, band accent, folds muted, button ink.</desc>
+  <path data-tone="paper" d="M 14 36 A 18 18 0 1 1 50 36 A 18 18 0 1 1 14 36 Z M 30 24 A 20 20 0 1 1 70 24 A 20 20 0 1 1 30 24 Z M 54 36 A 16 16 0 1 1 86 36 A 16 16 0 1 1 54 36 Z M 30 36 H 70 A 8 8 0 0 1 78 44 V 56 A 8 8 0 0 1 70 64 H 30 A 8 8 0 0 1 22 56 V 44 A 8 8 0 0 1 30 36 Z"/>
+  <path data-tone="accent" d="M 28 58 H 72 A 6 6 0 0 1 78 64 V 74 A 6 6 0 0 1 72 80 H 28 A 6 6 0 0 1 22 74 V 64 A 6 6 0 0 1 28 58 Z"/>
+  <path data-tone="muted" d="M 42 32 A 8 14 0 1 1 58 32 A 8 14 0 1 1 42 32 Z"/>
+  <path data-tone="ink" d="M 48 62 H 52 A 2 2 0 0 1 54 64 V 72 A 2 2 0 0 1 52 74 H 48 A 2 2 0 0 1 46 72 V 64 A 2 2 0 0 1 48 62 Z"/>
+</svg>

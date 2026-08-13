@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>V-shaped martini glass with an olive-on-toothpick garnish.</title>
-  <path d="M 16 18 L 50 58 L 84 18 Z M 50 58 L 50 86 M 30 86 L 70 86 M 62 8 L 38 38 M 55 12 A 5 5 0 1 1 65 12 A 5 5 0 1 1 55 12 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="cocktail,martini,drink,bar,olive,party,evening">
+  <title>Martini glass with a stem, an olive and a liquid line.</title>
+  <desc>A V-glass cocktail: bowl, stem, foot, olive on a stick, fill line. Bars, evenings, celebrations, hospitality. Glass accent, liquid accent2, olive ink, stick paper.</desc>
+  <path data-tone="accent" d="M 16 18 L 84 18 L 50 58 Z M 47 58 H 53 A 1 1 0 0 1 54 59 V 79 A 1 1 0 0 1 53 80 H 47 A 1 1 0 0 1 46 79 V 59 A 1 1 0 0 1 47 58 Z M 32 86 A 18 6 0 1 1 68 86 A 18 6 0 1 1 32 86 Z"/>
+  <path data-tone="accent2" d="M 24 24 L 76 24 L 50 50 Z"/>
+  <path data-tone="ink" d="M 53 36 A 5 5 0 1 1 63 36 A 5 5 0 1 1 53 36 Z"/>
+  <path data-tone="paper" d="M 20 20 L 62 38 L 64 34 L 22 16 Z"/>
 </svg>

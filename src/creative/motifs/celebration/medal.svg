@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="medal,award,ribbon,sports,prize,gold">
+  <title>Hanging medal: ribbon and a stamped circular disc.</title>
+  <desc>An award medal on a V ribbon. Sports, schools, 'you did it'. Not a trophy cup. Ribbon accent, disc accent2, star stamp paper, inner ring ink.</desc>
+  <path data-tone="accent" d="M 32 8 L 50 42 L 68 8 L 78 8 L 50 52 L 22 8 Z"/>
+  <path data-tone="accent2" d="M 24 68 A 26 26 0 1 1 76 68 A 26 26 0 1 1 24 68 Z"/>
+  <path data-tone="ink" fill-rule="evenodd" d="M 32 68 A 18 18 0 1 1 68 68 A 18 18 0 1 1 32 68 Z M 38 68 A 12 12 0 1 1 62 68 A 12 12 0 1 1 38 68 Z"/>
+  <path data-tone="paper" d="M 50 58 L 52.35 64.76 L 59.51 64.91 L 53.8 69.24 L 55.88 76.09 L 50 72 L 44.12 76.09 L 46.2 69.24 L 40.49 64.91 L 47.65 64.76 Z"/>
+</svg>

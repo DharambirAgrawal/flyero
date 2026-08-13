@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="teapot,tea,pour,hospitality,kettle,brew">
+  <title>A round teapot with a spout, lid and handle.</title>
+  <desc>A teapot. Tea, afternoon, hospitality, British-adjacent. Body accent, lid paper, spout accent2, handle ink.</desc>
+  <path data-tone="accent" d="M 18 56 A 30 24 0 1 1 78 56 A 30 24 0 1 1 18 56 Z"/>
+  <path data-tone="paper" d="M 32 34 A 16 8 0 1 1 64 34 A 16 8 0 1 1 32 34 Z M 42 26 A 6 6 0 1 1 54 26 A 6 6 0 1 1 42 26 Z"/>
+  <path data-tone="accent2" d="M 74 48 L 96 36 L 92 56 L 76 58 Z"/>
+  <path data-tone="ink" d="M 20 48 Q 6 40 8 60 Q 12 70 24 64 Z"/>
+</svg>

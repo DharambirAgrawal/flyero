@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>One pennant — the unit a bunting string or a Memphis edge repeats.</title>
-  <path d="M 15 8 L 85 8 L 50 95 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="bunting,pennants,flags,party,festival,banner,opening">
+  <title>A short string of three triangular pennants on a sagging cord.</title>
+  <desc>Party bunting: a bowed cord and three pennants. Events, festivals, shop openings. The engine can also draw a full-width bunting-string as decoration — this motif is the small stamp version. Cord ink, pennants accent / paper / accent2.</desc>
+  <path data-tone="ink" d="M 6 22 Q 50 40 94 22 L 92 26 Q 50 44 8 26 Z"/>
+  <path data-tone="accent" d="M 14 28 L 34 28 L 24 58 Z"/>
+  <path data-tone="paper" d="M 40 32 L 60 32 L 50 64 Z"/>
+  <path data-tone="accent2" d="M 66 28 L 86 28 L 76 58 Z"/>
 </svg>

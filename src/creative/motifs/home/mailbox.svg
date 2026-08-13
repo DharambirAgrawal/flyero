@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="mailbox,mail,letter,post,flag,curb">
+  <title>A curbside mailbox with a flag and a post.</title>
+  <desc>A letterbox. Mail, neighbourhoods, 'you've got mail'. Box accent, flag accent2, post ink, door paper.</desc>
+  <path data-tone="accent" d="M 32 22 H 68 A 10 10 0 0 1 78 32 V 48 A 10 10 0 0 1 68 58 H 32 A 10 10 0 0 1 22 48 V 32 A 10 10 0 0 1 32 22 Z"/>
+  <path data-tone="paper" d="M 33 32 H 55 A 3 3 0 0 1 58 35 V 45 A 3 3 0 0 1 55 48 H 33 A 3 3 0 0 1 30 45 V 35 A 3 3 0 0 1 33 32 Z"/>
+  <path data-tone="accent2" d="M 74 22 H 78 A 2 2 0 0 1 80 24 V 44 A 2 2 0 0 1 78 46 H 74 A 2 2 0 0 1 72 44 V 24 A 2 2 0 0 1 74 22 Z"/>
+  <path data-tone="ink" d="M 47 56 H 53 A 1 1 0 0 1 54 57 V 91 A 1 1 0 0 1 53 92 H 47 A 1 1 0 0 1 46 91 V 57 A 1 1 0 0 1 47 56 Z"/>
+</svg>

@@ -166,9 +166,11 @@ accents and anything else that should read as a mark: shading everything
 looks busier, not more real, so use it on the one or two parts that are the
 point of the figure, not on every part in it. It only affects a *filled*
 motif or shape — \`outline: true\`, squiggle/wave, and the motifs already
-sketched as line art (ask \`read_design_guide\` which, since the library
-grows) render unshaded regardless; reach for one of the filled ones when the
-figure's main part specifically needs to look shaded.
+sketched as line art (the search result flags LINE ART when that's so)
+render unshaded regardless; reach for one of the filled ones when the
+figure's main part specifically needs to look shaded. Filled motifs often
+paint several theme slots at once (\`desc\` names them — icing vs cake vs
+flame); that is the flyer's own palette, not a baked-in colour.
 
 ## Density without clutter
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="tent,camp,outdoors,festival,hike,shelter">
+  <title>A ridge tent with a doorway flap.</title>
+  <desc>A camping tent. Outdoors, festivals, glamping. Fly accent, door paper, pegs ink, inner accent2.</desc>
+  <path data-tone="accent" d="M 10 82 L 50 16 L 90 82 Z"/>
+  <path data-tone="paper" d="M 50 28 L 66 82 L 50 82 L 34 82 Z"/>
+  <path data-tone="accent2" d="M 50 16 L 50 82 L 34 82 Z"/>
+  <path data-tone="ink" d="M 9 80 H 15 A 1 1 0 0 1 16 81 V 87 A 1 1 0 0 1 15 88 H 9 A 1 1 0 0 1 8 87 V 81 A 1 1 0 0 1 9 80 Z M 85 80 H 91 A 1 1 0 0 1 92 81 V 87 A 1 1 0 0 1 91 88 H 85 A 1 1 0 0 1 84 87 V 81 A 1 1 0 0 1 85 80 Z"/>
+</svg>

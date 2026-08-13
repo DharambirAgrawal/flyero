@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="paw,print,pet,dog,cat,track">
+  <title>A paw print: a pad and four toes.</title>
+  <desc>An animal paw mark. Pets, 'walked here', shelters. Pad accent, toes accent2, claws ink.</desc>
+  <path data-tone="accent" d="M 28 64 A 22 18 0 1 1 72 64 A 22 18 0 1 1 28 64 Z"/>
+  <path data-tone="accent2" d="M 14 40 A 10 10 0 1 1 34 40 A 10 10 0 1 1 14 40 Z M 32 26 A 10 10 0 1 1 52 26 A 10 10 0 1 1 32 26 Z M 52 26 A 10 10 0 1 1 72 26 A 10 10 0 1 1 52 26 Z M 68 40 A 10 10 0 1 1 88 40 A 10 10 0 1 1 68 40 Z"/>
+  <path data-tone="ink" d="M 21 32 A 3 3 0 1 1 27 32 A 3 3 0 1 1 21 32 Z M 39 18 A 3 3 0 1 1 45 18 A 3 3 0 1 1 39 18 Z M 59 18 A 3 3 0 1 1 65 18 A 3 3 0 1 1 59 18 Z M 75 32 A 3 3 0 1 1 81 32 A 3 3 0 1 1 75 32 Z"/>
+</svg>

@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Balloon: an ellipse body and a knot, no string.</title>
-  <path d="M 20 42 A 30 36 0 1 1 80 42 A 30 36 0 1 1 20 42 Z M 42 76 L 58 76 L 50 88 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="balloon,party,helium,birthday,celebration,kids,opening">
+  <title>Helium balloon with a highlight, knot and curling ribbon.</title>
+  <desc>Filled party balloon: elliptical body, a paper-tone highlight on the upper left, a triangular knot, and a curling string. Reach for birthdays, grand openings, kids' events, congratulations. Not a hot-air balloon (hot-air-balloon) and not a cluster (balloon-bunch). Body accent, highlight paper, knot accent2, string ink.</desc>
+  <path data-tone="accent" d="M 22 40 A 28 34 0 1 1 78 40 A 28 34 0 1 1 22 40 Z"/>
+  <path data-tone="paper" d="M 30 26 A 8 11 0 1 1 46 26 A 8 11 0 1 1 30 26 Z"/>
+  <path data-tone="accent2" d="M 42 74 L 58 74 L 50 86 Z"/>
+  <path data-tone="ink" d="M 50 86 Q 40 94 48 100 Q 58 92 50 86 Z"/>
 </svg>

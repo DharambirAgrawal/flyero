@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="tennis,racket,racquet,ball,sport,court">
+  <title>A tennis racket with a handle, strings and a ball.</title>
+  <desc>A racket plus ball. Tennis, clubs, Wimbledon-adjacent. Head accent, strings paper, handle ink, ball accent2.</desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 22 34 A 28 32 0 1 1 78 34 A 28 32 0 1 1 22 34 Z M 30 34 A 20 24 0 1 1 70 34 A 20 24 0 1 1 30 34 Z"/>
+  <path data-tone="paper" d="M 48 14 H 52 V 54 H 48 Z M 30 32 H 70 V 36 H 30 Z"/>
+  <path data-tone="ink" d="M 49 62 H 51 A 3 3 0 0 1 54 65 V 91 A 3 3 0 0 1 51 94 H 49 A 3 3 0 0 1 46 91 V 65 A 3 3 0 0 1 49 62 Z"/>
+  <path data-tone="accent2" d="M 66 78 A 12 12 0 1 1 90 78 A 12 12 0 1 1 66 78 Z"/>
+</svg>

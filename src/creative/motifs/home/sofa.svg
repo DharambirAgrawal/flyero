@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="sofa,couch,lounge,seat,home,living">
+  <title>A two-seat sofa with arms, cushions and legs.</title>
+  <desc>A couch. Interiors, lounges, 'make yourself at home'. Body accent, cushions paper, arms accent2, legs ink.</desc>
+  <path data-tone="accent" d="M 16 40 H 84 A 8 8 0 0 1 92 48 V 68 A 8 8 0 0 1 84 76 H 16 A 8 8 0 0 1 8 68 V 48 A 8 8 0 0 1 16 40 Z"/>
+  <path data-tone="paper" d="M 30 32 H 42 A 6 6 0 0 1 48 38 V 54 A 6 6 0 0 1 42 60 H 30 A 6 6 0 0 1 24 54 V 38 A 6 6 0 0 1 30 32 Z M 58 32 H 70 A 6 6 0 0 1 76 38 V 54 A 6 6 0 0 1 70 60 H 58 A 6 6 0 0 1 52 54 V 38 A 6 6 0 0 1 58 32 Z"/>
+  <path data-tone="accent2" d="M 14 32 H 18 A 6 6 0 0 1 24 38 V 70 A 6 6 0 0 1 18 76 H 14 A 6 6 0 0 1 8 70 V 38 A 6 6 0 0 1 14 32 Z M 82 32 H 86 A 6 6 0 0 1 92 38 V 70 A 6 6 0 0 1 86 76 H 82 A 6 6 0 0 1 76 70 V 38 A 6 6 0 0 1 82 32 Z"/>
+  <path data-tone="ink" d="M 18 74 H 22 A 2 2 0 0 1 24 76 V 86 A 2 2 0 0 1 22 88 H 18 A 2 2 0 0 1 16 86 V 76 A 2 2 0 0 1 18 74 Z M 78 74 H 82 A 2 2 0 0 1 84 76 V 86 A 2 2 0 0 1 82 88 H 78 A 2 2 0 0 1 76 86 V 76 A 2 2 0 0 1 78 74 Z"/>
+</svg>

@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Coffee mug with curved steam lines rising from the rim.</title>
-  <path d="M 30 36 H 60 A 6 6 0 0 1 66 42 V 78 A 6 6 0 0 1 60 84 H 30 A 6 6 0 0 1 24 78 V 42 A 6 6 0 0 1 30 36 Z M 66 46 Q 84 46 84 60 Q 84 74 66 74 M 30 22 Q 35 26 40 22 Q 45 18 50 22 Q 55 26 60 22 M 34 12 Q 37.67 15 41.33 12 Q 45 9 48.67 12 Q 52.33 15 56 12" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="coffee,mug,cafe,tea,morning,drink,cup">
+  <title>Mug of coffee with a handle, saucer, steam and a surface ellipse.</title>
+  <desc>A cafe mug: cup, handle, saucer, two steam curls, coffee surface. Cafes, mornings, coworking, 'let's talk'. Cup accent, coffee ink, steam muted, saucer paper, handle accent2.</desc>
+  <path data-tone="accent" d="M 22 34 H 70 Q 76 34 76 42 V 72 Q 76 80 22 80 Q 16 80 16 72 V 42 Q 16 34 22 34 Z"/>
+  <path data-tone="accent2" fill-rule="evenodd" d="M 70 42 Q 90 42 90 56 Q 90 70 70 68 Z"/>
+  <path data-tone="ink" d="M 22 40 A 24 8 0 1 1 70 40 A 24 8 0 1 1 22 40 Z"/>
+  <path data-tone="paper" d="M 14 84 A 32 8 0 1 1 78 84 A 32 8 0 1 1 14 84 Z"/>
+  <path data-tone="muted" d="M 34 18 Q 30 8 36 6 Q 40 14 38 22 Z M 50 16 Q 48 6 54 4 Q 58 12 54 22 Z"/>
 </svg>

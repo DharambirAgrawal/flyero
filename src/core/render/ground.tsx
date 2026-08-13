@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { Group } from "../../components/primitives.js";
 import type { Decoration, DecorNode, GroundPlan } from "../decor/types.js";
-import { MOTIFS, motifTransform } from "../../components/shapes.js";
+import { MOTIFS, motifTransform, paintMotif, tonesFromInk } from "../../components/shapes.js";
 
 /**
  * Painters for the ground and the ornament bands. Both are deliberately dumb:
@@ -113,18 +113,22 @@ function Node({ node, index }: { node: DecorNode; index: number }): ReactElement
       );
     case "motif": {
       const motif = MOTIFS[node.name];
+      const painted = paintMotif(motif, node.fill, tonesFromInk(node.fill));
       return (
         <g key={index} transform={motifTransform(node.x, node.y, node.size, node.rotate)}>
-          <path
-            d={motif.d}
-            fill={motif.stroke ? "none" : node.fill}
-            stroke={motif.stroke ? node.fill : undefined}
-            strokeWidth={motif.stroke ? 2.5 : undefined}
-            strokeLinecap={motif.stroke ? "round" : undefined}
-            strokeLinejoin={motif.stroke ? "round" : undefined}
-            fillRule={motif.fillRule}
-            opacity={node.op}
-          />
+          {painted.map((p, i) => (
+            <path
+              key={i}
+              d={p.d}
+              fill={p.fill}
+              fillRule={p.fillRule}
+              stroke={p.stroke}
+              strokeWidth={p.strokeWidth}
+              strokeLinecap={p.stroke ? "round" : undefined}
+              strokeLinejoin={p.stroke ? "round" : undefined}
+              opacity={node.op}
+            />
+          ))}
         </g>
       );
     }

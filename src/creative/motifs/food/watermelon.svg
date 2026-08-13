@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="watermelon,fruit,summer,picnic,wedge,seed">
+  <title>A watermelon wedge with rind, flesh and seeds.</title>
+  <desc>A slice of watermelon. Summer, picnics, fruit stands. Flesh accent, rind paper, outer rind ink, seeds ink.</desc>
+  <path data-tone="ink" d="M 10 78 L 90 78 L 50 16 Z"/>
+  <path data-tone="paper" d="M 16 74 L 84 74 L 50 24 Z"/>
+  <path data-tone="accent" d="M 22 70 L 78 70 L 50 30 Z"/>
+  <path data-tone="muted" d="M 39 52 A 3 3 0 1 1 45 52 A 3 3 0 1 1 39 52 Z M 55 48 A 3 3 0 1 1 61 48 A 3 3 0 1 1 55 48 Z M 47 60 A 3 3 0 1 1 53 60 A 3 3 0 1 1 47 60 Z M 37.5 64 A 2.5 2.5 0 1 1 42.5 64 A 2.5 2.5 0 1 1 37.5 64 Z"/>
+</svg>

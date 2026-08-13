@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Circular peace emblem.</title>
-  <path d="M 8 50 A 42 42 0 1 1 92 50 A 42 42 0 1 1 8 50 Z M 50 8 L 50 92 M 50 50 L 20 80 M 50 50 L 80 80" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="peace,symbol,protest,kindness,sixties,dove">
+  <title>Peace symbol: a circle with the forked vertical drop.</title>
+  <desc>The classic peace mark in a ring. Protest, kindness, 60s/70s, anti-war, wellness brands that actually mean it. Ring accent, inner fork ink, gap paper.</desc>
+  <path data-tone="accent" d="M 8 50 A 42 42 0 1 1 92 50 A 42 42 0 1 1 8 50 Z"/>
+  <path data-tone="paper" d="M 18 50 A 32 32 0 1 1 82 50 A 32 32 0 1 1 18 50 Z"/>
+  <path data-tone="ink" d="M 47 20 H 53 A 1 1 0 0 1 54 21 V 79 A 1 1 0 0 1 53 80 H 47 A 1 1 0 0 1 46 79 V 21 A 1 1 0 0 1 47 20 Z M 50 50 L 24 78 L 32 84 L 50 58 L 68 84 L 76 78 Z"/>
 </svg>

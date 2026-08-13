@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Three concentric bands over a hollow centre.</title>
-  <path d="M 2 96 V 96 A 48 48 0 0 1 98 96 V 96 Z M 10 96 V 96 A 40 40 0 0 1 90 96 V 96 Z M 18 96 V 96 A 32 32 0 0 1 82 96 V 96 Z M 26 96 V 96 A 24 24 0 0 1 74 96 V 96 Z M 34 96 V 96 A 16 16 0 0 1 66 96 V 96 Z M 42 96 V 96 A 8 8 0 0 1 58 96 V 96 Z" fill-rule="evenodd"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="rainbow,arch,weather,pride,hope,kids,sky">
+  <title>Three nested colour bands of a rainbow arch, hollow underneath.</title>
+  <desc>A rainbow: three concentric arches sitting on the baseline, hollow centre. Pride-adjacent joy, kids, weather after rain, hope. Evenodd so the interior stays open. Outer accent, middle accent2, inner paper.</desc>
+  <path data-tone="accent" d="M 6 88 A 44 44 0 0 1 94 88 L 78 88 A 28 28 0 0 0 22 88 Z"/>
+  <path data-tone="accent2" d="M 22 88 A 28 28 0 0 1 78 88 L 64 88 A 14 14 0 0 0 36 88 Z"/>
+  <path data-tone="paper" d="M 36 88 A 14 14 0 0 1 64 88 L 58 88 A 8 8 0 0 0 42 88 Z"/>
 </svg>

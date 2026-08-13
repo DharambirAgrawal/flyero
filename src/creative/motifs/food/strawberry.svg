@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="strawberry,berry,fruit,summer,jam,seed">
+  <title>A strawberry with a leafy cap and seed dots.</title>
+  <desc>A strawberry. Summer, desserts, farms, jam. Berry accent, seeds paper, cap ink, inner accent2.</desc>
+  <path data-tone="accent" d="M 50 20 Q 86 36 78 68 Q 64 92 50 94 Q 36 92 22 68 Q 14 36 50 20 Z"/>
+  <path data-tone="paper" d="M 35 48 A 3 3 0 1 1 41 48 A 3 3 0 1 1 35 48 Z M 51 42 A 3 3 0 1 1 57 42 A 3 3 0 1 1 51 42 Z M 59 58 A 3 3 0 1 1 65 58 A 3 3 0 1 1 59 58 Z M 39 66 A 3 3 0 1 1 45 66 A 3 3 0 1 1 39 66 Z M 47 76 A 3 3 0 1 1 53 76 A 3 3 0 1 1 47 76 Z"/>
+  <path data-tone="ink" d="M 50 20 L 28 8 L 40 22 Z M 50 20 L 72 8 L 60 22 Z M 50 20 L 50 4 L 56 18 Z"/>
+</svg>

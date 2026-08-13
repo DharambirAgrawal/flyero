@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <title>Suitcase: body plus the handle above it.</title>
-  <path d="M 8 31 H 92 A 7 7 0 0 1 99 38 V 87 A 7 7 0 0 1 92 94 H 8 A 7 7 0 0 1 1 87 V 38 A 7 7 0 0 1 8 31 Z M 34 29 V 19 A 8 8 0 0 1 42 11 H 58 A 8 8 0 0 1 66 19 V 29 H 57 V 20 H 43 V 29 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="suitcase,luggage,travel,bag,packing,trip">
+  <title>Travel suitcase with a handle, latches and a stripe.</title>
+  <desc>A standing suitcase: body, top handle, two latches, a horizontal stripe. Travel, packing, tours. Body accent, stripe accent2, handle ink, latches paper.</desc>
+  <path data-tone="accent" d="M 26 28 H 74 A 8 8 0 0 1 82 36 V 82 A 8 8 0 0 1 74 90 H 26 A 8 8 0 0 1 18 82 V 36 A 8 8 0 0 1 26 28 Z"/>
+  <path data-tone="accent2" d="M 18 52 H 82 V 64 H 18 Z"/>
+  <path data-tone="ink" d="M 34 28 V 16 H 66 V 28 H 60 V 22 H 40 V 28 Z"/>
+  <path data-tone="paper" d="M 28 40 H 34 A 2 2 0 0 1 36 42 V 46 A 2 2 0 0 1 34 48 H 28 A 2 2 0 0 1 26 46 V 42 A 2 2 0 0 1 28 40 Z M 66 40 H 72 A 2 2 0 0 1 74 42 V 46 A 2 2 0 0 1 72 48 H 66 A 2 2 0 0 1 64 46 V 42 A 2 2 0 0 1 66 40 Z"/>
 </svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="train,rail,locomotive,commute,engine,track">
+  <title>A locomotive with a chimney, a window and a cowcatcher.</title>
+  <desc>A steam-ish train engine. Rail, commute, adventure, 'on track'. Body accent, cabin paper, chimney ink, catcher accent2.</desc>
+  <path data-tone="accent" d="M 34 38 H 86 A 6 6 0 0 1 92 44 V 68 A 6 6 0 0 1 86 74 H 34 A 6 6 0 0 1 28 68 V 44 A 6 6 0 0 1 34 38 Z M 12 48 H 28 A 4 4 0 0 1 32 52 V 70 A 4 4 0 0 1 28 74 H 12 A 4 4 0 0 1 8 70 V 52 A 4 4 0 0 1 12 48 Z"/>
+  <path data-tone="paper" d="M 73 44 H 83 A 3 3 0 0 1 86 47 V 57 A 3 3 0 0 1 83 60 H 73 A 3 3 0 0 1 70 57 V 47 A 3 3 0 0 1 73 44 Z"/>
+  <path data-tone="ink" d="M 18 28 H 26 A 2 2 0 0 1 28 30 V 48 A 2 2 0 0 1 26 50 H 18 A 2 2 0 0 1 16 48 V 30 A 2 2 0 0 1 18 28 Z M 14 24 A 8 8 0 1 1 30 24 A 8 8 0 1 1 14 24 Z M 32 80 A 8 8 0 1 1 48 80 A 8 8 0 1 1 32 80 Z M 64 80 A 8 8 0 1 1 80 80 A 8 8 0 1 1 64 80 Z"/>
+  <path data-tone="accent2" d="M 8 74 L 4 88 L 32 74 Z"/>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="clock,time,hour,analog,appointment,watch">
+  <title>A round analog clock with tick marks and two hands.</title>
+  <desc>A wall clock. Hours, appointments, 'it's time'. Face paper, rim accent, hands ink, hub accent2.</desc>
+  <path data-tone="accent" d="M 8 50 A 42 42 0 1 1 92 50 A 42 42 0 1 1 8 50 Z"/>
+  <path data-tone="paper" d="M 16 50 A 34 34 0 1 1 84 50 A 34 34 0 1 1 16 50 Z"/>
+  <path data-tone="ink" d="M 49 22 H 51 A 1 1 0 0 1 52 23 V 49 A 1 1 0 0 1 51 50 H 49 A 1 1 0 0 1 48 49 V 23 A 1 1 0 0 1 49 22 Z M 49 48 H 69 A 1 1 0 0 1 70 49 V 51 A 1 1 0 0 1 69 52 H 49 A 1 1 0 0 1 48 51 V 49 A 1 1 0 0 1 49 48 Z"/>
+  <path data-tone="accent2" d="M 45 50 A 5 5 0 1 1 55 50 A 5 5 0 1 1 45 50 Z"/>
+</svg>

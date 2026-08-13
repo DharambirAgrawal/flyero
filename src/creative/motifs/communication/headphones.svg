@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="headphones,audio,music,podcast,listen,dj">
+  <title>Over-ear headphones with a headband and two cups.</title>
+  <desc>Audio headphones. Music, podcasts, support, 'listen'. Headband ink, cups accent, inner ear paper, bridge accent2.</desc>
+  <path data-tone="ink" d="M 18 52 Q 18 10 50 10 Q 82 10 82 52 L 74 52 Q 74 18 50 18 Q 26 18 26 52 Z"/>
+  <path data-tone="accent" d="M 16 44 H 22 A 8 8 0 0 1 30 52 V 72 A 8 8 0 0 1 22 80 H 16 A 8 8 0 0 1 8 72 V 52 A 8 8 0 0 1 16 44 Z M 78 44 H 84 A 8 8 0 0 1 92 52 V 72 A 8 8 0 0 1 84 80 H 78 A 8 8 0 0 1 70 72 V 52 A 8 8 0 0 1 78 44 Z"/>
+  <path data-tone="paper" d="M 18 50 H 20 A 4 4 0 0 1 24 54 V 70 A 4 4 0 0 1 20 74 H 18 A 4 4 0 0 1 14 70 V 54 A 4 4 0 0 1 18 50 Z M 80 50 H 82 A 4 4 0 0 1 86 54 V 70 A 4 4 0 0 1 82 74 H 80 A 4 4 0 0 1 76 70 V 54 A 4 4 0 0 1 80 50 Z"/>
+</svg>

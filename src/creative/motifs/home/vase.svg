@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="vase,flower,ceramic,home,gift,bloom">
+  <title>A curvy vase with a narrow neck and a flower.</title>
+  <desc>A vase. Interiors, gifts, florists. Body accent, neck paper, bloom accent2, stem ink.</desc>
+  <path data-tone="accent" d="M 38 40 Q 22 52 28 80 Q 32 90 50 90 Q 68 90 72 80 Q 78 52 62 40 Z"/>
+  <path data-tone="paper" d="M 46 24 H 54 A 6 6 0 0 1 60 30 V 38 A 6 6 0 0 1 54 44 H 46 A 6 6 0 0 1 40 38 V 30 A 6 6 0 0 1 46 24 Z"/>
+  <path data-tone="ink" d="M 49 8 H 51 A 1 1 0 0 1 52 9 V 27 A 1 1 0 0 1 51 28 H 49 A 1 1 0 0 1 48 27 V 9 A 1 1 0 0 1 49 8 Z"/>
+  <path data-tone="accent2" d="M 40 10 A 10 10 0 1 1 60 10 A 10 10 0 1 1 40 10 Z"/>
+</svg>

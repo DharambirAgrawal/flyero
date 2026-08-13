@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="chimney,smoke,hearth,winter,brick,home">
+  <title>A brick chimney with a pot and a curl of smoke.</title>
+  <desc>A chimney. Homes, winter, 'hearth'. Stack accent, bricks ink, pot muted, smoke paper.</desc>
+  <path data-tone="accent" d="M 34 28 H 66 A 2 2 0 0 1 68 30 V 90 A 2 2 0 0 1 66 92 H 34 A 2 2 0 0 1 32 90 V 30 A 2 2 0 0 1 34 28 Z"/>
+  <path data-tone="ink" d="M 32 44 H 68 V 48 H 32 Z M 32 60 H 68 V 64 H 32 Z M 32 76 H 68 V 80 H 32 Z"/>
+  <path data-tone="muted" d="M 30 20 H 70 A 2 2 0 0 1 72 22 V 30 A 2 2 0 0 1 70 32 H 30 A 2 2 0 0 1 28 30 V 22 A 2 2 0 0 1 30 20 Z"/>
+  <path data-tone="paper" d="M 40 12 A 10 14 0 1 1 60 12 A 10 14 0 1 1 40 12 Z M 54 8 A 8 10 0 1 1 70 8 A 8 10 0 1 1 54 8 Z"/>
+</svg>

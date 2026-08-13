@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="hourglass,time,sand,deadline,wait,timer">
+  <title>An hourglass with two bulbs and falling sand.</title>
+  <desc>A sand timer. Deadlines, waiting, vintage, 'time's up'. Frame ink, glass paper, sand accent, falling sand accent2.</desc>
+  <path data-tone="ink" d="M 24 10 H 76 A 2 2 0 0 1 78 12 V 16 A 2 2 0 0 1 76 18 H 24 A 2 2 0 0 1 22 16 V 12 A 2 2 0 0 1 24 10 Z M 24 82 H 76 A 2 2 0 0 1 78 84 V 88 A 2 2 0 0 1 76 90 H 24 A 2 2 0 0 1 22 88 V 84 A 2 2 0 0 1 24 82 Z M 28 18 L 46 50 L 28 82 L 22 82 L 22 18 Z M 72 18 L 54 50 L 72 82 L 78 82 L 78 18 Z"/>
+  <path data-tone="paper" d="M 32 20 L 50 48 L 68 20 Z M 32 80 L 50 52 L 68 80 Z"/>
+  <path data-tone="accent" d="M 36 72 L 50 56 L 64 72 L 64 78 L 36 78 Z"/>
+  <path data-tone="accent2" d="M 49 48 H 51 A 1 1 0 0 1 52 49 V 63 A 1 1 0 0 1 51 64 H 49 A 1 1 0 0 1 48 63 V 49 A 1 1 0 0 1 49 48 Z"/>
+</svg>

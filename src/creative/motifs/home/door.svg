@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="door,enter,welcome,home,panel,handle">
+  <title>A panelled door with a handle and a transom window.</title>
+  <desc>A closed door. Welcome, openings, 'next'. Door accent, panels paper, handle ink, transom accent2.</desc>
+  <path data-tone="accent" d="M 26 8 H 74 A 4 4 0 0 1 78 12 V 88 A 4 4 0 0 1 74 92 H 26 A 4 4 0 0 1 22 88 V 12 A 4 4 0 0 1 26 8 Z"/>
+  <path data-tone="paper" d="M 30 28 H 46 A 2 2 0 0 1 48 30 V 50 A 2 2 0 0 1 46 52 H 30 A 2 2 0 0 1 28 50 V 30 A 2 2 0 0 1 30 28 Z M 54 28 H 70 A 2 2 0 0 1 72 30 V 50 A 2 2 0 0 1 70 52 H 54 A 2 2 0 0 1 52 50 V 30 A 2 2 0 0 1 54 28 Z M 30 58 H 46 A 2 2 0 0 1 48 60 V 80 A 2 2 0 0 1 46 82 H 30 A 2 2 0 0 1 28 80 V 60 A 2 2 0 0 1 30 58 Z M 54 58 H 70 A 2 2 0 0 1 72 60 V 80 A 2 2 0 0 1 70 82 H 54 A 2 2 0 0 1 52 80 V 60 A 2 2 0 0 1 54 58 Z"/>
+  <path data-tone="accent2" d="M 30 12 H 70 A 2 2 0 0 1 72 14 V 22 A 2 2 0 0 1 70 24 H 30 A 2 2 0 0 1 28 22 V 14 A 2 2 0 0 1 30 12 Z"/>
+  <path data-tone="ink" d="M 65 54 A 5 5 0 1 1 75 54 A 5 5 0 1 1 65 54 Z"/>
+</svg>

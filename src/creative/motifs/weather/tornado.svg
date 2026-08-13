@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="tornado,funnel,storm,wind,weather,twister">
+  <title>A funnel cloud tapering to the ground.</title>
+  <desc>A tornado / whirlwind. Storms, chaos, Midwest weather. Funnel muted, inner twist ink, debris accent, sky paper.</desc>
+  <path data-tone="paper" d="M 14 18 A 36 12 0 1 1 86 18 A 36 12 0 1 1 14 18 Z"/>
+  <path data-tone="muted" d="M 22 24 L 78 24 L 58 92 L 42 92 Z"/>
+  <path data-tone="ink" d="M 40 28 Q 62 48 44 68 Q 60 80 50 92 L 46 92 Q 54 80 42 66 Q 58 46 38 28 Z"/>
+  <path data-tone="accent" d="M 24 80 A 4 4 0 1 1 32 80 A 4 4 0 1 1 24 80 Z M 67 74 A 3 3 0 1 1 73 74 A 3 3 0 1 1 67 74 Z M 57 88 A 3 3 0 1 1 63 88 A 3 3 0 1 1 57 88 Z"/>
+</svg>

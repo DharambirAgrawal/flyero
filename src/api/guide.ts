@@ -283,20 +283,30 @@ carrying several facts as one element instead of several small ones:
 Gate G3 counts elements, not marks — a composed figure is ONE element with up
 to eight parts. Empty page → denser figure, not more elements.
 
-### Motif reference
+### Motif library — search, do not guess
 
-Read the description, not just the id — a growing library means two ids can
-sound similar and mean different things. Source: \`src/creative/motifs/**/
-*.svg\`, organised into subfolders by subject; add a file anywhere in that
-tree and it appears here automatically, so this list is never stale.
-\`search_motifs\` (\`GET /v1/schema/motifs?q=...\`) searches the same data
-by keyword if this list ever gets too long to scan by eye.
+${MOTIF_NAMES.length} vector marks in \`src/creative/motifs/**/*.svg\`, organised
+by subject. Do **not** pick an id from memory or from this guide. Call
+\`search_motifs\` (\`GET /v1/schema/motifs?q=...\`) with the thing you actually
+need ("birthday cake", "speech bubble", "hot-air balloon") and **read the
+returned \`title\` + \`desc\`** before choosing — two ids can sound similar and
+mean different things. Results also say whether a mark is LINE ART (shading
+has no effect) and which theme slots a multi-layer motif paints
+(\`data-tone\`: ink / accent / accent2 / muted / paper / ground), so a cake
+can have icing in \`paper\` and flames in \`accent2\` against a body in
+\`accent\` — always the flyer's own palette, never baked-in hex.
 
-${MOTIF_NAMES.map((m) => {
-  const motif = MOTIFS[m];
-  const note = motif.stroke ? " — LINE ART, shading has no effect" : "";
-  return `- **${m}**${motif.title ? ` — ${motif.title}` : ""}${note}`;
-}).join("\n")}
+Categories right now (${MOTIF_NAMES.length} total):
+${Object.entries(
+  MOTIF_NAMES.reduce<Record<string, number>>((acc, id) => {
+    const cat = MOTIFS[id]?.category ?? "uncategorised";
+    acc[cat] = (acc[cat] ?? 0) + 1;
+    return acc;
+  }, {}),
+)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([cat, n]) => `- **${cat}** — ${n}`)
+  .join("\n")}
 
 ## The Six Gates — a flyer ships only if all six pass
 

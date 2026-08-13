@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="rose,flower,romance,valentine,florist,love">
+  <title>Rose bloom of nested spirals on a thorny stem.</title>
+  <desc>A rose head with a short stem. Romance, florists, Valentine, condolence. Outer petals accent, inner accent2, heart paper, stem ink.</desc>
+  <path data-tone="accent" d="M 22 38 A 28 28 0 1 1 78 38 A 28 28 0 1 1 22 38 Z"/>
+  <path data-tone="accent2" d="M 32 38 A 18 18 0 1 1 68 38 A 18 18 0 1 1 32 38 Z"/>
+  <path data-tone="paper" d="M 42 38 A 8 8 0 1 1 58 38 A 8 8 0 1 1 42 38 Z"/>
+  <path data-tone="ink" d="M 48 62 H 52 A 1 1 0 0 1 53 63 V 91 A 1 1 0 0 1 52 92 H 48 A 1 1 0 0 1 47 91 V 63 A 1 1 0 0 1 48 62 Z M 52 74 L 68 66 L 64 78 Z"/>
+</svg>

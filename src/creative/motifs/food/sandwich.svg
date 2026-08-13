@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="sandwich,lunch,bread,deli,picnic,toast">
+  <title>A stacked sandwich with bread, filling and a toothpick.</title>
+  <desc>A deli sandwich. Lunch, cafes, picnic. Bread accent, filling accent2, lettuce paper, pick ink.</desc>
+  <path data-tone="accent" d="M 22 28 H 78 A 6 6 0 0 1 84 34 V 38 A 6 6 0 0 1 78 44 H 22 A 6 6 0 0 1 16 38 V 34 A 6 6 0 0 1 22 28 Z M 22 64 H 78 A 6 6 0 0 1 84 70 V 74 A 6 6 0 0 1 78 80 H 22 A 6 6 0 0 1 16 74 V 70 A 6 6 0 0 1 22 64 Z"/>
+  <path data-tone="accent2" d="M 20 44 H 80 A 2 2 0 0 1 82 46 V 52 A 2 2 0 0 1 80 54 H 20 A 2 2 0 0 1 18 52 V 46 A 2 2 0 0 1 20 44 Z"/>
+  <path data-tone="paper" d="M 18 54 L 30 48 L 50 56 L 70 48 L 82 54 L 82 60 L 18 60 Z"/>
+  <path data-tone="ink" d="M 49 16 H 51 A 1 1 0 0 1 52 17 V 43 A 1 1 0 0 1 51 44 H 49 A 1 1 0 0 1 48 43 V 17 A 1 1 0 0 1 49 16 Z M 45 16 A 5 5 0 1 1 55 16 A 5 5 0 1 1 45 16 Z"/>
+</svg>
