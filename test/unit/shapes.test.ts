@@ -1,9 +1,13 @@
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { Rng } from "../../src/lib/rng.js";
 import {
   DIRECTIONAL_MOTIFS,
   MOTIFS,
   MOTIF_NAMES,
+  MOTIF_TONES,
   arcBands,
   arcPath,
   arcTextPath,
@@ -16,6 +20,7 @@ import {
   ellipsePath,
   gridTile,
   halftoneTile,
+  loadMotifData,
   motifTransform,
   polygonPath,
   polyline,
@@ -305,6 +310,166 @@ describe("motifs", () => {
       expect(MOTIFS[name].title, `${name} has no <title>`).toBeTruthy();
       expect(MOTIFS[name].category, `${name} is not in a subfolder`).toBeTruthy();
     }
+  });
+
+  it("the real balloon-bunch motif is a genuine multi-layer demo", () => {
+    // Proves the feature actually landed in the real library, not just in
+    // an isolated fixture test below.
+    const layers = MOTIFS["balloon-bunch"]?.layers;
+    expect(layers, "balloon-bunch should be a multi-layer motif").toBeDefined();
+    expect(layers!.length).toBeGreaterThanOrEqual(2);
+    const tones = new Set(layers!.map((l) => l.tone));
+    expect(tones.size, "balloon-bunch's layers should use more than one tone").toBeGreaterThan(1);
+  });
+});
+
+describe("multi-colour motifs (data-tone layers)", () => {
+  let dir: string;
+
+  function put(name: string, xml: string) {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, name), xml);
+  }
+
+  function makeDir() {
+    dir = mkdtempSync(join(tmpdir(), "flyero-motif-test-"));
+    return dir;
+  }
+
+  function cleanup() {
+    rmSync(dir, { recursive: true, force: true });
+  }
+
+  it("parses tagged paths into named layers, grouped by tone", () => {
+    makeDir();
+    try {
+      put(
+        "two-tone.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Two-tone test shape</title>
+          <path data-tone="accent" d="M 10 10 L 40 10 L 40 40 Z"/>
+          <path data-tone="ink" d="M 60 60 L 90 60 L 90 90 Z"/>
+        </svg>`,
+      );
+      const lib = loadMotifData(dir);
+      const layers = lib["two-tone"]!.layers!;
+      expect(layers).toHaveLength(2);
+      expect(layers.find((l) => l.tone === "accent")?.d).toContain("10 10");
+      expect(layers.find((l) => l.tone === "ink")?.d).toContain("60 60");
+      // The flattened `d` still exists — backward compatibility for any
+      // caller that doesn't (yet) know about `layers`.
+      expect(lib["two-tone"]!.d).toContain("10 10");
+      expect(lib["two-tone"]!.d).toContain("60 60");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("concatenates multiple paths sharing the same tone into one layer", () => {
+    makeDir();
+    try {
+      put(
+        "shared.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Shared tone test</title>
+          <path data-tone="ink" d="M 1 1 L 2 2 Z"/>
+          <path data-tone="ink" d="M 3 3 L 4 4 Z"/>
+          <path data-tone="accent" d="M 5 5 L 6 6 Z"/>
+        </svg>`,
+      );
+      const layers = loadMotifData(dir)["shared"]!.layers!;
+      expect(layers).toHaveLength(2);
+      const inkLayer = layers.find((l) => l.tone === "ink")!;
+      expect(inkLayer.d).toContain("1 1");
+      expect(inkLayer.d).toContain("3 3");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("a plain single-colour motif has no layers field at all", () => {
+    makeDir();
+    try {
+      put(
+        "plain.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Plain</title>
+          <path d="M 1 1 L 2 2 Z"/>
+        </svg>`,
+      );
+      expect(loadMotifData(dir)["plain"]!.layers).toBeUndefined();
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects a motif that tags some paths but not others", () => {
+    makeDir();
+    try {
+      put(
+        "partial.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Partial</title>
+          <path data-tone="ink" d="M 1 1 L 2 2 Z"/>
+          <path d="M 3 3 L 4 4 Z"/>
+        </svg>`,
+      );
+      expect(() => loadMotifData(dir)).toThrow(/leaves others untagged/);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects an unknown data-tone value, naming the bad value", () => {
+    makeDir();
+    try {
+      put(
+        "badtone.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Bad tone</title>
+          <path data-tone="mauve" d="M 1 1 L 2 2 Z"/>
+        </svg>`,
+      );
+      expect(() => loadMotifData(dir)).toThrow(/data-tone="mauve"/);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("rejects mixing data-tone layers with fill=\"none\" line art", () => {
+    makeDir();
+    try {
+      put(
+        "mixed.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Mixed</title>
+          <path data-tone="ink" d="M 1 1 L 2 2 Z" fill="none"/>
+        </svg>`,
+      );
+      expect(() => loadMotifData(dir)).toThrow(/mixes data-tone layers with fill="none"/);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("still rejects an arbitrary baked-in fill colour, same as before this feature", () => {
+    makeDir();
+    try {
+      put(
+        "arbitrary.svg",
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <title>Arbitrary</title>
+          <path d="M 1 1 L 2 2 Z" fill="#ff00ff"/>
+        </svg>`,
+      );
+      expect(() => loadMotifData(dir)).toThrow(/#ff00ff/);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("MOTIF_TONES is exactly the six theme slots figure.tsx's own tone prop uses", () => {
+    expect(MOTIF_TONES).toEqual(["ink", "accent", "accent2", "muted", "paper", "ground"]);
   });
 });
 

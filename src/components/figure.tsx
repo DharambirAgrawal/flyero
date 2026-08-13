@@ -7,6 +7,7 @@ import { shadowFor, type LightSource } from "../core/canvas/light.js";
 import { resolveParts, type PartInput, type PlacedPart } from "../core/layout/anchors.js";
 import {
   MOTIF_NAMES,
+  MOTIF_TONES,
   MOTIFS,
   archPath,
   blobPath,
@@ -65,7 +66,9 @@ const SHAPE_FORMS = [
   "torn",
 ] as const;
 
-const TONES = ["ink", "accent", "accent2", "muted", "paper", "ground"] as const;
+// Same six slots a multi-layer motif's `data-tone` resolves against
+// (`shapes.ts`) — one shared vocabulary, not two.
+const TONES = MOTIF_TONES;
 
 const partSchema = z.object({
   id: z
@@ -383,6 +386,30 @@ function renderPart(
     case "motif": {
       const motif = MOTIFS[part.draw.motif];
       const size = Math.min(rect.w, rect.h);
+      // A multi-layer motif carries its own colour regions (data-tone per
+      // path — see shapes.ts) instead of the caller's single `fill`/`tone`.
+      // `part.tone` still matters for everything else the part touches
+      // (nothing here, but consistency with a single-colour motif of the
+      // same id is the point); `shaded` is intentionally not applied per
+      // layer in this pass — sheening every region independently is a real
+      // improvement worth doing later, not required for multi-colour to be
+      // useful today.
+      if (motif.layers) {
+        return (
+          <g key={key} data-name={key} transform={spin}>
+            <g transform={motifTransform(rect.x, rect.y, size, 0)}>
+              {motif.layers.map((layer, i) => (
+                <path
+                  key={i}
+                  d={layer.d}
+                  fill={colourFor(layer.tone, theme, box)}
+                  fillRule={layer.fillRule}
+                />
+              ))}
+            </g>
+          </g>
+        );
+      }
       // Line art has no fill to shade — a gradient sheen on a sketched cake
       // would contradict the register it's drawn in, so `shaded` is ignored.
       if (motif.stroke) {

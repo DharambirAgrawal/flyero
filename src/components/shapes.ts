@@ -618,7 +618,24 @@ export function archPath(rect: Rect): string {
  * reach; callers must check it, since a stroked path with no fill would
  * otherwise render as nothing.
  */
+/**
+ * The six theme slots any recolourable mark can draw from — shared by
+ * `composed-figure`'s own `tone` prop (`figure.tsx` imports this rather
+ * than declaring a second copy) and by a multi-layer motif's per-layer
+ * `data-tone`. Deliberately the *same* six names as the flyer's resolved
+ * palette (`ink`/`accent`/`accent2`/`muted`/`paper`/`ground`), not free-form
+ * colour names — a motif that used arbitrary colour words instead of these
+ * would need its own resolver per caller instead of reusing the one the
+ * rest of the renderer already has.
+ */
+export const MOTIF_TONES = ["ink", "accent", "accent2", "muted", "paper", "ground"] as const;
+export type MotifTone = (typeof MOTIF_TONES)[number];
+
+/** One independently-recolourable region of a multi-layer motif. */
+export type MotifLayer = { tone: MotifTone; d: string; fillRule?: "evenodd" };
+
 export type Motif = {
+  /** Every layer's `d` concatenated into one path — the single-colour render every caller already knows how to draw, always populated even for a multi-layer motif so nothing breaks if a caller doesn't (yet) know about `layers`. */
   d: string;
   fillRule?: "evenodd";
   stroke?: boolean;
@@ -626,6 +643,12 @@ export type Motif = {
   title?: string;
   /** The subfolder it was found in (e.g. "celebration"), if any. */
   category?: string;
+  /**
+   * Present only when the source file tagged its paths with `data-tone` —
+   * each layer drawn in its own resolved theme colour instead of one flat
+   * fill. Absent for the (still fully supported) single-colour convention.
+   */
+  layers?: MotifLayer[];
 };
 
 /**
@@ -721,6 +744,17 @@ function rainbowPath(bands = 6, outerW = 96, step = 16): string {
  *   cutout eye) instead of unioning overlapping loops.
  * - `fill="none"` on any path → sketched line art (`stroke: true`): drawn
  *   with the theme's ink as a stroke, not a fill.
+ * - `data-tone="ink|accent|accent2|muted|paper|ground"` on EVERY path (all
+ *   or none — a mix is a startup error) → a multi-layer motif. Each path
+ *   still leaves the actual colour unspecified — `data-tone` names which of
+ *   the flyer's six theme slots that region resolves against, not a colour
+ *   itself, so the whole file still repaints correctly in any palette. Two
+ *   balloons in one motif, one `accent` and one `accent2`, read as two real
+ *   objects instead of one flat silhouette; `src/creative/motifs/
+ *   celebration/balloon-bunch.svg` is a real, working example, not just
+ *   documentation. Paths sharing a tone concatenate into one layer, same as
+ *   the single-colour case. Cannot combine with `fill="none"` line art in
+ *   the same file (sketched line art is inherently one stroke colour).
  * - Directional motifs point along +x (due right) — callers rotate to aim.
  * - **`<title>One short sentence.</title>`, first child of `<svg>`, is what
  *   this list is for**: not decoration, an actual field every motif here
@@ -732,13 +766,15 @@ function rainbowPath(bands = 6, outerW = 96, step = 16): string {
  *   probably looks like, which is the failure this field exists to prevent
  *   as the library grows past the point anyone has looked at every file.
  *
- * What does NOT belong here: a real multi-colour illustration, a raster
- * image, or a gradient baked into the file. Every motif is recoloured to the
- * flyer's own palette at render time — a single `fill`/`stroke` swapped in
- * by the caller — which only works if the source file leaves colour
- * unspecified (or `none`, for line art). `loadMotifData` checks for exactly
- * this mistake (a colourful icon pack SVG dropped in instead of a plain
- * single-tone one) and fails loudly rather than silently flattening or
+ * What does NOT belong here: a real multi-colour illustration with actual
+ * baked-in colour choices (an icon-pack export, a downloaded illustration),
+ * a raster image, or a gradient in the file. Every motif — single-layer or
+ * multi-layer — is recoloured to the flyer's own palette at render time,
+ * never carrying a colour of its own; `data-tone` names *which* theme slot a
+ * region resolves against, it is not itself a colour. `loadMotifData` checks
+ * for exactly the file-had-its-own-colours mistake (a colourful icon pack
+ * SVG dropped in instead of a plain recolourable one) and fails loudly
+ * rather than silently flattening or
  * mis-rendering it. A full-colour asset (a logo, a supplied photo) embeds
  * as-is through `POST /v1/assets` instead — see the "asset vs motif"
  * distinction in `docs/GAP-ANALYSIS.md` (2026-08-05). Effects like a glow,
@@ -770,6 +806,15 @@ function svgTitle(xml: string): string | undefined {
  * an error, because nothing about the render looks obviously broken, it
  * just looks wrong in a way that's hard to trace back to "the source file
  * wasn't single-tone." Fail at load time instead, naming the file.
+ *
+ * This does NOT reject a *declared* multi-layer motif (`data-tone="…"` on
+ * each path, no relation checked by this function — that's an attribute,
+ * not a colour, and stays unset here on purpose; `resolveLayers` validates
+ * the tone names separately). The two are different things: an arbitrary
+ * baked-in hex value is a colour nobody chose for this flyer's palette; a
+ * named tone is still resolved by the caller, the same guarantee every
+ * single-colour motif already has, just applied per region instead of to
+ * the whole shape.
  */
 function rejectIfNotSingleTone(file: string, xml: string): void {
   if (/<(image|linearGradient|radialGradient)\b/.test(xml)) {
@@ -786,30 +831,76 @@ function rejectIfNotSingleTone(file: string, xml: string): void {
     throw new Error(
       `Motif file ${file} sets an explicit fill colour (${[...distinctColours].join(", ")}) on a path. ` +
         `Motifs must leave colour unspecified — it is set by the caller at render time so the same file ` +
-        `works in any palette. Remove the fill attribute (or set fill="none" for line art).`,
+        `works in any palette (or, for a deliberately multi-region motif, tag the path with data-tone="…" ` +
+        `instead of a fill colour — see MOTIF_TONES). Remove the fill attribute (or set fill="none" for line art).`,
     );
   }
 }
 
-function loadMotifData(): Record<string, Motif> {
+/**
+ * Groups a motif's `<path>` tags into named, independently-recolourable
+ * layers when any path declares `data-tone` — the multi-colour convention.
+ * `undefined` (not an empty array) when no path uses it, so a classic
+ * single-colour motif's `Motif.layers` stays absent, not `[]`.
+ */
+function resolveLayers(
+  file: string,
+  pathTags: string[],
+): MotifLayer[] | undefined {
+  const withTone = pathTags.filter((tag) => svgAttr(tag, "data-tone") !== undefined);
+  if (withTone.length === 0) return undefined;
+  if (withTone.length !== pathTags.length) {
+    throw new Error(
+      `Motif file ${file} tags some <path> elements with data-tone and leaves others untagged — once a ` +
+        `motif declares layers, every path needs a data-tone (a path with no assigned layer would never ` +
+        `be drawn in any colour).`,
+    );
+  }
+  const byTone = new Map<MotifTone, { ds: string[]; fillRule?: "evenodd" }>();
+  const order: MotifTone[] = [];
+  for (const tag of pathTags) {
+    const tone = svgAttr(tag, "data-tone")!;
+    if (!(MOTIF_TONES as readonly string[]).includes(tone)) {
+      throw new Error(
+        `Motif file ${file} has a path with data-tone="${tone}", which isn't one of ${MOTIF_TONES.join(", ")}.`,
+      );
+    }
+    const d = svgAttr(tag, "d");
+    if (!d) continue;
+    if (!byTone.has(tone as MotifTone)) {
+      byTone.set(tone as MotifTone, { ds: [] });
+      order.push(tone as MotifTone);
+    }
+    const entry = byTone.get(tone as MotifTone)!;
+    entry.ds.push(d);
+    if (svgAttr(tag, "fill-rule") === "evenodd") entry.fillRule = "evenodd";
+  }
+  return order.map((tone) => {
+    const { ds, fillRule } = byTone.get(tone)!;
+    return { tone, d: ds.join(" "), ...(fillRule ? { fillRule } : {}) };
+  });
+}
+
+/** Exported so tests can point it at a throwaway fixture directory — same pattern as `loadCuratedLibrary`. */
+export function loadMotifData(dir: string = MOTIFS_DIR): Record<string, Motif> {
   const out: Record<string, Motif> = {};
   const seenAt = new Map<string, string>();
-  const entries = readdirSync(MOTIFS_DIR, { withFileTypes: true, recursive: true })
+  const entries = readdirSync(dir, { withFileTypes: true, recursive: true })
     .filter((e) => e.isFile() && e.name.endsWith(".svg"))
     .sort((a, b) => a.name.localeCompare(b.name));
   for (const entry of entries) {
     const id = entry.name.slice(0, -4);
     // `entry.parentPath` (Node 20.12+) / `entry.path` (older) is the
     // directory the recursive walk found this file in.
-    const dir = (entry as { parentPath?: string; path?: string }).parentPath ?? entry.path ?? MOTIFS_DIR;
-    const relFile = join(dir, entry.name).slice(MOTIFS_DIR.length + 1);
+    const entryDir = (entry as { parentPath?: string; path?: string }).parentPath ?? entry.path ?? dir;
+    const relFile = join(entryDir, entry.name).slice(dir.length + 1);
     const prior = seenAt.get(id);
     if (prior) {
       throw new Error(`Motif id "${id}" is used twice: ${prior} and ${relFile} — ids must be unique across all subfolders`);
     }
     seenAt.set(id, relFile);
 
-    const xml = readFileSync(join(dir, entry.name), "utf8");
+    const xml = readFileSync(join(entryDir, entry.name), "utf8");
     rejectIfNotSingleTone(relFile, xml);
     const pathTags = [...xml.matchAll(/<path\b[^>]*\/?>/g)].map((m) => m[0]);
     if (pathTags.length === 0) {
@@ -823,6 +914,13 @@ function loadMotifData(): Record<string, Motif> {
       ? ("evenodd" as const)
       : undefined;
     const stroke = pathTags.some((tag) => svgAttr(tag, "fill") === "none");
+    const layers = resolveLayers(relFile, pathTags);
+    if (layers && stroke) {
+      throw new Error(
+        `Motif file ${relFile} mixes data-tone layers with fill="none" line art — a multi-colour motif ` +
+          `must be fully filled; sketched/stroked motifs stay single-tone.`,
+      );
+    }
     const title = svgTitle(xml);
     // The subfolder a motif was found in (e.g. "celebration"), or undefined
     // for one placed directly in motifs/ — purely descriptive metadata for
@@ -834,6 +932,7 @@ function loadMotifData(): Record<string, Motif> {
       ...(stroke ? { stroke } : {}),
       ...(title ? { title } : {}),
       ...(category ? { category } : {}),
+      ...(layers ? { layers } : {}),
     };
   }
   return out;

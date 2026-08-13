@@ -272,6 +272,49 @@ route, not just schema-checked — genuinely render, not merely valid JSON.
 `skills.ts` was checked too and left alone: it's pure prose/judgement
 already, no JSON template to become a trap.
 
+## 2026-08-13 — multi-colour motifs: `data-tone` layers, not a second system
+
+A separate Claude Code session working on the component library proposed
+"palette slots" to make motifs multi-colour, and flagged that the loader's
+own single-tone validation would need to change. It would have — but the
+validation was guarding against a *different* mistake (an icon-pack export
+with arbitrary baked-in colours), not against intentional named regions, so
+this wasn't a rule to work around, just a gap to fill in properly.
+
+### Added
+- `data-tone="ink|accent|accent2|muted|paper|ground"` on a motif's `<path>`
+  elements (`src/components/shapes.ts`) — the same six theme slots
+  `composed-figure`'s own `tone` prop already resolves against (`MOTIF_TONES`,
+  now the single shared source both use; `figure.tsx`'s local copy of that
+  list is gone). All paths in a file must be tagged or none — a mix is a
+  startup error. Each region still leaves its actual colour unspecified;
+  `data-tone` says *which* theme slot resolves there, not a colour itself,
+  so a multi-region motif still repaints correctly in any palette, the same
+  guarantee every existing single-colour motif already had.
+- Rendering support in `figure.tsx` (`composed-figure`'s own motif case) —
+  each layer drawn in its own resolved colour instead of one flat fill.
+  `photo.tsx`/`ground.tsx`'s motif call sites are untouched and keep working
+  automatically: `Motif.d` (the flattened, single-colour path) is still
+  always populated even for a multi-layer motif, so a caller that doesn't
+  know about `layers` yet just gets the old single-colour behaviour, not a
+  crash or a blank shape. `shaded` is intentionally not applied per-layer in
+  this pass — a real improvement worth doing later, not required for
+  multi-colour to be useful today.
+- `src/creative/motifs/celebration/balloon-bunch.svg` — a real, working
+  two-balloon example (`accent` + `accent2` bodies, shared `ink` knots), not
+  just documentation. Rendered through the actual compose pipeline to
+  confirm it draws in genuinely different theme colours, not merely that it
+  parses.
+- `loadMotifData` is exported and parameterised (default: the real folder,
+  overridable for tests) — same testability pattern as
+  `loadCuratedLibrary`. 9 new tests covering layer parsing, tone grouping,
+  and every new rejection case (partial tagging, unknown tone name, mixed
+  with line art) — plus the pre-existing single-colour validation (an
+  arbitrary baked-in `fill`) confirmed still rejected exactly as before.
+
+Golden SVG determinism test passed unchanged throughout — none of this
+touched what any of the existing 39 single-colour motifs render as.
+
 ## 2026-08-10 — resvg silently failed to decode some sharp-encoded WebP photos
 
 Real bug, root-caused properly rather than patched at the symptom: a
