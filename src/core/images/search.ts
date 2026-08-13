@@ -19,6 +19,7 @@
 
 import { searchAllProviders } from "./providers/aggregator.js";
 import type { ColorFilterId } from "./providers/colors.js";
+import { hasCuratedAsset, readCuratedAsset } from "./providers/library.js";
 import type { MediaAssetType, ProviderName } from "./providers/types.js";
 
 export type ImageOrientation = "portrait" | "landscape" | "square";
@@ -142,6 +143,13 @@ export function isTrustedDownloadUrl(url: string): boolean {
   if (url.startsWith("data:image/svg+xml,")) {
     return url.length <= MAX_TRUSTED_DATA_URI_LENGTH;
   }
+  // The curated library's own scheme (`library.ts`) — read straight off
+  // local disk by `fetchCandidate`, never fetched over HTTP. Existence is
+  // checked here, not just the prefix, so this can't become "any string
+  // starting with library: is accepted."
+  if (url.startsWith("library:")) {
+    return hasCuratedAsset(url.slice("library:".length));
+  }
   try {
     const parsed = new URL(url);
     return parsed.protocol === "https:" && TRUSTED_IMPORT_HOSTS.has(parsed.hostname);
@@ -173,6 +181,13 @@ export async function fetchCandidate(
 ): Promise<{ buffer: Buffer; mime: string }> {
   const { downloadUrl } = candidate;
   if (downloadUrl.startsWith("data:")) return decodeDataUri(downloadUrl);
+  if (downloadUrl.startsWith("library:")) {
+    const found = readCuratedAsset(downloadUrl.slice("library:".length));
+    if (!found) {
+      throw Object.assign(new Error("Curated asset no longer exists"), { code: "invalid_request" });
+    }
+    return found;
+  }
 
   const response = await fetch(downloadUrl);
   if (!response.ok) {

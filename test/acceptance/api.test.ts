@@ -572,6 +572,28 @@ describe("design skills", () => {
   });
 });
 
+describe("motif search", () => {
+  it("ranks a relevant motif above unrelated ones", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/schema/motifs?q=cake", headers: auth });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.results[0].id).toBe("cake");
+    expect(body.results[0].title).toMatch(/cake/i);
+    expect(body.results[0].category).toBe("celebration");
+  });
+
+  it("requires a query", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/schema/motifs", headers: auth });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("returns an empty list rather than an error for no match", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/schema/motifs?q=zzzznomatch", headers: auth });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().results).toEqual([]);
+  });
+});
+
 describe("remote MCP", () => {
   it("serves the same tools over HTTP that the stdio server does", async () => {
     // A hosted connector cannot spawn a process, so stdio alone makes Flyero
@@ -585,8 +607,11 @@ describe("remote MCP", () => {
     });
     expect(res.statusCode).toBe(200);
     const names = res.json().result.tools.map((t: { name: string }) => t.name);
-    expect(names).toContain("create_flyer");
+    // export_flyer is a plain REST read — works with or without a server key.
     expect(names).toContain("export_flyer");
+    // create_flyer needs ANTHROPIC_API_KEY, which the test config does not
+    // set — see the "hides" test below for why it must not appear here.
+    expect(names).not.toContain("create_flyer");
   });
 
   it("delivers the workflow as server instructions, not as the user's problem", async () => {
@@ -629,22 +654,42 @@ describe("remote MCP", () => {
     }
   });
 
-  it("warns off the tool that needs a key the deployment may not have", async () => {
-    // ChatGPT fell back to create_flyer, got "ANTHROPIC_API_KEY not configured",
-    // and gave up with no flyer — after doing all the creative work correctly.
-    // The tool has to say so itself and name the path that needs no key.
+  it("hides the tools that need a key the deployment does not have", async () => {
+    // ChatGPT used to fall back to create_flyer, get "ANTHROPIC_API_KEY not
+    // configured", and give up with no flyer — after doing all the creative
+    // work correctly. Warning it off in prose still let it try and fail; not
+    // registering the tool at all means there is nothing to try. Test config
+    // sets no ANTHROPIC_API_KEY (see .env.example / CLAUDE.md), matching the
+    // common deployment this guards.
     const res = await app.inject({
       method: "POST",
       url: "/mcp",
       headers: { ...auth, accept: "application/json, text/event-stream" },
       payload: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
     });
-    const auto = res
-      .json()
-      .result.tools.find((t: { name: string }) => t.name === "create_flyer");
-    expect(auto.description).toContain("ANTHROPIC_API_KEY");
-    expect(auto.description).toContain("compose_flyer");
-    expect(auto.description).toMatch(/SERVER-KEY ONLY|LAST RESORT/);
+    const names = res.json().result.tools.map((t: { name: string }) => t.name);
+    for (const modelKeyOnly of ["create_flyer", "create_flyer_batch", "revise_flyer"]) {
+      expect(names, `${modelKeyOnly} should not be offered without a server key`).not.toContain(
+        modelKeyOnly,
+      );
+    }
+    // compose_flyer, the no-key path these tools would otherwise compete
+    // with, must still be there.
+    expect(names).toContain("compose_flyer");
+  });
+
+  it("offers the model-key tools once a server key is configured", async () => {
+    const { config } = await import("../../src/config.js");
+    const { buildMcpServer } = await import("../../src/mcp/server.js");
+    const mutableConfig = config as { anthropicApiKey: string };
+    const previous = mutableConfig.anthropicApiKey;
+    mutableConfig.anthropicApiKey = "sk-ant-test";
+    try {
+      const server = buildMcpServer() as unknown as { _registeredTools: Record<string, unknown> };
+      expect(Object.keys(server._registeredTools)).toContain("create_flyer");
+    } finally {
+      mutableConfig.anthropicApiKey = previous;
+    }
   });
 
   it("puts discovery keywords in tool descriptions so MCP search loads the right tools", async () => {
@@ -669,8 +714,26 @@ describe("remote MCP", () => {
     expect(byName.get_composition_example).toMatch(/SHAPE|schema shape|NOT flyers to remix/i);
     expect(byName.read_design_guide).toMatch(/design guide/i);
     expect(byName.compose_flyer).toMatch(/refuse the safe|NOT a template|invent/i);
-    expect(byName.create_flyer_batch).toMatch(/SERVER-KEY ONLY|LAST RESORT/);
-    expect(byName.revise_flyer).toMatch(/SERVER-KEY ONLY|LAST RESORT/);
+  });
+
+  it("search_motifs finds a relevant motif by keyword, not just by id", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/mcp",
+      headers: { ...auth, accept: "application/json, text/event-stream" },
+      payload: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "search_motifs", arguments: { query: "party hat" } },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.result?.isError, JSON.stringify(body)).not.toBe(true);
+    const text = body.result.content.map((c: { text?: string }) => c.text ?? "").join(" ");
+    const parsed = JSON.parse(text);
+    expect(parsed.results.map((r: { id: string }) => r.id)).toContain("party-hat");
   });
 
   it("uploads via base64 data, not just a local path — the only route a hosted connector has", async () => {

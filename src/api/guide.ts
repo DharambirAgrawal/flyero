@@ -1,5 +1,5 @@
 import { COMPONENTS } from "../components/registry.js";
-import { MOTIF_NAMES } from "../components/shapes.js";
+import { MOTIFS, MOTIF_NAMES } from "../components/shapes.js";
 import { METAPHORS } from "../creative/metaphors.js";
 import { TOPOLOGIES } from "../creative/topologies.js";
 import { TYPOGRAPHY } from "../creative/typebehaviors.js";
@@ -90,6 +90,7 @@ Use these. Descriptions are written so tool-search finds them; call them by name
 | Judgement (brief / composition / copy / critique) | \`read_design_skill\` |
 | Designer assignment / lineage from the Studio Sampler | \`request_designers\` |
 | Find photos, icons, illustrations, shapes, QR | \`search_images\` then \`import_image\` |
+| Find a motif for composed-figure by keyword | \`search_motifs\` |
 | Valid composition JSON shape (not a flyer to remix) | \`get_composition_example\` |
 | Submit your authored flyer | \`compose_flyer\` |
 | Edit after looking | \`revise_composition\` |
@@ -113,8 +114,11 @@ those tools usually fail with a configuration error. Do not retry them.
 2. **Find or prepare images.** If the brief has no picture of the thing being
    sold, search: POST /v1/assets/search (\`search_images\`) fans out to a dozen
    sources — photographs, SVG icons, brand marks, illustrations, shapes, QR
-   codes. Add \`"type":"icon"\` (or svg / vector / png / background / shape /
-   photo) to aim it. Then POST /v1/assets/import (\`import_image\`) with the
+   codes, **and \`provider: "library"\`, a curated collection of real images
+   someone added specifically for this project (\`src/creative/library/\`) —
+   try that first when the brief sounds project-specific, before the generic
+   stock sources.** Add \`"type":"icon"\` (or svg / vector / png / background /
+   shape / photo) to aim it. Then POST /v1/assets/import (\`import_image\`) with the
    candidate's downloadUrl, sourceUrl, author and provider.
    **A flyer for a place, a dish or an object with no picture of it cannot pass
    the cover test (G2).** If there is genuinely nothing to photograph, use
@@ -200,12 +204,21 @@ photo behind. That move is what Gate G4 wants.
 
 When nothing in the catalogue says what the brief needs, **compose one**.
 \`composed-figure\` assembles motifs, shapes, cut-out photos and short words for
-this flyer only — placed by **relationship**, never by coordinate:
+this flyer only — placed by **relationship**, never by coordinate.
+
+**Three examples, on purpose, because one example becomes a template the
+moment it's the only one shown** — copy field names and nesting, never the
+actual shape. If your figure is "a badge with a word on it," a growing
+number of flyers have shipped exactly that; find the arrangement that
+matches *this* brief's idea instead, even if it's a fourth structure none of
+these three suggest.
+
+**A badge/seal** — a claim stamped onto the page:
 
 \`\`\`json
 { "component": "composed-figure", "role": "evidence",
   "props": { "parts": [
-    { "id": "seal",  "draw": { "kind": "shape", "form": "seal" },
+    { "id": "seal",  "draw": { "kind": "shape", "form": "seal", "shaded": true },
       "size": "huge",  "at": { "at": "center" }, "tone": "accent" },
     { "id": "word",  "draw": { "kind": "word", "text": "FREE" },
       "size": "medium", "at": { "of": "seal", "side": "on" },
@@ -215,11 +228,52 @@ this flyer only — placed by **relationship**, never by coordinate:
   ] } }
 \`\`\`
 
-- **draw** — \`motif\` (${MOTIF_NAMES.join(", ")}), \`shape\`
-  (circle, blob, star, sparkle, burst, seal, ribbon, polygon, squiggle, wave,
-  tape, arch, panel, torn; \`outline: true\` for stroke only), \`photo\`
-  (\`slot\` into your \`assets\`, \`mask\`: rect|circle|arch|blob|torn), or
-  \`word\` (up to 24 characters).
+**A progression** — three marks growing left to right, the idea is the shape
+of the sequence, not any one part of it:
+
+\`\`\`json
+{ "component": "composed-figure", "role": "evidence",
+  "props": { "parts": [
+    { "id": "step1", "draw": { "kind": "shape", "form": "circle" },
+      "size": "small",  "at": { "at": "left" }, "tone": "muted" },
+    { "id": "step2", "draw": { "kind": "shape", "form": "circle" },
+      "size": "medium", "at": { "of": "step1", "side": "right-of", "gap": "near" }, "tone": "accent" },
+    { "id": "step3", "draw": { "kind": "shape", "form": "circle", "shaded": true },
+      "size": "large",  "at": { "of": "step2", "side": "right-of", "gap": "near" }, "tone": "ink" },
+    { "id": "label", "draw": { "kind": "word", "text": "GROWTH" },
+      "size": "small", "at": { "of": "step3", "side": "below", "gap": "tight" }, "tone": "ink" }
+  ] } }
+\`\`\`
+
+**A dense scatter** — one central mark with small accents at its edges,
+carrying several facts as one element instead of several small ones:
+
+\`\`\`json
+{ "component": "composed-figure", "role": "evidence",
+  "props": { "parts": [
+    { "id": "core", "draw": { "kind": "motif", "motif": "leaf", "shaded": true },
+      "size": "large", "at": { "at": "center" }, "tone": "accent" },
+    { "id": "a", "draw": { "kind": "shape", "form": "sparkle" },
+      "size": "tiny", "at": { "of": "core", "side": "top-left-of", "gap": "far" }, "tone": "muted" },
+    { "id": "b", "draw": { "kind": "shape", "form": "sparkle" },
+      "size": "tiny", "at": { "of": "core", "side": "bottom-right-of", "gap": "far" }, "tone": "muted" },
+    { "id": "c", "draw": { "kind": "word", "text": "GROWS" },
+      "size": "small", "at": { "of": "core", "side": "below", "gap": "near" }, "tone": "ink" }
+  ] } }
+\`\`\`
+
+- **draw** — \`motif\` (see the Motif reference below — read the description,
+  don't guess from the id), \`shape\` (circle, blob, star, sparkle, burst,
+  seal, ribbon, polygon, squiggle, wave, tape, arch, panel, torn;
+  \`outline: true\` for stroke only), \`photo\` (\`slot\` into your \`assets\`,
+  \`mask\`: rect|circle|arch|blob|torn), or \`word\` (up to 24 characters).
+- **shaded** — \`true\` on a filled (non-outline, non-open) \`motif\` or \`shape\`
+  part adds a highlight-to-shadow sheen plus a contact shadow, keyed to the
+  flyer's one light — the difference between a flat icon-coloured silhouette
+  and an object that reads as sitting on the page. Default is \`false\` only
+  because it used to be new; there is no reason to leave it off on a filled
+  motif — check the Motif reference below for which ones are filled
+  (shadeable) vs LINE ART (shading silently ignored, no surface to shade).
 - **at** — \`{ "at": "top-right" }\` or \`{ "of": "<partId>", "side": "...", "gap": "..." }\`.
   Sides: above, below, left-of, right-of, on, and the four diagonals.
   Gaps: touching, tight, near, far.
@@ -228,6 +282,21 @@ this flyer only — placed by **relationship**, never by coordinate:
 
 Gate G3 counts elements, not marks — a composed figure is ONE element with up
 to eight parts. Empty page → denser figure, not more elements.
+
+### Motif reference
+
+Read the description, not just the id — a growing library means two ids can
+sound similar and mean different things. Source: \`src/creative/motifs/**/
+*.svg\`, organised into subfolders by subject; add a file anywhere in that
+tree and it appears here automatically, so this list is never stale.
+\`search_motifs\` (\`GET /v1/schema/motifs?q=...\`) searches the same data
+by keyword if this list ever gets too long to scan by eye.
+
+${MOTIF_NAMES.map((m) => {
+  const motif = MOTIFS[m];
+  const note = motif.stroke ? " — LINE ART, shading has no effect" : "";
+  return `- **${m}**${motif.title ? ` — ${motif.title}` : ""}${note}`;
+}).join("\n")}
 
 ## The Six Gates — a flyer ships only if all six pass
 

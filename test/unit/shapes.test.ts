@@ -22,6 +22,7 @@ import {
   ribbonPath,
   roundedRectPath,
   routeMidpoint,
+  searchMotifs,
   sparklePath,
   squigglePath,
   starPath,
@@ -294,6 +295,47 @@ describe("motifs", () => {
   it("motifTransform scales from the 0–100 box to the requested size", () => {
     expect(motifTransform(100, 200, 50)).toBe("translate(100 200) scale(0.5)");
     expect(motifTransform(0, 0, 200, 45)).toContain("rotate(45 100 100)");
+  });
+
+  it("every motif carries a description and a category", () => {
+    // The whole point of moving motifs to a folder of SVGs was to stop
+    // agents (and people) guessing what a motif looks like from its id — a
+    // motif with no <title> defeats that, silently, for every future author.
+    for (const name of MOTIF_NAMES) {
+      expect(MOTIFS[name].title, `${name} has no <title>`).toBeTruthy();
+      expect(MOTIFS[name].category, `${name} is not in a subfolder`).toBeTruthy();
+    }
+  });
+});
+
+describe("motif search", () => {
+  it("ranks an exact id match first", () => {
+    const results = searchMotifs("balloon");
+    expect(results[0]?.id).toBe("balloon");
+  });
+
+  it("matches on words in the description, not just the id", () => {
+    // Nothing in the id "leaf" or "clover" says "nature" — this only works
+    // if category and title text are actually searched.
+    const results = searchMotifs("nature");
+    expect(results.map((r) => r.category)).toContain("nature");
+  });
+
+  it("returns nothing for a query that matches nothing", () => {
+    expect(searchMotifs("qwqwqwzzznomatch")).toEqual([]);
+  });
+
+  it("matches a synonym even when the literal word never appears", () => {
+    // "birthday" doesn't appear in any motif's id or title — this only
+    // proves the synonym table (src/lib/search.ts) actually fires.
+    const results = searchMotifs("birthday");
+    expect(results.map((r) => r.id)).toContain("party-hat");
+  });
+
+  it("respects the limit", () => {
+    // A broad, real category word — every "celebration" motif is a hit —
+    // so the limit is what actually truncates the result, not the query.
+    expect(searchMotifs("celebration", 3)).toHaveLength(3);
   });
 });
 

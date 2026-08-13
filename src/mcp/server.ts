@@ -156,6 +156,22 @@ async function apiText(path: string): Promise<string> {
 
 export function buildMcpServer(): McpServer {
   /**
+   * Whether this deployment can run the server-authored pipeline at all.
+   *
+   * `create_flyer` / `create_flyer_batch` / `revise_flyer` hand the whole job
+   * to a *second* model the server calls itself — they need ANTHROPIC_API_KEY
+   * on the server, which most deployments (including the default Render one)
+   * do not set. Previously these tools were always registered, with prose
+   * telling the agent to avoid them "unless the server has a key" — but the
+   * agent cannot see the server's env from here, so it read three tool
+   * descriptions it could never safely use, and telling it about a capability
+   * it doesn't have is exactly the kind of prompt noise that invites a wasted
+   * call or a hallucinated workaround. If the key isn't configured, don't
+   * register the tools at all: an agent can't misuse what isn't in its list.
+   */
+  const hasModelKey = Boolean(config.anthropicApiKey);
+
+  /**
    * Server instructions — the workflow, delivered automatically.
    *
    * Without these an agent receives a bag of tools and no idea of the order, so
@@ -181,7 +197,7 @@ export function buildMcpServer(): McpServer {
         "The engine owns colour, fonts, sizes, positions and ornament — never send coordinates or hex",
         "values; they are ignored or rejected.",
         "",
-        "Intended path (no server model key). Call tools by these names so search finds them:",
+        "Call tools by these names so search finds them:",
         "",
         "1. read_design_guide, then read_design_skill (composition + copywriting at minimum).",
         "2. request_designers — Studio Sampler designer assignment / lineage. Pass campaignArchetype",
@@ -199,53 +215,51 @@ export function buildMcpServer(): McpServer {
         "6. LOOK at the image, then review_flyer (G1 idea / G2 cover / G4 type). Reject generic work.",
         "7. Tweaks → revise_composition. Then export_composed_flyer and SHOW the user the export links.",
         "",
-        "Avoid create_flyer / create_flyer_batch / revise_flyer unless the server has ANTHROPIC_API_KEY —",
-        "you are already a model; those usually fail with a config error. Do not retry; compose yourself.",
-        "",
         "Never invent facts. No stats, prices, dates, testimonials not given by the user — Gate G6.",
         "Leave cta.url null unless supplied.",
       ].join("\n"),
     },
   );
 
-  server.registerTool(
-    "create_flyer",
-    {
-      title: "Create a flyer automatically (needs a server-side model key)",
-      description:
-        "SERVER-KEY ONLY / LAST RESORT. Hands the whole job to a second model on the server. " +
-        "REQUIRES ANTHROPIC_API_KEY — most deployments do not set one. You are already a model, so " +
-        "prefer compose_flyer (read_design_guide → request_designers → get_composition_example → " +
-        "compose_flyer). If this fails with a configuration error, do NOT retry.",
-      inputSchema: {
-        prompt: z
-          .string()
-          .describe("What the flyer is for: the product, who it's for, and the action you want."),
-        assetIds: z
-          .array(z.string())
-          .optional()
-          .describe("Asset ids from upload_asset — a logo or product screenshot."),
-        risk: z
-          .enum(["safe", "studio", "experimental"])
-          .optional()
-          .describe("How adventurous the design may be. Default: studio."),
-        format: z
-          .enum(FORMAT_IDS as [FormatId, ...FormatId[]])
-          .optional()
-          .describe("Canvas size. Default: portrait-4x5 (Instagram feed post, 1080×1350)."),
+  if (hasModelKey) {
+    server.registerTool(
+      "create_flyer",
+      {
+        title: "Create a flyer automatically",
+        description:
+          "Hands the whole job to a second model on the server. You are already a model, so prefer " +
+          "compose_flyer (read_design_guide → request_designers → get_composition_example → " +
+          "compose_flyer) — this is for when you want the server's own pipeline to author it instead.",
+        inputSchema: {
+          prompt: z
+            .string()
+            .describe("What the flyer is for: the product, who it's for, and the action you want."),
+          assetIds: z
+            .array(z.string())
+            .optional()
+            .describe("Asset ids from upload_asset — a logo or product screenshot."),
+          risk: z
+            .enum(["safe", "studio", "experimental"])
+            .optional()
+            .describe("How adventurous the design may be. Default: studio."),
+          format: z
+            .enum(FORMAT_IDS as [FormatId, ...FormatId[]])
+            .optional()
+            .describe("Canvas size. Default: portrait-4x5 (Instagram feed post, 1080×1350)."),
+        },
       },
-    },
-    async ({ prompt, assetIds, risk, format }) => {
-      const created = await api("/v1/flyers", {
-        method: "POST",
-        body: JSON.stringify({ prompt, assetIds, risk, format }),
-      });
-      const job = await pollJob(created.jobId);
-      return {
-        content: [{ type: "text", text: describeJob(job) }, ...(await previewContent(job.jobId))],
-      };
-    },
-  );
+      async ({ prompt, assetIds, risk, format }) => {
+        const created = await api("/v1/flyers", {
+          method: "POST",
+          body: JSON.stringify({ prompt, assetIds, risk, format }),
+        });
+        const job = await pollJob(created.jobId);
+        return {
+          content: [{ type: "text", text: describeJob(job) }, ...(await previewContent(job.jobId))],
+        };
+      },
+    );
+  }
 
   server.registerTool(
     "upload_asset",
@@ -411,33 +425,34 @@ export function buildMcpServer(): McpServer {
     },
   );
 
-  server.registerTool(
-    "revise_flyer",
-    {
-      title: "Change an existing flyer made with create_flyer (needs a server-side model key)",
-      description:
-        "SERVER-KEY ONLY / LAST RESORT. Plain-language revise of a flyer that create_flyer made. " +
-        "REQUIRES ANTHROPIC_API_KEY — most deployments do not set one. If this fails with a configuration " +
-        "error, do NOT retry. For flyers you authored with compose_flyer, use revise_composition instead.",
-      inputSchema: {
-        jobId: z.string(),
-        instruction: z.string().describe("What to change, in plain language."),
+  if (hasModelKey) {
+    server.registerTool(
+      "revise_flyer",
+      {
+        title: "Change an existing flyer made with create_flyer",
+        description:
+          "Plain-language revise of a flyer that create_flyer made. For flyers you authored yourself " +
+          "with compose_flyer, use revise_composition instead — it edits the spec directly.",
+        inputSchema: {
+          jobId: z.string(),
+          instruction: z.string().describe("What to change, in plain language."),
+        },
       },
-    },
-    async ({ jobId, instruction }) => {
-      await api(`/v1/flyers/${jobId}/revise`, {
-        method: "POST",
-        body: JSON.stringify({ instruction }),
-      });
-      const job = await pollJob(jobId);
-      return {
-        content: [
-          { type: "text", text: `Revision ${job.revision}. ${describeJob(job)}` },
-          ...(await previewContent(jobId)),
-        ],
-      };
-    },
-  );
+      async ({ jobId, instruction }) => {
+        await api(`/v1/flyers/${jobId}/revise`, {
+          method: "POST",
+          body: JSON.stringify({ instruction }),
+        });
+        const job = await pollJob(jobId);
+        return {
+          content: [
+            { type: "text", text: `Revision ${job.revision}. ${describeJob(job)}` },
+            ...(await previewContent(jobId)),
+          ],
+        };
+      },
+    );
+  }
 
   server.registerTool(
     "export_flyer",
@@ -500,50 +515,51 @@ export function buildMcpServer(): McpServer {
     },
   );
 
-  server.registerTool(
-    "create_flyer_batch",
-    {
-      title: "Explore several different flyers for one brief (needs a server-side model key)",
-      description:
-        "SERVER-KEY ONLY / LAST RESORT. Generate N server-authored flyers from one prompt. " +
-        "REQUIRES ANTHROPIC_API_KEY — most deployments do not set one. Prefer composing each version " +
-        "yourself: request_designers (fresh assignment/lineage per version) then compose_flyer. " +
-        "If this fails with a configuration error, do NOT retry.",
-      inputSchema: {
-        prompt: z.string(),
-        runs: z.number().int().min(2).max(10),
-        risk: z.enum(["safe", "studio", "experimental"]).optional(),
-        format: z
-          .enum(FORMAT_IDS as [FormatId, ...FormatId[]])
-          .optional()
-          .describe("Canvas size, shared by every run in the batch. Default: portrait-4x5."),
+  if (hasModelKey) {
+    server.registerTool(
+      "create_flyer_batch",
+      {
+        title: "Explore several different flyers for one brief",
+        description:
+          "Generate N server-authored flyers from one prompt. Prefer composing each version yourself — " +
+          "request_designers (fresh assignment/lineage per version) then compose_flyer — when you want " +
+          "control over each one; use this when you just want the server's pipeline to explore options.",
+        inputSchema: {
+          prompt: z.string(),
+          runs: z.number().int().min(2).max(10),
+          risk: z.enum(["safe", "studio", "experimental"]).optional(),
+          format: z
+            .enum(FORMAT_IDS as [FormatId, ...FormatId[]])
+            .optional()
+            .describe("Canvas size, shared by every run in the batch. Default: portrait-4x5."),
+        },
       },
-    },
-    async ({ prompt, runs, risk, format }) => {
-      const batch = await api("/v1/batches", {
-        method: "POST",
-        body: JSON.stringify({ prompt, runs, risk, format }),
-      });
-      const deadline = Date.now() + config.jobTimeoutSeconds * 1000 * 2;
-      let view = await api(`/v1/batches/${batch.batchId}`);
-      while (view.complete < view.runs && Date.now() < deadline) {
-        await new Promise((r) => setTimeout(r, 5000));
-        view = await api(`/v1/batches/${batch.batchId}`);
-      }
-      const lines = view.results.map(
-        (r: Json, i: number) =>
-          `${i + 1}. [${r.status}] ${r.idea ?? "—"}${r.lineage ? ` (${r.lineage.metaphor} · ${r.lineage.topology})` : ""}`,
-      );
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Batch ${batch.batchId} — ${view.complete}/${view.runs} finished:\n${lines.join("\n")}\n\nUse get_flyer with a jobId to see any of them.`,
-          },
-        ],
-      };
-    },
-  );
+      async ({ prompt, runs, risk, format }) => {
+        const batch = await api("/v1/batches", {
+          method: "POST",
+          body: JSON.stringify({ prompt, runs, risk, format }),
+        });
+        const deadline = Date.now() + config.jobTimeoutSeconds * 1000 * 2;
+        let view = await api(`/v1/batches/${batch.batchId}`);
+        while (view.complete < view.runs && Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 5000));
+          view = await api(`/v1/batches/${batch.batchId}`);
+        }
+        const lines = view.results.map(
+          (r: Json, i: number) =>
+            `${i + 1}. [${r.status}] ${r.idea ?? "—"}${r.lineage ? ` (${r.lineage.metaphor} · ${r.lineage.topology})` : ""}`,
+        );
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Batch ${batch.batchId} — ${view.complete}/${view.runs} finished:\n${lines.join("\n")}\n\nUse get_flyer with a jobId to see any of them.`,
+            },
+          ],
+        };
+      },
+    );
+  }
 
   // ── The agent-driven surface ──────────────────────────────────────────────
   //
@@ -672,11 +688,15 @@ export function buildMcpServer(): McpServer {
           .describe("Narrow to a kind of asset. Omit to search every kind at once."),
         provider: z
           .enum([
-            "pexels", "unsplash", "pixabay", "openverse", "wikimedia", "svgrepo",
+            "library", "pexels", "unsplash", "pixabay", "openverse", "wikimedia", "svgrepo",
             "coloricons", "undraw", "opendoodles", "simpleicons", "shapes", "qrcode",
           ])
           .optional()
-          .describe("Pin the search to one named source. Omit to search all configured sources, ranked by query."),
+          .describe(
+            "Pin the search to one named source. 'library' is the user's own curated drop-in images " +
+              "(src/creative/library/) — try it first for anything that sounds project-specific. Omit to " +
+              "search all configured sources, ranked by query.",
+          ),
         perPage: z.number().int().min(1).max(40).optional(),
         orientation: z.enum(["portrait", "landscape", "square"]).optional(),
         color: z.string().optional().describe("A colour name (red, blue, ...) to match a palette or recolour an SVG/shape."),
@@ -733,6 +753,36 @@ export function buildMcpServer(): McpServer {
     async () => ({
       content: [
         { type: "text", text: JSON.stringify(await api("/v1/schema/composition"), null, 2) },
+      ],
+    }),
+  );
+
+  server.registerTool(
+    "search_motifs",
+    {
+      title: "Search the motif library",
+      description:
+        "Search the vector motif library used by composed-figure's `draw: { kind: 'motif' }` — a growing " +
+        "set of single-tone, theme-recolourable shapes (balloon, cake, sun, speech-bubble, …), organised " +
+        "by subject (celebration, nature, communication, objects). Returns ranked matches with each " +
+        "motif's real description — read the description, not just the id, before picking one. Prefer " +
+        "this over guessing an id or reading read_design_guide's whole motif list once the library is " +
+        "large; it never goes stale because it reads the same files that list is generated from.",
+      inputSchema: {
+        query: z.string().describe("What you're looking for, e.g. 'birthday cake' or 'speech bubble'."),
+        limit: z.number().int().min(1).max(20).optional().describe("Max results. Default 8."),
+      },
+    },
+    async ({ query, limit }) => ({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            await api(`/v1/schema/motifs?${new URLSearchParams({ q: query, ...(limit ? { limit: String(limit) } : {}) })}`),
+            null,
+            2,
+          ),
+        },
       ],
     }),
   );

@@ -105,6 +105,42 @@ function isBackedByUser(value: string, userStatements: string[]): boolean {
   return userStatements.some((statement) => normalizeFact(statement).includes(fact));
 }
 
+/**
+ * Body copy that just restates the headline in different words carries no
+ * new information — the reader already has it, and it is the shape lazy
+ * copy takes most often ("Fresh Coffee, Daily" / "We serve fresh coffee
+ * every day"). The banned-word list can't catch this: no individual word is
+ * hollow, the sentence is just empty of anything the headline didn't say.
+ *
+ * Deliberately narrow so it never fires on a body that legitimately reuses
+ * one or two headline words in passing: it needs at least three shared
+ * content words AND those words to be most of what the body says.
+ */
+const STOPWORDS = new Set([
+  "a", "an", "the", "and", "or", "to", "of", "in", "on", "for", "with",
+  "your", "our", "you", "we", "is", "are", "be", "it", "this", "that", "at",
+]);
+
+function contentWords(text: string): Set<string> {
+  return new Set(
+    normalizeFact(text)
+      .split(" ")
+      .filter((w) => w.length > 2 && !STOPWORDS.has(w)),
+  );
+}
+
+function restatesHeadline(headline: string, body: string): boolean {
+  const headlineWords = contentWords(headline);
+  const bodyWords = contentWords(body);
+  const shared = [...bodyWords].filter((w) => headlineWords.has(w)).length;
+  // Three-word floor alone rules out a short headline ("Dig in" has one
+  // content word, so `shared` can never reach 3 by matching it). The two
+  // ratios then ask both directions: most of the headline reappears in the
+  // body, AND those shared words are a real fraction of what the body says
+  // — not three incidental matches inside an otherwise unrelated paragraph.
+  return shared >= 3 && shared / headlineWords.size >= 0.6 && shared / bodyWords.size >= 0.4;
+}
+
 export const visionVerdictSchema = z.object({
   ideaReads: z.boolean().describe("Can you describe this flyer's single visual idea in one sentence?"),
   ideaAsSeen: z.string().max(160).describe("State the idea you actually see, in your own words."),
@@ -399,6 +435,9 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
   const unsupportedDetails = spec.copy.details
     .map((detail) => detail.value)
     .filter((value) => !isBackedByUser(value, userStatements));
+  const bodyRestatesHeadline = Boolean(
+    spec.copy.body && restatesHeadline(spec.copy.headline, spec.copy.body),
+  );
 
   // Same two checks, run again over every string an element's props carry —
   // free text that never passed through `copy` at all.
@@ -421,8 +460,14 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
     unsupportedDetails.length === 0 &&
     hollowInProps.length === 0 &&
     unsupportedStatsInProps.length === 0 &&
+    !bodyRestatesHeadline &&
     (vision ? vision.copyReadsHuman : true);
   if (hollow.length > 0) notes.push(`G6: slogan-shaped words: ${hollow.join(", ")}`);
+  if (bodyRestatesHeadline) {
+    notes.push(
+      `G6: body just restates the headline in different words ("${spec.copy.headline}" / "${spec.copy.body}") — say something the headline didn't`,
+    );
+  }
   if (unsupportedStats.length > 0) {
     notes.push(`G6: unsupported proof figure(s): ${unsupportedStats.join(", ")}`);
   }

@@ -1,6 +1,7 @@
 import type { ColorFilterId } from "./colors.js";
 import { cacheKey, getCached, setCached } from "./cache.js";
 import { colorIconsProvider } from "./coloricons.js";
+import { libraryProvider } from "./library.js";
 import { openDoodlesProvider } from "./opendoodles.js";
 import { openverseProvider } from "./openverse.js";
 import { pexelsProvider } from "./pexels.js";
@@ -16,6 +17,7 @@ import { wikimediaProvider } from "./wikimedia.js";
 
 // Order matters: fast no-auth providers first so they always respond in time.
 const ALL_PROVIDERS: MediaProvider[] = [
+  libraryProvider, // fully local — the user's own curated drop-ins, always instant
   shapesProvider, // fully local — always instant, never fails
   qrcodeProvider, // fully local — self-filters to "qr" queries only
   wikimediaProvider,
@@ -41,6 +43,7 @@ export const ZERO_KEY_PROVIDERS: ProviderName[] = ALL_PROVIDERS.filter((p) => {
 }).map((p) => p.name);
 
 const ILLUSTRATION_PROVIDER_ORDER: ProviderName[] = [
+  "library",
   "undraw",
   "opendoodles",
   "coloricons",
@@ -56,6 +59,7 @@ const ILLUSTRATION_PROVIDER_ORDER: ProviderName[] = [
 ];
 
 const PHOTO_PROVIDER_ORDER: ProviderName[] = [
+  "library",
   "unsplash",
   "pexels",
   "pixabay",
@@ -86,7 +90,12 @@ function providerOrderForQuery(query: string): ProviderName[] {
       "speech", "bubble", "tag", "tags", "seal", "stamp", "ribbon", "qr", "qrcode",
     )
   ) {
-    return ["shapes", "qrcode", ...ILLUSTRATION_PROVIDER_ORDER.filter((p) => p !== "shapes" && p !== "qrcode")];
+    return [
+      "library",
+      "shapes",
+      "qrcode",
+      ...ILLUSTRATION_PROVIDER_ORDER.filter((p) => p !== "library" && p !== "shapes" && p !== "qrcode"),
+    ];
   }
 
   if (has("logo", "logos", "brand", "branding", "badge")) {
@@ -94,15 +103,23 @@ function providerOrderForQuery(query: string): ProviderName[] {
     // first; simpleicons' brand set is single-color and reads as "wrong" for
     // an actual logo search, so it's demoted below the real thing.
     return [
+      "library",
       "svgrepo",
       "wikimedia",
       "simpleicons",
-      ...ILLUSTRATION_PROVIDER_ORDER.filter((p) => p !== "svgrepo" && p !== "wikimedia" && p !== "simpleicons"),
+      ...ILLUSTRATION_PROVIDER_ORDER.filter(
+        (p) => p !== "library" && p !== "svgrepo" && p !== "wikimedia" && p !== "simpleicons",
+      ),
     ];
   }
 
   if (has("icon", "icons")) {
-    return ["svgrepo", "simpleicons", ...ILLUSTRATION_PROVIDER_ORDER.filter((p) => p !== "svgrepo" && p !== "simpleicons")];
+    return [
+      "library",
+      "svgrepo",
+      "simpleicons",
+      ...ILLUSTRATION_PROVIDER_ORDER.filter((p) => p !== "library" && p !== "svgrepo" && p !== "simpleicons"),
+    ];
   }
 
   if (
@@ -120,7 +137,7 @@ function providerOrderForQuery(query: string): ProviderName[] {
   }
 
   return [
-    "svgrepo", "undraw", "opendoodles", "coloricons", "simpleicons", "shapes",
+    "library", "svgrepo", "undraw", "opendoodles", "coloricons", "simpleicons", "shapes",
     "pixabay", "openverse", "wikimedia", "unsplash", "pexels", "qrcode",
   ];
 }

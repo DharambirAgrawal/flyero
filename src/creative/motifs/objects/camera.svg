@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Camera with the lens cut out.</title>
+  <path d="M 5 29 H 27 L 35 17 H 65 L 73 29 H 95 A 6 6 0 0 1 101 35 V 84 A 6 6 0 0 1 95 90 H 5 A 6 6 0 0 1 -1 84 V 35 A 6 6 0 0 1 5 29 Z M 68 58 A 18 18 0 1 1 32 58 A 18 18 0 1 1 68 58 Z" fill-rule="evenodd"/>
+</svg>

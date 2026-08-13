@@ -155,6 +155,31 @@ describe("gates", () => {
     expect(result.detail.G6).toBe(false);
   });
 
+  it("fails G6 when the body just restates the headline", async () => {
+    const spec = fixtureSpec(fixtureLineages("g6-restate", 1)[0]!);
+    const bad: DesignSpec = JSON.parse(JSON.stringify(spec));
+    bad.copy.headline = "Fresh Coffee Daily";
+    bad.copy.body = "We serve fresh coffee every day, daily.";
+    const result = await runGates(
+      { spec: bad, layout: layoutFor(bad), requestedAssetIds: [] },
+      ctx,
+    );
+    expect(result.detail.G6).toBe(false);
+    expect(result.notes.join(" ")).toMatch(/restates the headline/);
+  });
+
+  it("does not fail G6 when the body shares only a word or two with the headline", async () => {
+    const spec = fixtureSpec(fixtureLineages("g6-no-restate", 1)[0]!);
+    const bad: DesignSpec = JSON.parse(JSON.stringify(spec));
+    bad.copy.headline = "Fresh Coffee Daily";
+    bad.copy.body = "Beans roasted on-site, ground to order, brewed by hand.";
+    const result = await runGates(
+      { spec: bad, layout: layoutFor(bad), requestedAssetIds: [] },
+      ctx,
+    );
+    expect(result.detail.G6).toBe(true);
+  });
+
   it("fails G6 on an invented fact placed in a component prop, not just in copy", async () => {
     // Real failure this closes: an invented claim in annotation-label.text
     // ("Sunrise is at 5.40am", never supplied by the user) reached the page

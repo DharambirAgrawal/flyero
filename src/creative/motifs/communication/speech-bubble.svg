@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Rounded rect plus a tail — a speech/chat bubble.</title>
+  <path d="M 23 8 H 77 A 18 18 0 0 1 95 26 V 54 A 18 18 0 0 1 77 72 H 23 A 18 18 0 0 1 5 54 V 26 A 18 18 0 0 1 23 8 Z M 25 70 L 45 70 L 18 96 Z"/>
+</svg>

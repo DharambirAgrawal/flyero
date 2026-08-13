@@ -849,6 +849,31 @@ automated against a site whose terms forbid it — and it lands as an *asset*
     `API_KEYS` accepts. Both tools' regression tests now pass against a
     real, correctly configured listener — confirmed stable across repeated
     runs — not against whatever happened to be on the port.
+17. **2026-08-13 — the "assembled" example's intermittent contrast failure
+    is real and more common than assumed, and only partly explained by the
+    existing theory.** Item 8's last bullet (this file) names one mechanism:
+    `composed-figure` only paints ink where it draws marks, so text near an
+    uneven figure can land on a genuinely busy patch. Measured it directly
+    (`scripts/repro-contrast-flake.ts`, new — run it rather than re-deriving
+    this by hand) instead of trusting the "roughly 1 in 5-8" estimate: two
+    batches of 40 and 20 samples failed at 13%, 28% and 45% respectively —
+    noisy at this sample size but consistently well above rare-edge-case
+    territory. More importantly, **not every failure fits the composed-figure
+    theory**: `layered-depth-stack` failures hit `facts`/`action`/`who`
+    (plausibly near the figure, consistent with item 8), but
+    `banded-masthead` failures hit `message` — the headline — which that
+    topology's recipe has no obvious reason to place near or over the figure
+    at all. That suggests a second, broader mechanism: possibly a general
+    small mismatch between how ink is chosen and how the mechanical gate
+    measures tone, not exclusive to `composed-figure`. **Not fixed.**
+    Deliberately did not attempt a fix blind: this reaches into the core
+    ink-selection path (`inkFor` and how `gates/index.ts`'s contrast check
+    samples `layout.tone`), which this file's own history shows needs a
+    geometry dump and careful iteration, not a guess, the same lesson item 8
+    itself already learned once. Next step is exactly that: dump
+    `layout.tone` + the chosen ink for a `banded-masthead` failure specifically
+    (not `layered-depth-stack`, already explained) and find what item 8's
+    theory doesn't cover.
 
 Each step: `npm test` green, then render **several different briefs** (trees,
 travel, a shop, an event) — not one — and compare against the references before

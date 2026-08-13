@@ -159,7 +159,7 @@ type SpecRelationship = {
 };
 ```
 
-**Component IDs are generic** (e.g. `document-before-after-stack`, `browser-frame`, `headline-block`) — never product-specific names like `resume-transform-stack`.
+**Component IDs are generic** (e.g. `before-after-stack`, `browser-frame`, `headline-block`) — never product-specific names like `resume-transform-stack`.
 
 ## 5. LayoutResult (Stage 5 output)
 

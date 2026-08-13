@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Four-leaf clover, four curved lobes meeting at a stem.</title>
+  <path d="M 50 48 Q 32 30 32 18 Q 32 6 50 18 Q 68 6 68 18 Q 68 30 50 48 Z M 50 52 Q 32 70 32 82 Q 32 94 50 82 Q 68 94 68 82 Q 68 70 50 52 Z M 48 50 Q 30 32 18 32 Q 6 32 18 50 Q 6 68 18 68 Q 30 68 48 50 Z M 52 50 Q 70 32 82 32 Q 94 32 82 50 Q 94 68 82 68 Q 70 68 52 50 Z M 50 52 Q 46 74 36 94" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

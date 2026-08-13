@@ -43,7 +43,8 @@ export type ProviderName =
   | "opendoodles"
   | "simpleicons"
   | "shapes"
-  | "qrcode";
+  | "qrcode"
+  | "library";
 
 export type MediaOrientation = "all" | "portrait" | "landscape" | "square";
 

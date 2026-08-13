@@ -16,7 +16,7 @@ Scaffold the repo per `ARCHITECTURE.md` §8: Fastify API with auth + health, SQL
 
 The hand-authored creative content — this is the moat and the slowest part; do it before the pipeline so the pipeline has something real to compose with:
 
-- 25 components (each with manifest; each looks professional alone on canvas)
+- Components, each with a manifest, each looking professional alone on canvas — grown from an initial ~25 to 36 as gate/diversity work found concrete holes (`ARCHITECTURE.md` §6, `src/components/registry.ts`)
 - 10 composition topology recipes (parameterized grid + placement rules)
 - 12 metaphor families, 8 typography behaviors, 6 material languages, 8 color-logic generators, 10 gesture families — all as data files in `src/creative/`
 - Compatibility veto matrix, banned-list detector rules, 10 curated open-license font pairings
@@ -49,7 +49,7 @@ Plain-language revision (spec edits, idea immutable), revision history, SVG edit
 
 ## Milestone 6 — MCP surface + first users
 
-MCP server (6 tools from `API.md` §7, stdio), returning preview images so calling agents can see results. Ship to ~20 indie hackers who are launching products. Watch which revise instructions they send — that's the real critique dataset.
+**Substantially built already, pulled forward ahead of Milestone 3 completing** — same pattern as the L1 format work below: real agent sessions (`docs/GAP-ANALYSIS.md`, 2026-08-01 onward) needed the surface to exist before diversity tuning could even be evaluated live. Current state, not the original 6-tool stdio plan: `src/mcp/server.ts` registers up to 17 tools over both stdio and streamable HTTP (`POST /mcp`, for hosted connectors), split into an agent-native path (10 tools — the calling agent samples its own lineage, authors the spec, judges the render; no server model key) and a server-authored path (3 tools, only registered when `ANTHROPIC_API_KEY` is configured) — see `API.md` §7. Preview images return small enough to survive chat transports. Ship to ~20 indie hackers who are launching products. Watch which revise instructions they send — that's the real critique dataset.
 
 **Done when:** an external user creates and exports a flyer entirely from Claude/Cursor chat, and at least 10 of 20 testers export something they actually post publicly.
 

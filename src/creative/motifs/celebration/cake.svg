@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Sketched two-tier cake with three lit candles.</title>
+  <path d="M 20 62 H 80 A 6 6 0 0 1 86 68 V 86 A 6 6 0 0 1 80 92 H 20 A 6 6 0 0 1 14 86 V 68 A 6 6 0 0 1 20 62 Z M 33 42 H 67 A 5 5 0 0 1 72 47 V 61 A 5 5 0 0 1 67 66 H 33 A 5 5 0 0 1 28 61 V 47 A 5 5 0 0 1 33 42 Z M 14 62 Q 23 66 32 62 Q 41 58 50 62 Q 59 66 68 62 Q 77 58 86 62 M 36 42 L 36 26 M 50 42 L 50 22 M 64 42 L 64 26 M 36 26 Q 33 19 36 14 Q 39 19 36 26 M 50 22 Q 47 15 50 10 Q 53 15 50 22 M 64 26 Q 61 19 64 14 Q 67 19 64 26" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

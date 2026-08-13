@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import sharp from "sharp";
 import { buildServer } from "../../src/api/server.js";
 import { config } from "../../src/config.js";
+import { COMPOSITION_EXAMPLE, COMPOSITION_EXAMPLE_ASSEMBLED } from "../../src/api/agent.js";
 
 /**
  * The published composition examples must actually compose.
@@ -227,4 +228,72 @@ describe("the published composition examples", () => {
       }
     });
   }
+});
+
+describe("compose_flyer coaching, reinforced at submit time not just at guide-read time", () => {
+  it("flags a submission that is exactly the safe stack", async () => {
+    // guide.ts warns against this skeleton once, in prose, when an agent
+    // reads it. The photo-led example itself IS this skeleton (by design —
+    // see its own comment) so this is also proof the reminder does not block
+    // a passing composition; it only speaks up alongside it.
+    const lineage = await lineageFor(["quiet", "balanced"], COMPOSITION_EXAMPLE.elements.length);
+    const syntheticAssetId = await uploadSyntheticPhoto(app, auth);
+    const composition = {
+      ...COMPOSITION_EXAMPLE,
+      lineage,
+      elements: COMPOSITION_EXAMPLE.elements.map((el: Record<string, unknown>) =>
+        el.assets ? { ...el, assets: [syntheticAssetId] } : el,
+      ),
+      assetIds: [syntheticAssetId],
+    };
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/flyers/compose",
+      headers: auth,
+      payload: composition,
+    });
+    expect(res.statusCode, JSON.stringify(res.json(), null, 2).slice(0, 1200)).toBe(201);
+    expect(res.json().reminder).toMatch(/safe stack/i);
+  });
+
+  it("does not flag a composition that varies its components", async () => {
+    const lineage = await lineageFor(["assembled", "balanced", "quiet", "rich"], COMPOSITION_EXAMPLE_ASSEMBLED.elements.length);
+    const composition = { ...COMPOSITION_EXAMPLE_ASSEMBLED, lineage };
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/flyers/compose",
+      headers: auth,
+      payload: composition,
+    });
+    expect(res.statusCode, JSON.stringify(res.json(), null, 2).slice(0, 1200)).toBe(201);
+    expect(res.json().reminder).toBeUndefined();
+  });
+
+  it("flags a revision that repeats the prior revision's components unchanged", async () => {
+    const lineage = await lineageFor(["assembled", "balanced", "quiet", "rich"], COMPOSITION_EXAMPLE_ASSEMBLED.elements.length);
+    const first = await app.inject({
+      method: "POST",
+      url: "/v1/flyers/compose",
+      headers: auth,
+      payload: { ...COMPOSITION_EXAMPLE_ASSEMBLED, lineage },
+    });
+    expect(first.statusCode).toBe(201);
+    const { flyerId } = first.json();
+
+    // Same components, same order, only the headline changes — the pattern
+    // that should trigger "you only touched the words" coaching.
+    const second = await app.inject({
+      method: "POST",
+      url: "/v1/flyers/compose",
+      headers: auth,
+      payload: {
+        ...COMPOSITION_EXAMPLE_ASSEMBLED,
+        lineage,
+        flyerId,
+        copy: { ...COMPOSITION_EXAMPLE_ASSEMBLED.copy, headline: "Dig in together" },
+      },
+    });
+    expect(second.statusCode).toBe(201);
+    expect(second.json().reminder).toMatch(/same components/i);
+  });
 });

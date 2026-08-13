@@ -189,6 +189,46 @@ Plain-language instruction against the finished flyer. Edits the spec (idea and 
 ### `GET /v1/flyers/{jobId}/spec` — the design spec JSON (`?revision=N` optional).
 ### `GET /v1/flyers/{jobId}/export?format=png|svg|pdf` — binary download. SVG guarantees editable text and named groups. PDF is post-v1 (returns `501` until then).
 
+## 3b. Agent-native composition (`src/api/agent.ts`) — the primary path
+
+No server model key needed: a connected agent samples its own lineage, authors the spec, and judges the render. This is what `create_flyer` (§3) hands to a *second* model internally; here the calling agent does that work itself.
+
+### `GET /v1/guide` — markdown onboarding document (creative posture, the 7-step loop, Six Gates, full creative-dimension and component listings). Served from the API, not static docs, so it never drifts from the code it describes.
+### `GET /v1/skills`, `GET /v1/skills/{name}` — four judgement guides (`brief`, `composition`, `copywriting`, `critique`); no palettes, fonts or measurements — those come from the sampled lineage, never from a skill.
+
+### `POST /v1/studio/assignments`
+
+```json
+{ "runs": 3, "campaignArchetype": "event-invitation", "brandColors": [], "format": "portrait-4x5" }
+```
+
+Returns `jobSeed`, `canvas`, the resolved `componentLibrary` (all 36 manifests — id, category, roles, purpose, asset slots, text limits, author-safe `propsSchema` — sent **once**, not per assignment), and `assignments[]`: one per sampled lineage, each with `lineage` (opaque, echo back unchanged), `direction` (metaphor/topology/typography/material/colorLogic/gesture/graphics briefs), `resolved` (palette + fonts, informational only), `constraints` (element budget, required roles) and `componentsExcluded` — the few `componentLibrary` ids (usually none) that don't fit this lineage's topology.
+
+### `GET /v1/schema/composition` — three complete, valid composition JSON objects (`examples[]`: `photo-led`, `assembled`, `exchange-led`) plus `elementBudgets` and rule notes not obvious from the shape. Shapes to copy field names from — never flyers to remix; see `COMPOSITION_NOTES` in `src/api/agent.ts`.
+
+### `POST /v1/flyers/compose`
+
+The authored composition: `lineage` (from `/v1/studio/assignments`, unchanged), `productName`, `campaignArchetype`, `sourceStatements` (the user's own words — Gate G6 checks every `copy.details` value against these), `idea`, `story` (4 beats), `copy`, `elements` (4–7, each `{ id, component, role, whyHere, assets?, props? }`), `relationships`, `gesturePurpose`, `assetIds`, `brandColors`. Omit `flyerId` to start a new flyer; include it to add a revision.
+
+Renders, gate-checks and returns immediately (no polling): `flyerId`, `revision`, `codeCheckedGates` (G3/G5/G6 + mechanical — settled by code), `pendingYourJudgement: ["G1","G2","G4"]` (need a viewer), `critique`, `layoutWarnings`, an optional `reminder` (fires when the submission is exactly the "safe stack" skeleton, or repeats the prior revision's components unchanged), and export `urls`. A `422` lists the exact schema fields that are wrong.
+
+### `PATCH /v1/flyers/{jobId}` — partial edit to an existing composition (`revise_composition`). Every field optional; an omitted field means "leave it alone." Supports `elements` (patch by id), `addElements`, `removeElements`. Same response shape as compose.
+
+### `POST /v1/flyers/{jobId}/review`
+
+The three gates code cannot settle, answered by whoever looked at the render:
+
+```json
+{
+  "ideaReads": true, "ideaAsSeen": "…",
+  "productGuessable": true, "productGuess": "…",
+  "headlineParticipates": true, "copyReadsHuman": true,
+  "collisions": [], "notes": "optional"
+}
+```
+
+Flips the job to `done` (all six gates passed) or `below_bar` (with `failedGates` and a `message` naming what to fix). A reported collision fails `mechanical.noCollisions` — it can't be logged and ignored.
+
 ## 4. Batch (for the acceptance tests — build early, it's how we test ourselves)
 
 ### `POST /v1/batches`
@@ -210,19 +250,45 @@ Per-key: `MAX_CONCURRENT_JOBS` (default 2), `MAX_DAILY_USD` soft cap (default 20
 
 ## 7. MCP mapping (thin adapter — no logic in this layer)
 
+`src/mcp/server.ts` is a single `McpServer` shared by both transports (`server.registerTool`, no HTTP-vs-stdio duplication): stdio for local Claude/Cursor use, streamable HTTP (`POST /mcp`) for hosted connectors. Tool descriptions state what the tool does for the *user's goal* (goal-oriented, not `add_rectangle`-style primitives) and carry the discovery keywords a connector's tool-search matches on.
+
+There are two independent surfaces. Most deployments (including the default — no `ANTHROPIC_API_KEY` set) only expose the first.
+
+### Agent-native path — the calling agent is the designer, no server model key needed
+
+This is the primary path: `read_design_guide` / `read_design_skill` teach judgement, `request_designers` samples a Studio Sampler lineage, the agent authors a composition itself, and the engine only supplies geometry, colour, typography, ornament and the gates.
+
+| MCP tool | Calls | Notes |
+|---|---|---|
+| `read_design_guide` | `GET /v1/guide` | markdown onboarding doc; read once, first |
+| `read_design_skill` | `GET /v1/skills`, `GET /v1/skills/{name}` | judgement guides: brief, composition, copywriting, critique — no palettes or measurements |
+| `request_designers` | `POST /v1/studio/assignments` | Studio Sampler lineages; component catalogue returned once at the top level (`componentLibrary`), each assignment carries only `componentsExcluded` — the few ids (if any) that don't fit its topology |
+| `search_images` | `POST /v1/assets/search` | multi-provider photo/icon/vector/shape/QR search |
+| `import_image` | `POST /v1/assets/import` | pulls one search result into the asset store |
+| `get_composition_example` | `GET /v1/schema/composition` | three JSON *shapes* (photo-led / assembled / exchange-led) to copy field names from, never flyers to remix |
+| `compose_flyer` | `POST /v1/flyers/compose` | authored spec in, rendered + code-checked flyer out; response includes a `reminder` when the submission matches the named "safe stack" anti-pattern or repeats the prior revision's components unchanged |
+| `revise_composition` | `PATCH /v1/flyers/{id}` | partial spec edit, re-renders |
+| `review_flyer` | `POST /v1/flyers/{id}/review` | the agent's own G1/G2/G4 verdict after looking at the render; flips status to `done` or `below_bar` |
+| `export_composed_flyer` | `GET …/export` | PNG/SVG; SVG keeps text as text |
+
+### Server-authored path — needs `ANTHROPIC_API_KEY` on the server
+
+Hands the whole job to a second, server-side model call. **Not registered as MCP tools at all when `ANTHROPIC_API_KEY` is unset** (the common case) — an agent that is already the model has nothing to gain from them and nothing to fail into.
+
+| MCP tool | Calls | Notes |
+|---|---|---|
+| `create_flyer` | `POST /v1/flyers` + polls until terminal | returns idea + PNG preview (image content block) so the calling agent can *see* the result |
+| `revise_flyer` | `POST /v1/flyers/{id}/revise` + polls | returns new preview image |
+| `create_flyer_batch` | `POST /v1/batches` | for variety exploration from chat |
+
+### Available either way
+
 | MCP tool | Calls | Notes |
 |---|---|---|
 | `upload_asset` | `POST /v1/assets` | takes local file path or base64 `data`, uploads |
 | `prepare_asset` | `POST /v1/assets/{id}/transform` | presets/ops; returns new assetId + preview |
-| `search_images` | `POST /v1/assets/search` | multi-provider photo/icon/vector/shape/QR search |
-| `import_image` | `POST /v1/assets/import` | pulls one search result into the asset store |
-| `create_flyer` | `POST /v1/flyers` + polls until terminal | returns idea + PNG preview (image content block) so the calling agent can *see* the result |
-| `get_flyer` | `GET /v1/flyers/{id}` | |
-| `revise_flyer` | `POST /v1/flyers/{id}/revise` + polls | returns new preview image |
-| `export_flyer` | `GET …/export` | writes file to user's workspace, returns path |
-| `create_flyer_batch` | `POST /v1/batches` | for variety exploration from chat |
-
-MCP server config: stdio transport for local Claude/Cursor use; streamable HTTP later. Tool descriptions must state what the tool does for the *user's goal* (goal-oriented, few tools — not `add_rectangle` style primitives).
+| `get_flyer` | `GET /v1/flyers/{id}` | works for flyers made either path — same job store |
+| `export_flyer` | `GET …/export` | works for flyers made either path |
 
 ## 8. curl smoke test (the loop we run daily during development)
 

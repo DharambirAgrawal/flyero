@@ -53,7 +53,6 @@
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",
-    "@types/sharp": "^0.31.1",
     "vitest": "^3.2.4"
   }
 }

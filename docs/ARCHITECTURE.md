@@ -113,7 +113,7 @@ Versioned JSON, zod-validated, stored per candidate. Shape (abbreviated):
   "brand": { "colors": {"...": "..."}, "fonts": ["Fraunces", "Inter"] },
   "copy": { "eyebrow": "…", "headline": "…", "body": "…", "cta": {"label": "…", "url": "…", "qr": true} },
   "elements": [
-    { "id": "hero", "component": "document-before-after-stack", "role": "evidence",
+    { "id": "hero", "component": "before-after-stack", "role": "evidence",
       "whyHere": "shows the product working (Gate G2/G3)", "assets": ["ast_01JX3…"] },
     { "id": "headline", "component": "headline-block", "role": "message" }
   ],
@@ -128,7 +128,7 @@ Notes: every element carries `whyHere` (feeds Gate G3's delete test); relationsh
 
 ## 6. Component Library (v1 scope)
 
-~25 hand-designed React/SVG components, each with a manifest: what it's for, min/max size, text limits, compatible topologies, asset slots, and its motion affordance (recorded now, used when video comes). Categories: content (headline block, eyebrow, body, benefit list, CTA + QR, footer lockup) · evidence (browser/phone frame, document card, before/after stack, score ring, annotation label, UI fragment) · structure (grid field, path/connector, oversized letterform, mask shapes, edge-crop frames). Quality bar: each component must look professional *alone* on a canvas. This library is hand-authored design work — it is the moat, and it grows deliberately, not automatically.
+36 hand-designed React/SVG components (`src/components/registry.ts`; `npm run sheet:figures` renders every one for review), each with a manifest: what it's for, min/max size, text limits, compatible topologies, asset slots, and its motion affordance (recorded now, used when video comes). Categories: content (headline block, eyebrow, body paragraph, benefit list, CTA, footer lockup, quote block, big numeral, logo lockup) · evidence (browser/phone frame, document card, before/after stack, score ring, annotation label, UI fragment, asset image, checklist card, chat exchange, photo hero, masked image) · photo (photo cluster, polaroid stack, photo grid, torn photo, motif collage, detail cluster, scene illustration) · figure (composed figure — a build-your-own assembly of motifs/shapes/photos/words, placed by relationship, counted as one element) · structure (grid field, path connector, oversized letterform, edge-crop frame, rule line, halftone field, waypoint marker). Quality bar: each component must look professional *alone* on a canvas. This library is hand-authored design work — it is the moat, and it grows deliberately, not automatically.
 
 ## 7. Tech stack
 

@@ -20,7 +20,8 @@ import { graphicsById } from "../creative/graphics.js";
 import { artDirectionById, elementBudgetForDensity } from "../creative/artdirections.js";
 import { DEFAULT_FORMAT, FORMAT_IDS, formatById, type FormatId } from "../creative/formats.js";
 import { recipeFor } from "../core/layout/recipes.js";
-import { componentPropsSchema, engineOwnedPropsFor, manifestsFor } from "../components/registry.js";
+import { componentPropsSchema, engineOwnedPropsFor, COMPONENTS } from "../components/registry.js";
+import { searchMotifs } from "../components/shapes.js";
 import { runGates, failedGateIds, visionVerdictSchema } from "../core/gates/index.js";
 import { ruleCritic, describeFix } from "../core/critic/index.js";
 import { checkEditability, exportFlyer } from "../core/export/index.js";
@@ -529,6 +530,30 @@ function fail(reply: FastifyReply, status: number, code: string, message: string
   return reply.status(status).send({ error: { code, message, details } });
 }
 
+/**
+ * The full component catalogue, once.
+ *
+ * `manifestsFor(topology)` used to be recomputed with a full `propsSchema`
+ * (JSON Schema, per component) inline on every sampled lineage — 33-36 of 36
+ * components, each carrying its schema, repeated for every one of `runs`
+ * assignments in a single response. Almost the whole catalogue is
+ * `topologies: "any"`, so that was the same ~20KB payload duplicated 3-6
+ * times over for a handful of bytes of real per-lineage difference. Computed
+ * once per request instead; see `describeAssignment` for what varies.
+ */
+function componentLibrary() {
+  return COMPONENTS.map((c) => ({
+    id: c.manifest.id,
+    category: c.manifest.category,
+    roles: c.manifest.roles,
+    purpose: c.manifest.purpose,
+    assetSlots: c.manifest.assetSlots,
+    textLimits: c.manifest.textLimits ?? null,
+    propsSchema: componentPropsSchema(c.manifest.id),
+    engineOwnedProps: engineOwnedPropsFor(c.manifest.id),
+  }));
+}
+
 /** Everything an author needs to work inside a sampled lineage. */
 function describeAssignment(lineage: Lineage, brandColors: string[]) {
   const metaphor = METAPHORS.find((m) => m.id === lineage.metaphor)!;
@@ -542,6 +567,13 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
   const elementBudget = elementBudgetForDensity(artDirection.density);
   const recipe = recipeFor(lineage.topology);
   const pair = fontPairById(lineage.fontPair);
+
+  // Almost every component fits every topology; only a handful declare a
+  // narrower list. Naming the few that DON'T fit this lineage is much
+  // cheaper than re-listing the ~33 that do, and says the same thing.
+  const unusable = COMPONENTS.map((c) => c.manifest).filter(
+    (m) => m.topologies !== "any" && !m.topologies.includes(lineage.topology),
+  );
 
   return {
     lineage,
@@ -581,19 +613,59 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
       requiredRoles: ["evidence", "message", "cta"],
       note: recipe.notes,
     },
-    components: manifestsFor(lineage.topology).map((m) => ({
-      id: m.id,
-      category: m.category,
-      roles: m.roles,
-      purpose: m.purpose,
-      assetSlots: m.assetSlots,
-      textLimits: m.textLimits ?? null,
-      propsSchema: componentPropsSchema(m.id),
-      engineOwnedProps: engineOwnedPropsFor(m.id),
-    })),
+    // Component ids from the top-level `componentLibrary` NOT usable on this
+    // lineage's topology. Empty on most assignments — the catalogue itself
+    // lives once at the top of the response, not repeated here.
+    componentsExcluded: unusable.map((m) => m.id),
   };
 }
 
+
+/**
+ * The named anti-pattern the guide already warns against once, at read time.
+ * `guide.ts` and `COMPOSITION_NOTES` say "refuse the safe stack" in prose —
+ * good the first time an agent reads them, silent for the other 95% of a
+ * session. This checks the one thing prose can't: whether THIS submission
+ * actually is the stack, and says so back, at the moment it's submitted.
+ */
+const SAFE_STACK = new Set([
+  "headline-block",
+  "photo-hero",
+  "body-paragraph",
+  "cta-button",
+  "footer-lockup",
+]);
+
+/**
+ * A reminder computed fresh from this request and (at most) the flyer's own
+ * previous revision — never other jobs, never a cross-session store. That
+ * keeps it inside AGENTS.md law 2 (no history lookups/dedup stores for
+ * diversity): this isn't the sampler being steered by the past, it's telling
+ * an author what it just did, the way a second pass of self-review would.
+ */
+function repetitionReminder(spec: DesignSpec, previousComponents: string[] | null): string | null {
+  const components = spec.elements.map((e) => e.component);
+  const asSet = new Set(components);
+  if (asSet.size === SAFE_STACK.size && [...asSet].every((c) => SAFE_STACK.has(c))) {
+    return (
+      "This composition is exactly the safe stack (headline-block + photo-hero + body-paragraph + " +
+      "cta-button + footer-lockup) — refuse it unless the metaphor and brief both specifically demand " +
+      "it. Swap in polaroid-stack, chat-exchange, before-after-stack, detail-cluster, or composed-figure."
+    );
+  }
+  if (
+    previousComponents &&
+    components.length === previousComponents.length &&
+    components.every((c, i) => c === previousComponents[i])
+  ) {
+    return (
+      "This revision uses the exact same components in the exact same order as the last one. Fine if " +
+      "you're only tightening copy — but if the flyer read as generic, changing only copy won't fix " +
+      "that; vary the evidence component, the support device or the CTA style instead."
+    );
+  }
+  return null;
+}
 
 /**
  * Render, judge, export and record one revision. Shared by compose and patch so
@@ -608,6 +680,10 @@ async function renderAndRecord(input: {
   author: string;
 }) {
   const { spec, flyerId, revision } = input;
+  const previous = revision > 0 ? await getRevision(flyerId, revision - 1) : null;
+  const previousComponents = previous
+    ? (JSON.parse(previous.spec) as DesignSpec).elements.map((e) => e.component)
+    : null;
   const assets = await getAssets(input.assetIds);
   const refs: AssetRef[] = await Promise.all(
     assets.map(async (a) => ({
@@ -656,6 +732,8 @@ async function renderAndRecord(input: {
     reason: null,
   });
 
+  const reminder = repetitionReminder(spec, previousComponents);
+
   return {
     flyerId,
     revision,
@@ -671,6 +749,7 @@ async function renderAndRecord(input: {
     notes: gates.notes,
     critique: critique.map(describeFix),
     layoutWarnings: layout.warnings,
+    ...(reminder ? { reminder } : {}),
     urls: {
       png: `/v1/flyers/${flyerId}/export?format=png`,
       svg: `/v1/flyers/${flyerId}/export?format=svg`,
@@ -734,6 +813,10 @@ export function registerAgentRoutes(app: FastifyInstance): void {
           "designers whose metaphor suits that kind of brief — redrawing until one fits " +
           "is fighting the sampler, not using it.",
       campaignArchetype: campaignArchetype ?? null,
+      // Once, not per assignment — see componentLibrary()'s comment. Almost
+      // every id here fits every assignment; check an assignment's own
+      // `componentsExcluded` for the rare few that don't.
+      componentLibrary: componentLibrary(),
       assignments: lineages.map((l) => describeAssignment(l, brandColors)),
       next: "Write the idea, then POST /v1/flyers/compose with the lineage returned here.",
     };
@@ -744,12 +827,10 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   app.get("/v1/schema/composition", async () => ({
     /*
      * Several examples, meant to be read as a *range* of evidence families —
-     * never as flyers to remix. `example` is singular and kept for callers that
-     * already read it; `examples` is what a fresh agent should look at. One
-     * example is copied as a template; three different families make it harder
-     * to mistake any one of them for the answer.
+     * never as flyers to remix. Three different families make it harder to
+     * mistake any one of them for the answer than a single "the" example
+     * would.
      */
-    example: COMPOSITION_EXAMPLE,
     examples: [
       {
         name: "photo-led",
@@ -791,6 +872,24 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     },
     notes: COMPOSITION_NOTES,
   }));
+
+  /**
+   * Search the motif library instead of reading every id.
+   *
+   * `read_design_guide` still lists every motif (cheap today — see
+   * `src/creative/motifs/`'s own header comment on why this isn't
+   * embeddings), but a growing library shouldn't force every session to read
+   * that whole list to find one shape. Ranked lexical search over id, title
+   * and category — see `searchMotifs` in `src/components/shapes.ts`.
+   */
+  app.get<{ Querystring: { q?: string; limit?: string } }>("/v1/schema/motifs", async (request, reply) => {
+    const q = request.query.q?.trim();
+    if (!q) {
+      return fail(reply, 400, "invalid_request", "Query parameter `q` is required, e.g. ?q=birthday cake");
+    }
+    const limit = Math.min(20, Math.max(1, Number(request.query.limit) || 8));
+    return { query: q, results: searchMotifs(q, limit) };
+  });
 
   app.post("/v1/flyers/compose", async (request, reply) => {
     const parsed = authoredSchema.safeParse(request.body);

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Twin eighth notes linked by a beam.</title>
+  <path d="M 15 75 A 10 7 0 1 1 35 75 A 10 7 0 1 1 15 75 Z M 55 65 A 10 7 0 1 1 75 65 A 10 7 0 1 1 55 65 Z M 35 73 L 35 22 L 75 12 L 75 63 M 35 34 L 75 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

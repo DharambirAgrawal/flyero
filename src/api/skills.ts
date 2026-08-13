@@ -159,12 +159,16 @@ A \`motif\` or \`shape\` part also takes \`shaded: true\` — a highlight-to-
 shadow gradient keyed off the flyer's one light, plus a contact shadow,
 instead of a flat single-colour fill. That is the difference between a
 rendered *object* (a balloon that looks inflated, a gift that looks wrapped,
-a trophy that looks metal) and a flat *icon mark*. Reach for it when the part
-is meant to be seen as a thing sitting on the page, not a graphic symbol —
-and leave it off for badges, Memphis shapes, small scattered accents and
-anything else that should read as a mark: shading everything looks busier,
-not more real, so use it on the one or two parts that are the point of the
-figure, not on every part in it.
+a trophy \`seal\` that looks metal) and a flat *icon mark*. Reach for it when
+the part is meant to be seen as a thing sitting on the page, not a graphic
+symbol — and leave it off for badges, Memphis shapes, small scattered
+accents and anything else that should read as a mark: shading everything
+looks busier, not more real, so use it on the one or two parts that are the
+point of the figure, not on every part in it. It only affects a *filled*
+motif or shape — \`outline: true\`, squiggle/wave, and the motifs already
+sketched as line art (ask \`read_design_guide\` which, since the library
+grows) render unshaded regardless; reach for one of the filled ones when the
+figure's main part specifically needs to look shaded.
 
 ## Density without clutter
 

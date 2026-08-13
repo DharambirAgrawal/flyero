@@ -11,7 +11,11 @@
  * Coordinates are absolute canvas units unless a function says otherwise.
  */
 
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Rng } from "../lib/rng.js";
+import { search, type SearchDocument } from "../lib/search.js";
 
 /**
  * Fixed-precision formatting. Two decimals is well below a pixel at poster
@@ -614,7 +618,15 @@ export function archPath(rect: Rect): string {
  * reach; callers must check it, since a stroked path with no fill would
  * otherwise render as nothing.
  */
-export type Motif = { d: string; fillRule?: "evenodd"; stroke?: boolean };
+export type Motif = {
+  d: string;
+  fillRule?: "evenodd";
+  stroke?: boolean;
+  /** From the SVG's own `<title>` — a short, human (and agent) readable description. */
+  title?: string;
+  /** The subfolder it was found in (e.g. "celebration"), if any. */
+  category?: string;
+};
 
 /**
  * Directional motifs — ones that point somewhere — are all authored pointing
@@ -676,293 +688,198 @@ function rainbowPath(bands = 6, outerW = 96, step = 16): string {
   return d.trim();
 }
 
-const MOTIF_DATA = {
-  /** Paper dart nosing due right, with the swallow-tail notch. */
-  plane: { d: "M 98 50 L 4 10 L 28 50 L 4 90 Z" },
+/**
+ * Every motif, loaded from `src/creative/motifs/**\/*.svg` — one file per
+ * motif, filename (minus `.svg`) is the id. Lives in `src/creative/`
+ * alongside every other hand-authored design-content file (metaphors,
+ * materials, colour logic, gestures, …) — motifs are creative library
+ * content, not component code, the same way those are. Organised into
+ * subfolders by subject (`celebration/`, `nature/`, `communication/`,
+ * `objects/` today) — folders are for a human browsing the tree; the id is
+ * always just the filename, flat, so `draw.motif` in a
+ * composition never needs to know the path. Two files with the same name in
+ * different folders is a startup error (`loadMotifData` below), not a silent
+ * pick-one — ids must stay unique across the whole tree.
+ *
+ * This used to be a ~280-line object literal of hand-built path strings.
+ * Moved to a folder for one reason: growing this library should not require
+ * reading TypeScript. Drop in a single-colour SVG — a shape you drew, one
+ * exported from an icon tool, anything with plain `<path>` elements on a
+ * `viewBox="0 0 100 100"` — and it becomes a usable, theme-recolourable
+ * motif with no code change. `readdirSync`/`readFileSync` run once, at
+ * import time (Node ESM allows synchronous fs at module scope; there is no
+ * build step here — `tsx` runs this file directly in dev, test and prod
+ * alike, so the folder resolves identically everywhere, no matter how many
+ * files are in it).
+ *
+ * The convention a dropped-in file must follow, same shape `Motif` already
+ * required:
+ * - `viewBox="0 0 100 100"`, one or more `<path d="…">` elements. Multiple
+ *   paths concatenate into one `d` string, same as `ellipsePath(...) +
+ *   ellipsePath(...)` did inline before.
+ * - `fill-rule="evenodd"` on any path → the motif punches holes (a ring, a
+ *   cutout eye) instead of unioning overlapping loops.
+ * - `fill="none"` on any path → sketched line art (`stroke: true`): drawn
+ *   with the theme's ink as a stroke, not a fill.
+ * - Directional motifs point along +x (due right) — callers rotate to aim.
+ * - **`<title>One short sentence.</title>`, first child of `<svg>`, is what
+ *   this list is for**: not decoration, an actual field every motif here
+ *   carries (see the ids and titles listed in `read_design_guide`'s
+ *   composed-figure section, live off this loader — never edit that prose
+ *   by hand, it drifts the moment it does). No fallback synthesises one from
+ *   the filename, on purpose: a motif with only an id and no description is
+ *   exactly the kind of thing that gets picked by guessing what the name
+ *   probably looks like, which is the failure this field exists to prevent
+ *   as the library grows past the point anyone has looked at every file.
+ *
+ * What does NOT belong here: a real multi-colour illustration, a raster
+ * image, or a gradient baked into the file. Every motif is recoloured to the
+ * flyer's own palette at render time — a single `fill`/`stroke` swapped in
+ * by the caller — which only works if the source file leaves colour
+ * unspecified (or `none`, for line art). `loadMotifData` checks for exactly
+ * this mistake (a colourful icon pack SVG dropped in instead of a plain
+ * single-tone one) and fails loudly rather than silently flattening or
+ * mis-rendering it. A full-colour asset (a logo, a supplied photo) embeds
+ * as-is through `POST /v1/assets` instead — see the "asset vs motif"
+ * distinction in `docs/GAP-ANALYSIS.md` (2026-08-05). Effects like a glow,
+ * reflection or drop shadow (the Canva-style polish) are also not something
+ * to bake into the file — they're a render-time concern here too, computed
+ * from the flyer's own light (`shaded: true`, see `figure.tsx`), for the
+ * same reason: baked-in lighting can't adapt to a different palette or a
+ * different part of the page.
+ */
+const MOTIFS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "creative", "motifs");
 
-  /** Map pin with the hole punched through. */
-  pin: {
-    d:
-      "M 50 99 C 50 99 87 57 87 37 A 37 37 0 1 0 13 37 C 13 57 50 99 50 99 Z " +
-      "M 67 36 A 17 17 0 1 1 33 36 A 17 17 0 1 1 67 36 Z",
-    fillRule: "evenodd" as const,
-  },
+function svgAttr(tag: string, name: string): string | undefined {
+  return tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
+}
 
-  /** Suitcase: body plus the handle above it. */
-  suitcase: {
-    d:
-      "M 8 31 H 92 A 7 7 0 0 1 99 38 V 87 A 7 7 0 0 1 92 94 H 8 A 7 7 0 0 1 1 87 V 38 A 7 7 0 0 1 8 31 Z " +
-      "M 34 29 V 19 A 8 8 0 0 1 42 11 H 58 A 8 8 0 0 1 66 19 V 29 H 57 V 20 H 43 V 29 Z",
-  },
-
-  /** Camera with the lens cut out. */
-  camera: {
-    d:
-      "M 5 29 H 27 L 35 17 H 65 L 73 29 H 95 A 6 6 0 0 1 101 35 V 84 A 6 6 0 0 1 95 90 H 5 " +
-      "A 6 6 0 0 1 -1 84 V 35 A 6 6 0 0 1 5 29 Z " +
-      "M 68 58 A 18 18 0 1 1 32 58 A 18 18 0 1 1 68 58 Z",
-    fillRule: "evenodd" as const,
-  },
-
-  /** Twin peaks. */
-  mountain: { d: "M 1 89 L 33 27 L 51 60 L 66 38 L 99 89 Z" },
-
-  /** Disc plus eight rays. */
-  sun: { d: `M 72 50 A 22 22 0 1 1 28 50 A 22 22 0 1 1 72 50 Z ${sunRays(28, 44, 4.5, 8)}` },
-
-  cloud: { d: "M 27 79 A 18 18 0 0 1 27 43 A 24 24 0 0 1 71 35 A 20 20 0 0 1 79 79 Z" },
-
-  leaf: { d: "M 90 10 C 90 60 57 93 10 90 C 10 40 43 7 90 10 Z" },
-
-  /** Blunt chevron arrow pointing right. */
-  arrow: { d: "M 3 39 H 59 V 17 L 97 50 L 59 83 V 61 H 3 Z" },
-
-  /** Ticket stub with two bites out of its long sides. */
-  ticket: {
-    d:
-      "M 3 26 H 97 V 42 A 9 9 0 0 0 97 60 V 76 H 3 V 60 A 9 9 0 0 0 3 42 Z",
-  },
-
-  /** Compass rose — four tapered points. */
-  compass: {
-    d:
-      "M 50 2 L 60 40 L 98 50 L 60 60 L 50 98 L 40 60 L 2 50 L 40 40 Z",
-  },
-
-  /** Five-point star, built from the same generator that draws price bursts. */
-  star: { d: starPath(50, 50, 46, 20, 5) },
-
-  /** Two lobes meeting at a point — the classic silhouette, cubic throughout. */
-  heart: {
-    d: "M 50 88 C 20 65 5 45 5 28 C 5 10 25 2 50 20 C 75 2 95 10 95 28 C 95 45 80 65 50 88 Z",
-  },
-
-  /** Six-petal daisy — the doodle/Memphis flower mark. */
-  flower: { d: flowerPath() },
-
-  /** Angular bolt, authored rather than generated: no generator reuse would be simpler. */
-  lightning: { d: "M 58 2 L 18 54 L 42 54 L 34 98 L 84 40 L 56 40 Z" },
-
-  /** Balloon: an ellipse body, a knot, no string — the string is a stroke, not a fill. */
-  balloon: { d: `${ellipsePath(50, 42, 30, 36)} M 42 76 L 58 76 L 50 88 Z` },
-
-  /**
-   * Gift box: a solid rounded package plus a bow, deliberately with no
-   * ribbon line — a thin `evenodd` cutout through a single-fill silhouette
-   * reads as a checkerboard at motif scale, not a ribbon, once tried and
-   * rejected. A plain wrapped box with a bow is still unambiguous, including
-   * at the small sizes a scattered motif actually renders at.
-   */
-  gift: {
-    d:
-      `${roundedRectPath({ x: 14, y: 44, w: 72, h: 52 }, 6)} ` +
-      `${roundedRectPath({ x: 44, y: 36, w: 12, h: 12 }, 3)} ` +
-      `${ellipsePath(36, 26, 15, 12)} ${ellipsePath(64, 26, 15, 12)}`,
-  },
-
-  /** One pennant — the unit a bunting string or a Memphis edge repeats. */
-  bunting: { d: "M 15 8 L 85 8 L 50 95 Z" },
-
-  /** One rounded sprinkle — a single confetti piece, meant to be scattered. */
-  confetti: { d: roundedRectPath({ x: 30, y: 38, w: 40, h: 24 }, 8) },
-
-  /** Rounded rect plus a tail, both same winding — the tail simply extends it. */
-  "speech-bubble": {
-    d:
-      `${roundedRectPath({ x: 5, y: 8, w: 90, h: 64 }, 18)} ` +
-      polyline([{ x: 25, y: 70 }, { x: 45, y: 70 }, { x: 18, y: 96 }], true),
-  },
-
-  /** Three concentric bands over a hollow centre — see `rainbowPath`. */
-  rainbow: { d: rainbowPath(), fillRule: "evenodd" as const },
-
-  /**
-   * Face with two eyes and a mouth cut through it via `evenodd` — the same
-   * cutout technique as `gift`'s ribbons, so the ground reads as the features.
-   */
-  smiley: {
-    d:
-      `${ellipsePath(50, 50, 46, 46)} ${ellipsePath(34, 40, 6, 6)} ${ellipsePath(66, 40, 6, 6)} ` +
-      "M 30 58 Q 50 80 70 58 Q 50 68 30 58 Z",
-    fillRule: "evenodd" as const,
-  },
-
-  /**
-   * Sketched two-tier cake with three candles — hand-drawn line art, not a
-   * filled silhouette. `stroke: true` is what makes that possible: the tiers
-   * are closed rounded rects, the icing is an open wave, the candles and
-   * flames are open strokes, and none of it needs a fill to read.
-   */
-  cake: {
-    d:
-      `${roundedRectPath({ x: 14, y: 62, w: 72, h: 30 }, 6)} ` +
-      `${roundedRectPath({ x: 28, y: 42, w: 44, h: 24 }, 5)} ` +
-      `${wavePath(14, 62, 72, 4, 18)} ` +
-      "M 36 42 L 36 26 M 50 42 L 50 22 M 64 42 L 64 26 " +
-      "M 36 26 Q 33 19 36 14 Q 39 19 36 26 " +
-      "M 50 22 Q 47 15 50 10 Q 53 15 50 22 " +
-      "M 64 26 Q 61 19 64 14 Q 67 19 64 26",
-    stroke: true,
-  },
-
-  /** Two loop ellipses, a knot and two V-notched tails — the corner-bow line-art mark. */
-  bow: {
-    d:
-      `${ellipsePath(30, 42, 20, 14)} ${ellipsePath(70, 42, 20, 14)} ${ellipsePath(50, 42, 8, 8)} ` +
-      "M 44 48 L 34 92 L 46 78 M 56 48 L 66 92 L 54 78",
-    stroke: true,
-  },
-
-  /** Three sparkles at different sizes, scattered like a doodled margin note — one motif, not three placements. */
-  "sparkle-doodle": {
-    d: `${sparklePath(50, 52, 22)} ${sparklePath(80, 26, 10)} ${sparklePath(18, 76, 8)}`,
-  },
-
-  /** Conical party hat, wavy brim, pom-pom tip — sketched line art. */
-  "party-hat": {
-    d:
-      "M 50 8 L 20 85 L 80 85 Z " +
-      `${wavePath(20, 85, 60, 4, 8)} ` +
-      `${ellipsePath(50, 8, 6, 6)}`,
-    stroke: true,
-  },
-
-  /** Boxed gift with a ribbon cross and bow, drawn as line art rather than filled — see `gift` for the solid version. */
-  "gift-outline": {
-    d:
-      `${roundedRectPath({ x: 25, y: 40, w: 50, h: 50 }, 4)} ` +
-      "M 50 40 L 50 90 M 25 65 L 75 65 " +
-      "M 50 40 Q 35 25 50 25 Q 65 25 50 40",
-    stroke: true,
-  },
-
-  /** Coffee mug with curved steam lines rising from the top rim — sketched line art. */
-  "coffee-cup": {
-    d:
-      `${roundedRectPath({ x: 24, y: 36, w: 42, h: 48 }, 6)} ` +
-      "M 66 46 Q 84 46 84 60 Q 84 74 66 74 " +
-      `${wavePath(30, 22, 30, 4, 10)} ${wavePath(34, 12, 22, 3, 8)}`,
-    stroke: true,
-  },
-
-  /** Flare-bottomed ringing bell with top hanger loop and clapper hanging below. */
-  bell: {
-    d:
-      `${ellipsePath(50, 14, 6, 6)} ` +
-      "M 32 68 C 32 40 40 24 50 24 C 60 24 68 40 68 68 L 78 76 L 22 76 Z " +
-      "M 22 76 Q 50 83 78 76 " +
-      `${ellipsePath(50, 84, 7, 7)}`,
-    stroke: true,
-  },
-
-  /** Twin eighth notes linked by a thick horizontal beam — classic musical notation doodle. */
-  "music-note": {
-    d:
-      `${ellipsePath(25, 75, 10, 7)} ${ellipsePath(65, 65, 10, 7)} ` +
-      "M 35 73 L 35 22 L 75 12 L 75 63 M 35 34 L 75 24",
-    stroke: true,
-  },
-
-  /** Five-pointed regal crown with jewel circles capping each peak and a rounded base band. */
-  crown: {
-    d:
-      `${roundedRectPath({ x: 15, y: 72, w: 70, h: 14 }, 3)} ` +
-      "M 15 72 L 15 35 L 32 55 L 50 20 L 68 55 L 85 35 L 85 72 Z " +
-      `${ellipsePath(15, 30, 4, 4)} ${ellipsePath(50, 15, 4, 4)} ${ellipsePath(85, 30, 4, 4)}`,
-    stroke: true,
-  },
-
-  /** Slanted retail price tag with a punched circular hole near its angled top corner. */
-  tag: {
-    d:
-      "M 30 10 L 70 10 L 90 30 L 90 85 A 5 5 0 0 1 85 90 L 15 90 A 5 5 0 0 1 10 85 L 10 30 Z " +
-      `${ellipsePath(50, 24, 6, 6)}`,
-    fillRule: "evenodd",
-  },
-
-  /** Victory cup trophy with curved side handles on a stepped rectangular pedestal. */
-  trophy: {
-    d:
-      `${roundedRectPath({ x: 26, y: 78, w: 48, h: 14 }, 3)} ` +
-      "M 44 64 L 44 78 M 56 64 L 56 78 " +
-      "M 22 16 H 78 V 36 Q 78 64 50 64 Q 22 64 22 36 Z " +
-      "M 22 24 Q 8 24 8 38 Q 8 52 24 50 M 78 24 Q 92 24 92 38 Q 92 52 76 50",
-    stroke: true,
-  },
-
-  /** Circular peace emblem with a vertical center line and two downward diagonal arms. */
-  "peace-sign": {
-    d:
-      `${ellipsePath(50, 50, 42, 42)} ` +
-      "M 50 8 L 50 92 M 50 50 L 20 80 M 50 50 L 80 80",
-    stroke: true,
-  },
-
-  /** V-shaped martini glass with long stem, wide base, and an olive-on-toothpick garnish. */
-  "drink-cocktail": {
-    d:
-      "M 16 18 L 50 58 L 84 18 Z " +
-      "M 50 58 L 50 86 M 30 86 L 70 86 " +
-      "M 62 8 L 38 38 " +
-      `${ellipsePath(60, 12, 5, 5)}`,
-    stroke: true,
-  },
-
-  /** Ring donut shape with a central hole punched through a rounded circular outer pastry. */
-  donut: {
-    d: `${ellipsePath(50, 50, 44, 44)} ${ellipsePath(50, 50, 18, 18)}`,
-    fillRule: "evenodd",
-  },
-
-  /**
-   * Artist palette: a plain oval body, a larger thumbhole punched near the
-   * bottom-right edge, and four small paint-daub holes scattered across the
-   * top. An earlier draft tried to cut a thumb notch into the outline itself
-   * by splicing a hole path into the middle of the body's own path string —
-   * that breaks a single closed subpath into a self-intersecting mess (it
-   * rendered as a blob with a stray diagonal slash through it). Every hole
-   * here is its own independent closed subpath after the body, which is the
-   * only way `evenodd` punches a clean hole rather than corrupting the shape
-   * it is supposedly punched into.
-   */
-  palette: {
-    d:
-      `${ellipsePath(48, 46, 44, 38)} ` +
-      `${ellipsePath(70, 74, 9, 8)} ` +
-      `${ellipsePath(26, 30, 6, 6)} ${ellipsePath(46, 18, 6, 6)} ${ellipsePath(66, 28, 6, 6)} ${ellipsePath(78, 50, 6, 6)}`,
-    fillRule: "evenodd",
-  },
-
-  /** Maritime anchor featuring a top attachment ring, long shank, horizontal stock, and curved fluke arms. */
-  anchor: {
-    d:
-      `${ellipsePath(50, 14, 7, 7)} ` +
-      "M 50 21 L 50 84 M 22 34 L 78 34 " +
-      "M 20 58 C 20 84 80 84 80 58 M 14 64 L 20 58 L 26 66 M 86 64 L 80 58 L 74 66",
-    stroke: true,
-  },
-
-  /** Four-leaf clover composed of four curved heart-shaped lobes meeting at a central stem. */
-  clover: {
-    d:
-      "M 50 48 Q 32 30 32 18 Q 32 6 50 18 Q 68 6 68 18 Q 68 30 50 48 Z " +
-      "M 50 52 Q 32 70 32 82 Q 32 94 50 82 Q 68 94 68 82 Q 68 70 50 52 Z " +
-      "M 48 50 Q 30 32 18 32 Q 6 32 18 50 Q 6 68 18 68 Q 30 68 48 50 Z " +
-      "M 52 50 Q 70 32 82 32 Q 94 32 82 50 Q 94 68 82 68 Q 70 68 52 50 Z " +
-      "M 50 52 Q 46 74 36 94",
-    stroke: true,
-  },
-} as const;
+/** First `<title>…</title>` text content, if the file has one. */
+function svgTitle(xml: string): string | undefined {
+  const text = xml.match(/<title>([\s\S]*?)<\/title>/)?.[1];
+  if (text === undefined) return undefined;
+  return text.replace(/&lt;/g, "<").replace(/&amp;/g, "&").trim();
+}
 
 /**
- * Widened to `Motif` so callers can read `fillRule` uniformly — without this the
- * literal type of each entry hides the field on the marks that lack it.
+ * The mistake this guards against: someone drops in a real multi-colour SVG
+ * (an icon pack export, a downloaded illustration with baked-in fills and
+ * gradients) expecting it to "just work" like a motif. It would load and
+ * render — with every path forced to the caller's single recolour tone,
+ * destroying whatever made it multi-colour — which is a worse failure than
+ * an error, because nothing about the render looks obviously broken, it
+ * just looks wrong in a way that's hard to trace back to "the source file
+ * wasn't single-tone." Fail at load time instead, naming the file.
  */
-export const MOTIFS: Record<keyof typeof MOTIF_DATA, Motif> = MOTIF_DATA;
+function rejectIfNotSingleTone(file: string, xml: string): void {
+  if (/<(image|linearGradient|radialGradient)\b/.test(xml)) {
+    throw new Error(
+      `Motif file ${file} embeds a raster image or a gradient — motifs must be single-tone vector ` +
+        `paths, recoloured at render time. A full-colour illustration belongs in POST /v1/assets instead.`,
+    );
+  }
+  const fills = [...xml.matchAll(/\bfill="([^"]*)"/g)]
+    .map((m) => m[1])
+    .filter((v) => v !== "none" && v !== "currentColor" && !v.startsWith("url("));
+  const distinctColours = new Set(fills);
+  if (distinctColours.size > 0) {
+    throw new Error(
+      `Motif file ${file} sets an explicit fill colour (${[...distinctColours].join(", ")}) on a path. ` +
+        `Motifs must leave colour unspecified — it is set by the caller at render time so the same file ` +
+        `works in any palette. Remove the fill attribute (or set fill="none" for line art).`,
+    );
+  }
+}
 
-export type MotifName = keyof typeof MOTIF_DATA;
+function loadMotifData(): Record<string, Motif> {
+  const out: Record<string, Motif> = {};
+  const seenAt = new Map<string, string>();
+  const entries = readdirSync(MOTIFS_DIR, { withFileTypes: true, recursive: true })
+    .filter((e) => e.isFile() && e.name.endsWith(".svg"))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  for (const entry of entries) {
+    const id = entry.name.slice(0, -4);
+    // `entry.parentPath` (Node 20.12+) / `entry.path` (older) is the
+    // directory the recursive walk found this file in.
+    const dir = (entry as { parentPath?: string; path?: string }).parentPath ?? entry.path ?? MOTIFS_DIR;
+    const relFile = join(dir, entry.name).slice(MOTIFS_DIR.length + 1);
+    const prior = seenAt.get(id);
+    if (prior) {
+      throw new Error(`Motif id "${id}" is used twice: ${prior} and ${relFile} — ids must be unique across all subfolders`);
+    }
+    seenAt.set(id, relFile);
+
+    const xml = readFileSync(join(dir, entry.name), "utf8");
+    rejectIfNotSingleTone(relFile, xml);
+    const pathTags = [...xml.matchAll(/<path\b[^>]*\/?>/g)].map((m) => m[0]);
+    if (pathTags.length === 0) {
+      throw new Error(`Motif file ${relFile} has no <path> element — nothing to draw`);
+    }
+    const d = pathTags
+      .map((tag) => svgAttr(tag, "d"))
+      .filter((v): v is string => Boolean(v))
+      .join(" ");
+    const fillRule = pathTags.some((tag) => svgAttr(tag, "fill-rule") === "evenodd")
+      ? ("evenodd" as const)
+      : undefined;
+    const stroke = pathTags.some((tag) => svgAttr(tag, "fill") === "none");
+    const title = svgTitle(xml);
+    // The subfolder a motif was found in (e.g. "celebration"), or undefined
+    // for one placed directly in motifs/ — purely descriptive metadata for
+    // search/browsing, never part of the id.
+    const category = relFile.includes("/") ? relFile.split("/")[0] : undefined;
+    out[id] = {
+      d,
+      ...(fillRule ? { fillRule } : {}),
+      ...(stroke ? { stroke } : {}),
+      ...(title ? { title } : {}),
+      ...(category ? { category } : {}),
+    };
+  }
+  return out;
+}
+
+const MOTIF_DATA: Record<string, Motif> = loadMotifData();
+
+export const MOTIFS: Record<string, Motif> = MOTIF_DATA;
+
+export type MotifName = string;
 
 export const MOTIF_NAMES = Object.keys(MOTIFS) as MotifName[];
+
+export type MotifSearchResult = {
+  id: string;
+  title?: string;
+  category?: string;
+  stroke: boolean;
+  score: number;
+};
+
+/**
+ * Real, ranked search over the motif library — not a dump of every id for an
+ * agent (or a person) to read through, and not ad-hoc point-scoring either.
+ * BM25 (`src/lib/search.ts` — read that file's header for why this is BM25
+ * and not embeddings) over id/title/category, id weighted highest so an
+ * exact or near id match still wins ties.
+ */
+export function searchMotifs(query: string, limit = 8): MotifSearchResult[] {
+  const documents: SearchDocument[] = MOTIF_NAMES.map((id) => {
+    const motif = MOTIFS[id]!;
+    return {
+      id,
+      fields: [
+        { text: id, weight: 3 },
+        { text: motif.title ?? "", weight: 2 },
+        { text: motif.category ?? "", weight: 1 },
+      ],
+    };
+  });
+  const hits = search(documents, query, limit);
+  return hits.map((h) => {
+    const motif = MOTIFS[h.id]!;
+    return { id: h.id, title: motif.title, category: motif.category, stroke: Boolean(motif.stroke), score: h.score };
+  });
+}
 
 /**
  * Transform placing a 0–100 motif at `x,y` scaled to `size`, optionally rotated

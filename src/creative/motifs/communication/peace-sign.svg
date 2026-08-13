@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Circular peace emblem.</title>
+  <path d="M 8 50 A 42 42 0 1 1 92 50 A 42 42 0 1 1 8 50 Z M 50 8 L 50 92 M 50 50 L 20 80 M 50 50 L 80 80" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

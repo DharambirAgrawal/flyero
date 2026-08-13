@@ -6,6 +6,272 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-13 — agent-facing surface audit: trimmed payloads, reinforced guidance, motif folder, docs realignment
+
+A user session flagged the agent-native path directly: tool responses read as
+long confusing objects, guidance was only front-loaded (read once at
+`read_design_guide`, never reinforced), component reuse felt templated, body
+copy quality was unchecked, and docs had drifted from the shipped code. Each
+complaint was verified against the real code before fixing — see the
+per-item evidence below rather than taking the report at face value.
+
+### Fixed — payload size and duplication
+- `POST /v1/studio/assignments` (`request_designers`) repeated the full
+  36-component catalogue, propsSchema included, on every sampled lineage —
+  ~20KB × `runs` (up to 6). The catalogue now lives once at the top level
+  (`componentLibrary`); each assignment carries only `componentsExcluded`,
+  the handful of ids (usually none) that don't fit its topology. Measured:
+  default 3-lineage response dropped from 69.6KB to 29.1KB.
+- `GET /v1/schema/composition` (`get_composition_example`) returned both a
+  singular `example` and `examples[0].composition` — the same object twice.
+  Dropped the singular field (no back-compat caller existed; the acceptance
+  tests only ever read `examples[]`).
+
+### Added — guidance reinforced at the point of use, not just at read time
+- `compose_flyer`/`revise_composition` responses now carry an optional
+  `reminder`: fires when the submitted element list is exactly the named
+  "safe stack" anti-pattern (headline-block + photo-hero + body-paragraph +
+  cta-button + footer-lockup), or when a revision repeats the prior
+  revision's components unchanged. Computed fresh per request from the
+  submission and (at most) the same flyer's own previous revision — no
+  cross-job history or dedup store, so it stays inside AGENTS.md law 2.
+- Gate G6 gained one more code heuristic: body copy that just restates the
+  headline in different words (high shared-content-word overlap in both
+  directions) now fails the gate with a note naming both strings. Narrow by
+  design — three-word floor plus dual ratios — so it can't fire on a body
+  that legitimately echoes one or two headline words.
+- `src/mcp/server.ts`: `create_flyer`, `create_flyer_batch` and
+  `revise_flyer` (the server-authored path, needs `ANTHROPIC_API_KEY`) are
+  no longer registered as MCP tools at all when no server key is configured
+  — the common deployment. Previously they were always listed with prose
+  telling the agent to avoid them; an agent can't misuse a tool that isn't
+  in its list, and the previous approach cost real runs when an agent tried
+  the tool anyway and hit a config error.
+
+### Changed — motif library moved from inline code to a folder of SVG files
+`MOTIF_DATA` was a ~280-line object literal in `src/components/shapes.ts`,
+built from helper-function calls. Extracted every one of its 39 entries into
+`src/creative/motifs/**/*.svg` — alongside every other hand-authored creative
+data file (metaphors, materials, colour logic, gestures), not under
+`components/`, since motifs are library content, not component code — and
+organised into subfolders by subject (`celebration/`, `nature/`,
+`communication/`, `objects/`). Filename (minus `.svg`, unique across the
+whole tree regardless of subfolder) is the motif id; a loader
+(`readdirSync`/`readFileSync`, recursive, at module init — this project runs
+`tsx` directly with no build/copy step, so the tree resolves identically in
+dev, test and prod) replaces the object literal. Point of the change:
+growing this library no longer requires reading TypeScript — a single-colour
+SVG dropped in anywhere in the tree becomes a usable, theme-recolourable
+motif with no code change. Verified byte-identical: the golden SVG
+determinism test passed unchanged (same `d` strings, round-tripped through
+the new loader) both before and after the `components/` → `creative/` move.
+
+Two more things landed in the same pass, in direct response to "how does an
+agent (or a human adding files) know what a motif actually looks like as the
+library grows, and what stops someone dropping in the wrong kind of file":
+- Every motif SVG now carries a real `<title>` (the hand-written one-line
+  descriptions that existed as JSDoc comments on the old object literal,
+  restored as actual SVG metadata instead of lost in translation). The
+  loader reads it; `guide.ts`'s Motif reference section lists every motif as
+  `id — description` instead of a bare comma-joined id list, and is
+  generated live off the loader so it can't go stale as motifs are added.
+- `loadMotifData` now rejects, at startup, with a clear message naming the
+  file: an SVG that sets an explicit `fill` colour on a path (the signal
+  someone dropped in a multi-colour icon/illustration export instead of a
+  plain single-tone shape), or that embeds a raster `<image>` or a gradient.
+  Previously this would have loaded silently and rendered wrong — every path
+  forced to one recolour tone, destroying whatever made the source
+  multi-colour, with nothing about the failure pointing back at "the file
+  wasn't single-tone." Two duplicate ids in different subfolders is now
+  also a startup error rather than a silent shadow.
+
+Also fixed a real inaccuracy while in this area: `read_design_skill
+composition` cited "a trophy that looks metal" as a `shaded: true` example —
+`trophy` is one of the line-art (`stroke: true`) motifs, where `shaded` is
+silently ignored by the renderer. `guide.ts`'s composed-figure section now
+computes its shaded/unshaded motif lists live from `MOTIFS[m].stroke`
+instead of prose, so it can't drift again as the folder grows, and
+demonstrates `shaded: true` in its own worked example (previously present in
+skill prose only, never shown in the one example agents are told to copy).
+
+**Revised after user feedback, same day**: the folder moved a second time,
+from `src/components/motifs/` to `src/creative/motifs/**/` — alongside
+every other hand-authored creative-data file (metaphors, materials, colour
+logic, gestures), not under `components/`, which is rendering code — and
+split into subfolders by subject (`celebration/`, `nature/`,
+`communication/`, `objects/`). Also added `searchMotifs(query, limit)`
+(`src/components/shapes.ts`) — real ranked lexical search over every
+motif's id/title/category, exposed as `GET /v1/schema/motifs?q=...` and the
+`search_motifs` MCP tool — rather than waiting for `docs/ROADMAP.md`'s L5
+later-phase trigger ("library exceeds ~100 components," embeddings/vector
+retrieval specifically) to build *any* discovery mechanism beyond a flat
+list. The two are not the same thing: a real, cheap, local lexical search
+over a few dozen-to-few-hundred items needs no vector index and no later
+gate; embeddings become the right tool once matching needs actual meaning a
+word-overlap score can't reach, not at a raw item count chosen before this
+particular growth was anticipated. `read_design_guide` still lists every
+motif inline (cheap today), `search_motifs` is the tool that keeps scaling
+once that list isn't cheap to read anymore.
+
+### Investigated — the "assembled" example's intermittent contrast failure is real, not flaky
+Treated three times this session as "a pre-existing flaky test, unrelated" —
+wrong to leave at that. `docs/GAP-ANALYSIS.md` item 8 already root-caused
+one real mechanism (`composed-figure` only paints ink where it draws marks,
+so text near an uneven figure can land on a busier patch than the ink choice
+assumed) on 2026-08-05; measuring it directly instead of citing the doc's
+"1 in 5-8" estimate (new `scripts/repro-contrast-flake.ts`) found **13-45%
+failure rates across repeated batches**, and — the actual new finding — not
+every failure fits the composed-figure theory: `banded-masthead` failures
+hit the headline specifically, which that topology has no obvious reason to
+place near the figure. Logged as `docs/GAP-ANALYSIS.md` item 17 with the
+exact next diagnostic step, rather than attempting a blind fix to core
+ink-selection code (`inkFor`, `gates/index.ts`'s tone sampling) in the same
+pass that already touched a dozen other files. Not fixed; not silenced
+either — the gate is correctly catching a real defect and must keep doing
+so until the underlying cause is found.
+
+### Removed
+- `scripts/probe-resvg.ts` — its own header said "Throwaway... Delete once
+  the answers are folded into the code"; untouched since the initial commit,
+  answers long since folded in.
+- `@types/sharp` devDependency — `sharp` ^0.35 ships its own types; the
+  separate package was unused (confirmed with `knip`).
+- The `asset-hub/` directory (a separate, untracked Next.js project sitting
+  in this working tree) — investigated on request: it turned out to be a
+  standalone gallery UI over the *exact same* 12 image providers this
+  service already has server-side, with a browser-only "favourites" list and
+  no wiring into Flyero at all. No unique capability to preserve.
+- `npm audit fix` cleared 3 transitive-dependency advisories (fast-uri,
+  hono, nanoid) with no major-version bumps.
+
+### Docs
+`docs/API.md` §7 documented only the legacy 6-9-tool MCP mapping; the real
+server registers up to 17 tools and the entire agent-native path (10 tools —
+the primary, no-server-key path per `guide.ts`/`server.ts`'s own framing)
+was undocumented. Rewrote §7 as three tables (agent-native / server-authored
+/ shared) and added §3b documenting the seven agent-native REST routes
+directly. `docs/ARCHITECTURE.md` said "~25 components" across three
+categories; real count is 36 across five (`photo`/`figure` were missing
+entirely). Fixed a wrong component id (`document-before-after-stack` →
+`before-after-stack`, copy-pasted identically into both `ARCHITECTURE.md`
+and `SCHEMAS.md`). `docs/ROADMAP.md` Milestone 6 still described the
+pre-code 6-tool stdio plan as upcoming; noted it was substantially pulled
+forward already, same pattern as the L1 format work, with the real tool
+count and transport.
+
+### Investigated, not changed
+- **RAM/CPU on Render**: the 2026-08-10 fix (sharp cache tuning, a leaked
+  timer) is correctly wired — `sharp-init.js` is the first import in
+  `src/api/server.ts`, the only process that touches `sharp`. If usage is
+  still exceeding limits, that commit's own honest conclusion still holds:
+  no further JS-level leak found by code audit; the remaining suspect is
+  legitimate concurrent memory (`LINEAGES_PER_RUN=3` candidates ×
+  `MAX_CONCURRENT_JOBS=2` jobs, each holding real image buffers through
+  compose→render→critique at once — `src/core/pipeline.ts`'s
+  `Promise.allSettled` fan-out), which needs Render's actual memory graph
+  to confirm, not another guess from source alone.
+- A `knip` run flagged 53 unused exports and 27 unused exported types
+  across `src/`. Left alone deliberately: an unconfigured `knip` run over a
+  project with no `knip.json` over-reports (many of these are zod schemas
+  and types that are part of a module's intended public contract, not dead
+  code), and verifying each one individually is real work that deserves its
+  own pass with proper entry-point configuration, not a rushed sweep.
+
+## 2026-08-13 (continued) — real BM25 search, and a permanent curated asset library
+
+Follow-up the same day: the user pushed back hard on the "lexical search is
+enough for now" call above — both that it should be real relevance-ranked
+search, not ad-hoc point-scoring, and that they specifically want a
+*permanent, personal* image library (not just motifs, not just per-job
+uploads) they can drop real photos/illustrations into. Built both, for real,
+rather than re-explaining the earlier tradeoff a third time.
+
+### Added
+- `src/lib/search.ts` — a real BM25 implementation (the ranking function
+  Elasticsearch/Lucene/Postgres full-text search use), replacing the ad-hoc
+  point-scoring `searchMotifs` shipped earlier today. Weighted fields (id >
+  title > category), a small hand-curated domain synonym table (`birthday`
+  → `celebration`/`party`, etc.) so a query word that never literally
+  appears in a description can still match. Deliberately still not
+  embeddings — see the file's own header for the two independent reasons
+  (this service had a production OOM incident on a memory-capped box three
+  days ago from an unrelated cause; a local embedding model commonly holds
+  100-300MB+ once loaded, and adding that blind, untested against the real
+  box, in the same week, is not a responsible trade before it's shown to be
+  needed at this collection size). `searchMotifs` now calls this instead of
+  its own scorer.
+- **The curated asset library** (`src/creative/library/`, see its own
+  `README.md`) — a third, permanent system alongside motifs and per-job
+  assets: full-colour images the user drops in themselves (one image + one
+  `.json` sidecar per item, `{ title, tags, license }`, organised into
+  subfolders by subject), searchable forever after via the exact same
+  `search_images` → `import_image` flow already used for Pexels/Unsplash/etc.
+  Implemented as one more `MediaProvider` (`src/core/images/providers/
+  library.ts`, `provider: "library"`) wired into the existing aggregator —
+  ranked with the same BM25 utility, and given priority position in every
+  provider order list (it's the user's own hand-picked content). Fails
+  loudly, naming the exact file, when a sidecar is missing `title` or
+  `license` — `license` is required specifically because most downloaded
+  stock/clipart licenses do not cover a product embedding the image in
+  output for other end users (see the Design Bundles finding earlier today);
+  the field is a forcing function to write that answer down before the
+  image goes in, not a substitute for actually reading the license.
+  Referenced via a new `library:<id>` scheme (not a real URL) that
+  `fetchCandidate` reads straight off local disk — no HTTP round trip, and
+  no risk of the self-referencing-loopback-URL bug already fixed once in
+  this codebase (`shareUrl`, `src/mcp/server.ts`).
+- 22 new tests: `test/unit/search.test.ts` (BM25 ranking, synonym expansion,
+  ties, empty inputs) and `test/unit/library.test.ts` (loader validation
+  against real temp-directory fixtures — missing sidecar, missing
+  title/license, malformed JSON, id collisions, mixed extensions — plus
+  live integration checks that the real, currently-empty library doesn't
+  break `search_images`/`isTrustedDownloadUrl`/`fetchCandidate`).
+
+**Revised again, same day, on direct request: the required `license` field
+was removed.** Only `title` is required now; `license` is accepted and
+recorded if given but no longer enforced. Also added the two things the
+user asked for directly after this landed: `transparent` on every
+`CuratedItem`, measured from real alpha-channel pixel values (`sharp`'s
+`stats()`, not just "does the file have an alpha channel") rather than
+trusted from a declared field — surfaced in every search result as
+`assetType: "png"` vs `"photo"` and a plain-English `description` — and an
+optional `usage` sidecar field ("what is this image *for*") also surfaced
+in `description`, since that's the one thing pixel inspection can't answer.
+`loadCuratedLibrary` is async now (pixel reads are), with a new
+`reloadCuratedLibrary()` so a running server can pick up newly dropped-in
+files without restarting. 17 tests now, including one that builds a real
+half-transparent PNG with `sharp` to prove detection works on genuine alpha
+data, not a hand-typed assertion.
+
+**Third round, same day: role, not just subject, and an examples audit.**
+Real gap named directly: a hundred images could all be titled "balloon" and
+mean completely different things — a full-bleed background texture, a small
+decorative cutout, or the literal product photo. Added an optional `type`
+sidecar field (the *same* `MediaAssetType` union every other provider
+already uses — `photo`/`background`/`png`/`icon`/`vector`/`svg`/`shape` —
+not a second taxonomy), defaulting from measured transparency when unset,
+overridable when the default guess is wrong (a background is very often
+opaque and would otherwise default to `photo`). Every search result's
+`description` now states the resolved role in plain English
+(`ROLE_DESCRIPTION`) alongside the measured transparency and any `usage`
+note. 3 new tests (20 total for the library), including the exact
+balloon/water disambiguation case.
+
+Separately, on request: audited the prompts for the specific failure named —
+a single example teaches the shape *and* becomes the template, the same
+class of bug `COMPOSITION_EXAMPLE`'s own three-examples-not-one pattern was
+built to prevent, just not applied everywhere. Found it unapplied at
+`composed-figure`'s own worked example in `guide.ts` — one example (a
+badge: seal + "FREE" + sparkle), no variety, no warning. Real risk: it's
+exactly the shape a generated flyer would converge on if agents read it as
+"the" composed-figure pattern. Replaced with three structurally different
+examples (a badge, a left-to-right progression, a dense scatter) plus
+explicit "copy field names, never the actual shape" framing, mirroring the
+top-level pattern. All three verified through the real `/v1/flyers/compose`
+route, not just schema-checked — genuinely render, not merely valid JSON.
+`skills.ts` was checked too and left alone: it's pure prose/judgement
+already, no JSON template to become a trap.
+
 ## 2026-08-10 — resvg silently failed to decode some sharp-encoded WebP photos
 
 Real bug, root-caused properly rather than patched at the symptom: a

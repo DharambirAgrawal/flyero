@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>Slanted retail price tag with a punched hole near the top corner.</title>
+  <path d="M 30 10 L 70 10 L 90 30 L 90 85 A 5 5 0 0 1 85 90 L 15 90 A 5 5 0 0 1 10 85 L 10 30 Z M 44 24 A 6 6 0 1 1 56 24 A 6 6 0 1 1 44 24 Z" fill-rule="evenodd"/>
+</svg>
