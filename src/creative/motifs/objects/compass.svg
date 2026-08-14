@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="compass,navigation,north,travel,orienteering,direction">
   <title>Compass rose in a ring, with a north needle and a south needle.</title>
-  <desc>Navigation compass: outer ring, cross ticks, two-tone needle. Travel, orienteering, 'find your way'. Ring ink, north needle accent, south needle paper, hub accent2.</desc>
-  <path data-tone="ink" fill-rule="evenodd" d="M 6 50 A 44 44 0 1 1 94 50 A 44 44 0 1 1 6 50 Z M 16 50 A 34 34 0 1 1 84 50 A 34 34 0 1 1 16 50 Z"/>
-  <path data-tone="accent" d="M 50 14 L 58 50 L 42 50 Z"/>
-  <path data-tone="paper" d="M 50 86 L 58 50 L 42 50 Z"/>
+  <desc>
+    Navigation compass: outer ring thick enough to read, a two-tone needle, a hub. Travel, orienteering, 'find your way'. Ring ink, north needle accent, south needle paper, hub accent2.
+  </desc>
+  <path data-tone="ink" fill-rule="evenodd" d="M 6 50 A 44 44 0 1 1 94 50 A 44 44 0 1 1 6 50 Z M 18 50 A 32 32 0 1 1 82 50 A 32 32 0 1 1 18 50 Z"/>
+  <path data-tone="accent" d="M 50 16 L 58 50 L 42 50 Z"/>
+  <path data-tone="paper" d="M 50 84 L 58 50 L 42 50 Z"/>
   <path data-tone="accent2" d="M 42 50 A 8 8 0 1 1 58 50 A 8 8 0 1 1 42 50 Z"/>
 </svg>

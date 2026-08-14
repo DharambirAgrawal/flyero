@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="ice-cream,cone,scoop,dessert,summer,sweet">
-  <title>A waffle cone with two scoops and a cherry.</title>
-  <desc>Ice cream cone. Summer, dessert, kids, shops. Cone accent, scoops paper and accent2, cherry ink.</desc>
-  <path data-tone="accent" d="M 32 52 L 68 52 L 50 96 Z"/>
-  <path data-tone="paper" d="M 20 40 A 18 18 0 1 1 56 40 A 18 18 0 1 1 20 40 Z"/>
-  <path data-tone="accent2" d="M 46 36 A 16 16 0 1 1 78 36 A 16 16 0 1 1 46 36 Z"/>
-  <path data-tone="ink" d="M 44 20 A 6 6 0 1 1 56 20 A 6 6 0 1 1 44 20 Z M 37 60 H 63 A 1 1 0 0 1 64 61 V 62 A 1 1 0 0 1 63 63 H 37 A 1 1 0 0 1 36 62 V 61 A 1 1 0 0 1 37 60 Z M 41 72 H 59 A 1 1 0 0 1 60 73 V 74 A 1 1 0 0 1 59 75 H 41 A 1 1 0 0 1 40 74 V 73 A 1 1 0 0 1 41 72 Z"/>
+  <title>A waffle cone with two scoops and a cherry, waffle lines that read.</title>
+  <desc>
+    Ice cream cone: two overlapping scoops, a cherry, a cone with three waffle bands thick enough to see. Summer, dessert, kids, shops. Cone accent, waffle ink, scoops paper and accent2, cherry ink (with the waffle).
+  </desc>
+  <path data-tone="accent" d="M 32 54 L 68 54 L 50 96 Z"/>
+  <path data-tone="paper" d="M 20 42 A 18 16 0 1 1 56 42 A 18 16 0 1 1 20 42 Z"/>
+  <path data-tone="accent2" d="M 46 38 A 16 15 0 1 1 78 38 A 16 15 0 1 1 46 38 Z"/>
+  <path data-tone="ink" d="M 43 22 A 7 7 0 1 1 57 22 A 7 7 0 1 1 43 22 Z M 38 62 L 62 62 L 50 64 Z M 36 72 L 64 72 L 50 74 Z M 40 84 L 60 84 L 50 86 Z"/>
 </svg>

@@ -19,7 +19,7 @@ import { gestureById } from "../creative/gestures.js";
 import { graphicsById } from "../creative/graphics.js";
 import { artDirectionById, elementBudgetForDensity } from "../creative/artdirections.js";
 import { DEFAULT_FORMAT, FORMAT_IDS, formatById, type FormatId } from "../creative/formats.js";
-import { recipeFor } from "../core/layout/recipes.js";
+import { recipeFor, photoFillsPage } from "../core/layout/recipes.js";
 import { componentPropsSchema, engineOwnedPropsFor, COMPONENTS } from "../components/registry.js";
 import { searchMotifs } from "../components/shapes.js";
 import { runGates, failedGateIds, visionVerdictSchema } from "../core/gates/index.js";
@@ -80,33 +80,33 @@ export const COMPOSITION_EXAMPLE = {
   },
   elements: [
     {
-      id: "message",
-      component: "headline-block",
-      role: "message",
-      whyHere: "The one idea, in four words.",
-      props: { treatment: "plain" },
-    },
-    {
       id: "hero",
       component: "photo-hero",
       role: "evidence",
-      whyHere: "The mountain itself — without it the cover test fails.",
+      whyHere: "The mountain itself — without it the cover test fails. It is the visual field, not an inset.",
       assets: ["<<assetId from import_image>>"],
       props: {},
     },
     {
-      id: "note",
-      component: "body-paragraph",
+      id: "kicker",
+      component: "eyebrow-label",
       role: "support",
-      whyHere: "Says what a week actually contains.",
+      whyHere: "Names the range before the headline lands.",
       props: {},
+    },
+    {
+      id: "message",
+      component: "headline-block",
+      role: "message",
+      whyHere: "The one idea, sitting on the mountain as a colour block — type is the object, not a caption.",
+      props: { treatment: "plate", plateShape: "rect" },
     },
     {
       id: "action",
       component: "cta-button",
       role: "cta",
       whyHere: "The one thing to do.",
-      props: {},
+      props: { style: "solid" },
     },
     {
       id: "who",
@@ -116,7 +116,15 @@ export const COMPOSITION_EXAMPLE = {
       props: {},
     },
   ],
-  relationships: [],
+  relationships: [
+    {
+      kind: "overlap",
+      front: "message",
+      behind: "hero",
+      overlap: 0.28,
+      purpose: "The headline sits on the mountain. The picture is the poster; the words confirm it.",
+    },
+  ],
   gesturePurpose:
     "Explains the single deliberate rule-break your lineage's gesture applies.",
   assetIds: ["<<same assetIds as above>>"],
@@ -371,6 +379,7 @@ export const COMPOSITION_NOTES = [
   "Three examples are returned so none reads as the only answer: `photo-led` (real thing to photograph), `assembled` (drawn / composed density), `exchange-led` (conversation / software with no stock photo). Read all three, then build something that fits *this* brief — often none of the three is the right evidence family.",
   "`composed-figure` places parts by relationship (`{ of: \"sun\", side: \"top-right-of\", gap: \"near\" }`), never by coordinate, and counts as ONE element while carrying up to eight parts. It is the tool for a one-off arrangement and the tool for density.",
   "Read each component's LOOKS LIKE line before choosing. Picking by name alone is how every flyer ends up built from the same three components.",
+  "Type on a photograph: the picture is the poster. Put the headline in front of the photo (`relationships`, kind overlap) so Gate G4 can see it participate — a cream page with a small inset is the document look, not a flyer.",
   "Refuse the safe stack (headline + photo-hero + body + CTA + footer) unless the metaphor and brief both demand it — and even then vary CTA style and support devices across jobs.",
 ] as const;
 
@@ -524,6 +533,13 @@ const assignmentSchema = z.object({
     .optional(),
   brandColors: z.array(z.string()).max(5).default([]),
   jobSeed: z.string().optional(),
+  /**
+   * There is a real picture of the thing (place, dish, object, face).
+   * The sampler then prefers topologies where that photograph fills the
+   * page — without this flag, a Nepal trek and a SaaS landing page draw
+   * from the same pool and the trek keeps coming back as a cream document.
+   */
+  evidence: z.enum(["photographic", "drawn"]).optional(),
 });
 
 function fail(reply: FastifyReply, status: number, code: string, message: string, details: unknown = {}) {
@@ -584,7 +600,24 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
         density: artDirection.density,
       },
       metaphor: { id: metaphor.id, brief: metaphor.brief },
-      topology: { id: topology.id, brief: topology.brief, readingPath: topology.readingPath },
+      topology: {
+        id: topology.id,
+        brief: topology.brief,
+        readingPath: topology.readingPath,
+        ...(recipe.photoGround
+          ? photoFillsPage(lineage.topology)
+            ? {
+                photoIsThePage: true,
+                instruction:
+                  "This topology makes the photograph the canvas. Headline, body and CTA sit ON it. A cream page with a small picture is the wrong reading of this assignment. Prefer headline treatment plate or band, and a solid CTA — plain underlined type on empty cream is the document look.",
+              }
+            : {
+                photoIsTheField: true,
+                instruction:
+                  "The photograph is this layout's visual field — large in its evidence slot (a right column, a lower-right bleed, a middle band), not a postage-stamp inset on cream. Do not write a paragraph to fill the page; the picture carries the message. Prefer headline treatment plate or band.",
+              }
+          : {}),
+      },
       typography: { id: typography.id, brief: typography.brief, participating: typography.participating },
       material: { id: material.id, brief: material.brief },
       colorLogic: { id: colorLogic.id, brief: colorLogic.brief },
@@ -784,10 +817,10 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     if (!parsed.success) {
       return fail(reply, 400, "invalid_request", "Invalid assignment request", parsed.error.issues);
     }
-    const { runs, brandColors, campaignArchetype, format } = parsed.data;
+    const { runs, brandColors, campaignArchetype, format, evidence } = parsed.data;
     const risk = (parsed.data.risk ?? config.defaultRisk) as Risk;
     const jobSeed = parsed.data.jobSeed ?? newJobSeed();
-    const { lineages } = sampleLineages({ jobSeed, count: runs, risk, campaignArchetype });
+    const { lineages } = sampleLineages({ jobSeed, count: runs, risk, campaignArchetype, evidence });
 
     return {
       jobSeed,
@@ -805,13 +838,16 @@ export function registerAgentRoutes(app: FastifyInstance): void {
        * hiding the control that exists.
        */
       archetype: campaignArchetype ?? null,
+      evidence: evidence ?? null,
       hint: campaignArchetype
         ? undefined
         : "No campaignArchetype given, so metaphors were drawn from the whole set. " +
           "Pass one of product-promotion | event-invitation | awareness-education | " +
           "editorial-announcement | offer-promotion and the sampler will only return " +
           "designers whose metaphor suits that kind of brief — redrawing until one fits " +
-          "is fighting the sampler, not using it.",
+          "is fighting the sampler, not using it. If the brief has a real picture of the " +
+          "thing (a place, a dish, an object, a face), also pass evidence: \"photographic\" " +
+          "so the photograph becomes the page instead of a small inset on cream.",
       campaignArchetype: campaignArchetype ?? null,
       // Once, not per assignment — see componentLibrary()'s comment. Almost
       // every id here fits every assignment; check an assignment's own
@@ -835,7 +871,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       {
         name: "photo-led",
         useWhen:
-          "There is a real thing to photograph — a place, a dish, an object, a face. The picture is the evidence. Shape only — invent your own crop, props and copy.",
+          "There is a real thing to photograph — a place, a dish, an object, a face. The picture IS the poster: it fills the page and type sits on it. Shape only — invent your own crop, props and copy. Never remix this into a cream page with a small inset photo.",
         elementCount: COMPOSITION_EXAMPLE.elements.length,
         fitsDensity: ["quiet", "balanced"],
         composition: COMPOSITION_EXAMPLE,

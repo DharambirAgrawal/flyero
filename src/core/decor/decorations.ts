@@ -31,6 +31,8 @@ import {
   stripeTile,
   tapeStripPath,
   tornEdgePath,
+  tonesFromPalette,
+  tonesWithAlpha,
   type MotifName,
 } from "../../components/shapes.js";
 import type { Box, Theme } from "../../components/types.js";
@@ -219,6 +221,10 @@ function placeFor(slot: DecorSlot, rng: Rng, canvas: { w: number; h: number }, b
   };
 }
 
+function motifDecorTones(theme: Theme, ink: string) {
+  return tonesWithAlpha(tonesFromPalette(theme.palette), ink);
+}
+
 /** Builds the drawable nodes for one placed slot. */
 function nodesFor(
   slot: DecorSlot,
@@ -226,6 +232,7 @@ function nodesFor(
   rect: Rect,
   ink: string,
   rng: Rng,
+  theme: Theme,
 ): DecorNode[] {
   const cx = rect.x + rect.w / 2;
   const cy = rect.y + rect.h / 2;
@@ -317,6 +324,7 @@ function nodesFor(
           size: rect.w * 0.09,
           rotate: mid.angle,
           fill: ink,
+          tones: motifDecorTones(theme, ink),
         },
       ];
     }
@@ -348,6 +356,7 @@ function nodesFor(
           size: Math.min(rect.w, rect.h),
           rotate: rng.range(-18, 18),
           fill: ink,
+          tones: motifDecorTones(theme, ink),
         },
       ];
     }
@@ -424,12 +433,11 @@ export function planDecorations(
 ): Decoration[] {
   // Boldness already spent by the ground, the gesture and the type treatment.
   // Whatever is left is ornament's share, and it may be nothing at all.
-  const treatmentIsLoud = spec.elements.some(
-    (el) =>
-      el.component === "headline-block" &&
-      typeof el.props?.treatment === "string" &&
-      el.props.treatment !== "plain",
-  );
+  const treatmentIsLoud = spec.elements.some((el) => {
+    if (el.component !== "headline-block") return false;
+    const treatment = boxes[el.id]?.propsOverride?.treatment ?? el.props?.treatment;
+    return typeof treatment === "string" && treatment !== "plain";
+  });
   const spent = boldnessSpent({
     groundIsLoud: ground.kind !== "flat",
     gestureApplied: committed.gestureApplied,
@@ -478,7 +486,7 @@ export function planDecorations(
       if (inkArea + estimated > canvasArea * densityBudget.maxInkCoverage) break;
 
       const groundFill = effectiveGroundUnder(ground, rect);
-      const nodes = nodesFor(slot, i, rect, decorInk(theme, groundFill, weight), rng);
+      const nodes = nodesFor(slot, i, rect, decorInk(theme, groundFill, weight), rng, theme);
       if (nodes.length === 0) break;
 
       out.push({

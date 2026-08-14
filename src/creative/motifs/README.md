@@ -35,5 +35,10 @@ for browsing and as the `category` search field.
   licences forbid redistribution inside a product that lets other people
   generate designs.
 
+Folders include subject matter (`celebration`, `nature`, …) and `ornament/`
+for marks meant to sit *around* the content: corner flourishes, wreaths,
+sunbursts, botanical sprays, divider rules. Graphic languages pick those
+from a slot pool; they are not extra React components.
+
 `<title>` and `<desc>` are required. An id-only file is how an agent picks
 the wrong mark.

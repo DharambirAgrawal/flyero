@@ -6,6 +6,120 @@ Rule (from `AGENTS.md`): every milestone completion, requirement change, or arch
 
 ---
 
+## 2026-08-14 — the same flyer every time: architecture, not blur
+
+The Nepal sheets were not only foggy. They were the same *page*: a left-aligned
+text stack, an underlined CTA, a body paragraph, and almost no marks — even
+when the sampler had picked five different topologies. Blur was one failure.
+Sameness is the other.
+
+### Fixed
+- Promoting every `photoGround` photograph to the full canvas collapsed five
+  poster architectures into one caption-on-a-photo. Only topologies whose
+  evidence slot already *is* the page (`layered-depth-stack`) still do that.
+  Off-center, diagonal, banded and oversized keep the large bleed their
+  recipes declared.
+- CTA style and headline treatment were schema defaults (`underlined`,
+  `plain`), so graphic language and type behaviour never reached the PNG.
+  The solver now applies `graphics.ctaStyle` and `typography.headlineTreatment`
+  when the author left them unset (or left the headline at `plain`).
+- Photographic sampling skipped silent graphic languages (`editorial-restraint`,
+  a lone grid) when the direction has a marked alternative — cream graph paper
+  was winning the roll on travel briefs.
+
+### Changed
+- Photo-led example: plate headline, solid CTA, eyebrow instead of a body
+  paragraph. The example is no longer the safe stack we tell agents to refuse.
+
+### Decisions recorded
+- Decoration budget stays where it is. Coverage and personality come from
+  architecture, type-as-object, and a graphic language that actually paints —
+  not from raising the ornament cap. Quiet languages stay reachable when
+  `evidence` is omitted (DR-1).
+
+---
+
+## 2026-08-14 — photo-as-ground actually ships: sharp plate, sampler bias, agent instruction
+
+Adding 160 motifs did not change the flyers. Real Nepal renders were still
+cream documents with a tiny photo, or a full-bleed mountain Gaussian-blurred
+into wallpaper. The picture was never the poster.
+
+### Fixed
+- `depthForRole("evidence")` always returns the focal plane. Bleeding used to
+  park *any* role at 0.12, which derived ~6px of DoF plus haze on the
+  photograph that *is* the design. Structure that bleeds stays at the back.
+- A box covering ≥92% of the canvas takes no blur and no haze, even if a
+  future depth assignment puts it off the focal plane. Inset photos can
+  still go slightly soft; vector marks still never blur.
+- `sampleLineages({ evidence: "photographic" })` prefers topologies where
+  that photograph fills the page (`photoGround`). The in-house pipeline
+  passes the flag when the job has assets; `POST /v1/studio/assignments`
+  and `request_designers` accept it so an agent can pass it from the brief
+  *before* searching images.
+
+### Changed
+- Photo-led composition example: headline overlaps the mountain. Assignments
+  on a photo-ground topology now say `photoIsThePage` and that a cream inset
+  is the wrong reading. Guide, skills, MCP and the Composer prompt say the
+  same thing in one hard line.
+
+### Decisions recorded
+- Motif count is the wrong lever for "still looks AI." Coverage comes from
+  the image being the ground. Do not grow the library further to chase this.
+- The photographic flag is not a history lookup: same seed + same flag still
+  produces the same designers. Omit it and every topology stays reachable,
+  which is what DR-1 measures.
+- In-house jobs with no uploaded photo still sample the full pool — the
+  pipeline does not search stock before sampling. Agents must pass the flag
+  from the brief.
+
+---
+
+## 2026-08-13 — motif craft: shading on layers, poster ornaments, redrawn marks
+
+Quantity without craft still read as clipart: stacked ellipses, 1px folds that
+vanish at stamp size, and `shaded` skipped on every multi-layer mark (almost
+the whole library). This pass is about the object-vs-sticker look and the
+background vocabulary human posters actually use — wreaths, corner flourishes,
+sunbursts — not another hundred icons.
+
+### Added
+- `ornament/` motifs (15): `sunburst-rays`, `laurel-wreath`, `corner-flourish`,
+  `floral-corner`, `botanical-spray`, `leafy-arch`, `divider-flourish`,
+  `art-deco-fan`, `frame-corner`, `wave-band`, `sparkle-cluster`, `palmette`,
+  `ribbon-banner`, `dotted-halo`, `scallop-corner`. Original geometry, inspired
+  by the poster/stationery register (botanical frames, deco fans, printer's
+  ornaments) rather than downloaded from any pack.
+- Graphic languages now sample those marks: botanical-frame corners and a large
+  wash wreath/arch, organic-blobs a botanical wash, retro-stripes a sunburst
+  or deco fan, festive-scene a ghost sunburst, kawaii a sparkle cluster.
+
+### Changed
+- `composed-figure` applies the flyer's one light to **multi-layer** motifs
+  when `shaded: true`: body tones get a highlight-to-shadow sheen and a
+  contact shadow; paper (already a highlight) and ink (already a drawn
+  detail) stay flat. Previously any `data-tone` file skipped shading entirely,
+  so cakes and balloons always looked like stickers.
+- Decoration and travel-route motifs paint from the flyer's real palette
+  (`tonesFromPalette`), alpha-matched to wash/tint ink, instead of mixing one
+  hue toward black and white. A corner balloon-bunch is now the same two
+  accents as the rest of the page.
+- Redrew the high-use filled marks so they survive stamp size: balloon,
+  balloon-bunch, gift, cake, cupcake, party-hat, leaf, flower, sun, heart,
+  rainbow, smiley, plane, coffee-cup, pizza, cat, dog, fox, house, lightbulb
+  (glow halo removed), star, pin, camera, compass, ice-cream, burger, rose,
+  fern, vine, speech-bubble.
+
+### Decisions recorded
+- Still no downloaded clipart. Background pieces belong in `motifs/ornament/`
+  plus graphic-language slots, not as new React components (that would bloat
+  Gate G3's catalogue). `shaded` stays opt-in; defaulting it on would make
+  pages busier, not more real. Wash ornaments stay unshaded — a gradient on a
+  12% ghost sunburst is noise.
+
+---
+
 ## 2026-08-13 — motif library to 210, multi-layer recolour, searchable descriptions
 
 The existing ~40 marks were one flat colour with a one-line title, so every

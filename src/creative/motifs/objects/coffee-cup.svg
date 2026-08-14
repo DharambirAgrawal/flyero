@@ -1,9 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="coffee,mug,cafe,tea,morning,drink,cup">
-  <title>Mug of coffee with a handle, saucer, steam and a surface ellipse.</title>
-  <desc>A cafe mug: cup, handle, saucer, two steam curls, coffee surface. Cafes, mornings, coworking, 'let's talk'. Cup accent, coffee ink, steam muted, saucer paper, handle accent2.</desc>
-  <path data-tone="accent" d="M 22 34 H 70 Q 76 34 76 42 V 72 Q 76 80 22 80 Q 16 80 16 72 V 42 Q 16 34 22 34 Z"/>
-  <path data-tone="accent2" fill-rule="evenodd" d="M 70 42 Q 90 42 90 56 Q 90 70 70 68 Z"/>
-  <path data-tone="ink" d="M 22 40 A 24 8 0 1 1 70 40 A 24 8 0 1 1 22 40 Z"/>
-  <path data-tone="paper" d="M 14 84 A 32 8 0 1 1 78 84 A 32 8 0 1 1 14 84 Z"/>
-  <path data-tone="muted" d="M 34 18 Q 30 8 36 6 Q 40 14 38 22 Z M 50 16 Q 48 6 54 4 Q 58 12 54 22 Z"/>
+  <title>Mug of coffee with a punched handle, saucer, steam and a surface ellipse.</title>
+  <desc>
+    A cafe mug: tapered cup, a handle with a real hole (evenodd), saucer, two steam curls thick enough to read, coffee surface. Cafes, mornings, coworking. Cup accent, handle accent2, coffee ink, saucer paper, steam muted.
+  </desc>
+  <path data-tone="accent" d="M 18 34 H 68 C 74 34 76 40 76 46 V 74 C 76 82 68 86 50 86 C 32 86 18 82 18 74 V 40 C 18 34 18 34 18 34 Z"/>
+  <path data-tone="accent2" fill-rule="evenodd" d="M 68 42 C 90 42 94 72 68 72 L 68 64 C 84 64 82 50 68 50 Z"/>
+  <path data-tone="ink" d="M 21 42 A 22 7 0 1 1 65 42 A 22 7 0 1 1 21 42 Z"/>
+  <path data-tone="paper" d="M 14 90 A 32 7 0 1 1 78 90 A 32 7 0 1 1 14 90 Z"/>
+  <path data-tone="muted" d="M 32 16 C 28 6 38 4 36 18 C 35 24 34 24 32 16 Z M 48 14 C 44 4 54 2 52 16 C 51 24 50 22 48 14 Z"/>
 </svg>

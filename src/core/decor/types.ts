@@ -19,7 +19,7 @@
  * G3 are untouched, and the LLM neither places nor chooses ornament.
  */
 
-import type { MotifName, Tile } from "../../components/shapes.js";
+import type { MotifName, MotifTone, Tile } from "../../components/shapes.js";
 
 export type Rect = { x: number; y: number; w: number; h: number };
 
@@ -146,6 +146,12 @@ export type DecorNode =
       rotate: number;
       fill: string;
       op?: number;
+      /**
+       * Per-slot fills from the flyer's palette (alpha-matched to `fill`).
+       * The painter is theme-blind; the planner bakes colour here so a
+       * multi-layer ornament can still use accent vs paper vs ink.
+       */
+      tones?: Record<MotifTone, string>;
     };
 
 export type Decoration = {

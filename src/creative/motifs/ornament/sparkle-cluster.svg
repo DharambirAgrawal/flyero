@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="sparkle,cluster,stars,kawaii,scatter,ornament,magic,celebration">
+  <title>Three four-point sparkles of different sizes, a scatter cluster.</title>
+  <desc>
+    A handful of sparkles, not one lonely four-point. Kawaii margins, celebration gaps, 'new' / 'sale'. Large sparkle accent, medium accent2, small paper.
+  </desc>
+  <path data-tone="accent" d="M 38 14 L 44.16 35.84 L 66 42 L 44.16 48.16 L 38 70 L 31.84 48.16 L 10 42 L 31.84 35.84 Z"/>
+  <path data-tone="accent2" d="M 72 12 L 75.52 24.48 L 88 28 L 75.52 31.52 L 72 44 L 68.48 31.52 L 56 28 L 68.48 24.48 Z"/>
+  <path data-tone="paper" d="M 70 58 L 72.64 67.36 L 82 70 L 72.64 72.64 L 70 82 L 67.36 72.64 L 58 70 L 67.36 67.36 Z"/>
+</svg>

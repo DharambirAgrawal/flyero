@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="party-hat,birthday,cone,costume,new-year,kids,celebration">
-  <title>Cone party hat with a pom-pom, stripe and chin elastic.</title>
-  <desc>Birthday cone: triangular hat, a round pom-pom, a diagonal stripe and a chin strap. Kids' parties, new year, costumes. Hat accent, stripe paper, pom-pom accent2, strap ink.</desc>
-  <path data-tone="accent" d="M 50 8 L 88 82 L 12 82 Z"/>
-  <path data-tone="paper" d="M 50 8 L 72 48 L 28 48 Z"/>
-  <path data-tone="accent2" d="M 42 12 A 8 8 0 1 1 58 12 A 8 8 0 1 1 42 12 Z"/>
-  <path data-tone="ink" d="M 22 82 Q 50 96 78 82 Q 50 88 22 82 Z"/>
+  <title>Cone party hat with a pom-pom, a stripe band and a chin elastic.</title>
+  <desc>
+    Birthday cone: triangular hat with a slightly bowed brim, a round pom-pom, a diagonal-looking stripe band thick enough to read, and a chin strap. Kids' parties, new year, costumes. Hat accent, stripe paper, pom-pom accent2, strap ink.
+  </desc>
+  <path data-tone="accent" d="M 50 10 L 86 78 Q 50 90 14 78 Z"/>
+  <path data-tone="paper" d="M 50 10 L 72 52 L 28 52 Z"/>
+  <path data-tone="accent2" d="M 41 12 A 9 9 0 1 1 59 12 A 9 9 0 1 1 41 12 Z"/>
+  <path data-tone="ink" d="M 20 78 Q 50 96 80 78 Q 50 88 20 78 Z"/>
 </svg>

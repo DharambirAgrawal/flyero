@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="divider,flourish,rule,ornament,editorial,line,stationery,gap">
+  <title>Horizontal ornamental rule with a diamond centre and scrolled ends.</title>
+  <desc>
+    A decorative divider for the gap under a headline or between a date and a place — the wedding-invite / wine-list move. Not a plain rule. Arms accent, scrolls accent2, diamond paper.
+  </desc>
+  <path data-tone="accent" d="M 6 48 H 40 L 50 40 L 60 48 H 94 V 52 H 60 L 50 60 L 40 52 H 6 Z"/>
+  <path data-tone="accent2" d="M 6 50 C 6 38 18 38 18 50 C 18 62 6 62 6 50 Z M 94 50 C 94 38 82 38 82 50 C 82 62 94 62 94 50 Z"/>
+  <path data-tone="paper" d="M 50 36 L 58 50 L 50 64 L 42 50 Z"/>
+</svg>

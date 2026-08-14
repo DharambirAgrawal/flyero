@@ -73,10 +73,11 @@ describe("decoration layer — placement is safe everywhere", () => {
     // it, not partially. Without the overAllowance exemption, ornament was
     // silently zero on exactly the topologies (diagonal-progression here)
     // and graphic languages (festive-scene, with layer: "over" slots) meant
-    // to show it off the most.
+    // to show it off the most. Only `layered-depth-stack` still fills the
+    // canvas; other photoGround topologies keep their slot architecture.
     let sawOverDecoration = false;
     for (let i = 0; i < 8; i++) {
-      const lineage = { ...fixtureLineages(`GROUND-${i}`, 1)[0]!, topology: "diagonal-progression" as const, graphics: "festive-scene" as const };
+      const lineage = { ...fixtureLineages(`GROUND-${i}`, 1)[0]!, topology: "layered-depth-stack" as const, graphics: "festive-scene" as const };
       const spec = fixtureSpec(lineage);
       const evidenceEl = spec.elements.find((e) => e.role === "evidence");
       expect(evidenceEl, "fixture must carry an evidence element").toBeTruthy();

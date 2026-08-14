@@ -14,7 +14,7 @@ import {
   motifTransform,
   paintMotif,
   polyline,
-  tonesFromInk,
+  tonesFromPalette,
   routeMidpoint,
   sparklePath,
   squigglePath,
@@ -200,7 +200,7 @@ const photoCluster: ComponentModule = {
               const my = routeMid.y + Math.cos(rad) * off * side;
               return (
                 <g transform={motifTransform(mx - size / 2, my - size / 2, size, routeMid.angle)}>
-                  {paintMotif(MOTIFS[motif], accent, tonesFromInk(accent)).map((p, i) => (
+                  {paintMotif(MOTIFS[motif], accent, tonesFromPalette(theme.palette)).map((p, i) => (
                     <path
                       key={i}
                       d={p.d}

@@ -9,6 +9,8 @@ import { COLOR_LOGIC_IDS } from "../../src/creative/colorlogic.js";
 import { GESTURE_IDS } from "../../src/creative/gestures.js";
 import { GRAPHICS_IDS } from "../../src/creative/graphics.js";
 import { ART_DIRECTIONS, artDirectionById } from "../../src/creative/artdirections.js";
+import { isPhotoGround } from "../../src/core/layout/recipes.js";
+import { graphicsById, isSilentGraphics } from "../../src/creative/graphics.js";
 
 /**
  * Milestone 1's definition of done: the sampler produces valid lineages with the
@@ -133,6 +135,22 @@ describe("Studio Sampler", () => {
     const { lineages } = sampleLineages({ jobSeed: "path", count: 3, risk: "studio" });
     for (const l of lineages) {
       expect(l.readingPath).toBe(readingPathFor(l.topology));
+    }
+  });
+
+  it("prefers photo-as-ground topologies when the evidence is a photograph", () => {
+    for (let i = 0; i < 200; i++) {
+      const { lineages } = sampleLineages({
+        jobSeed: `photo-${i}`,
+        count: 3,
+        risk: "studio",
+        evidence: "photographic",
+      });
+      expect(new Set(lineages.map((l) => l.artDirection)).size).toBe(3);
+      for (const lineage of lineages) {
+        expect(isPhotoGround(lineage.topology), lineage.topology).toBe(true);
+        expect(isSilentGraphics(graphicsById(lineage.graphics)), lineage.graphics).toBe(false);
+      }
     }
   });
 

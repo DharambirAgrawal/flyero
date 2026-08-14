@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="flower,daisy,petal,spring,floral,botanical,cute">
-  <title>Six-petal daisy with a round centre.</title>
-  <desc>Memphis/scrapbook daisy: six overlapping petals and a disc. Spring, kindness, florists, kids, Y2K. Not a rose, tulip, sunflower or lotus — those are separate marks. Petals accent, centre accent2, heart paper.</desc>
-  <path data-tone="accent" d="M 56 50 A 16 16 0 1 1 88 50 A 16 16 0 1 1 56 50 Z M 45 69.05 A 16 16 0 1 1 77 69.05 A 16 16 0 1 1 45 69.05 Z M 23 69.05 A 16 16 0 1 1 55 69.05 A 16 16 0 1 1 23 69.05 Z M 12 50 A 16 16 0 1 1 44 50 A 16 16 0 1 1 12 50 Z M 23 30.95 A 16 16 0 1 1 55 30.95 A 16 16 0 1 1 23 30.95 Z M 45 30.95 A 16 16 0 1 1 77 30.95 A 16 16 0 1 1 45 30.95 Z"/>
+  <title>Six almond petals around a round centre, not a ring of circles.</title>
+  <desc>
+    A scrapbook daisy whose petals are pointed ovals so it still reads as a flower at stamp size, not a molecule. Spring, kindness, florists, kids. Not a rose, tulip, sunflower or lotus. Petals accent, centre accent2, heart paper.
+  </desc>
+  <path data-tone="accent" d="M 50 50 Q 62 31.76 50 12 Q 38 31.76 50 50 Z M 50 50 Q 71.8 51.27 82.91 31 Q 59.8 30.49 50 50 Z M 50 50 Q 59.8 69.51 82.91 69 Q 71.8 48.73 50 50 Z M 50 50 Q 38 68.24 50 88 Q 62 68.24 50 50 Z M 50 50 Q 28.2 48.73 17.09 69 Q 40.2 69.51 50 50 Z M 50 50 Q 40.2 30.49 17.09 31 Q 28.2 51.27 50 50 Z"/>
   <path data-tone="accent2" d="M 36 50 A 14 14 0 1 1 64 50 A 14 14 0 1 1 36 50 Z"/>
   <path data-tone="paper" d="M 44 50 A 6 6 0 1 1 56 50 A 6 6 0 1 1 44 50 Z"/>
 </svg>

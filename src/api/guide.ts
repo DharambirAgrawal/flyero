@@ -108,8 +108,11 @@ those tools usually fail with a configuration error. Do not retry them.
    material, colour logic, signature gesture — sampled from
    ${PROFILE_SPACE.toLocaleString()} possible designers. You do not choose these
    fields. Working inside constraints you did not pick is the whole point.
-   Pass \`campaignArchetype\`. Pick the designer whose metaphor creates the most
-   intriguing visual sentence for *this* brief — not the safest palette.
+   Pass \`campaignArchetype\`. If the brief is a place, a dish, an object or a
+   face — anything with a real photograph — also pass \`evidence: "photographic"\`
+   so the sampler prefers layouts where that picture *is* the page. Pick the
+   designer whose metaphor creates the most intriguing visual sentence for
+   *this* brief — not the safest palette.
 
 2. **Find or prepare images.** If the brief has no picture of the thing being
    sold, search: POST /v1/assets/search (\`search_images\`) fans out to a dozen
@@ -198,7 +201,11 @@ Every component below carries a **LOOKS LIKE** line. Read those before choosing.
   it draws abstract document lines (only credible for document/software).
 
 Type on a photograph: declare a relationship with the headline in front and the
-photo behind. That move is what Gate G4 wants.
+photo behind. That move is what Gate G4 wants. Prefer \`treatment: "plate"\` or
+\`"band"\` so the type is an object, not a caption. On a photographic assignment
+(\`topology.photoIsThePage\` or \`topology.photoIsTheField\`) the picture is the
+visual field — do not compose a cream document with a small inset and a
+paragraph filling the rest; that is the look this product exists to refuse.
 
 ## Building a component for one flyer
 

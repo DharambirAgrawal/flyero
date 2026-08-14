@@ -1,11 +1,11 @@
 import { Rng } from "../../lib/rng.js";
-import { mix, relativeLuminance } from "../../creative/color.js";
+import { mix, relativeLuminance, ensureContrast } from "../../creative/color.js";
 import { getComponent } from "../../components/registry.js";
 import type { Box, Theme } from "../../components/types.js";
 import { fitText } from "../render/fonts.js";
 import { typographyById } from "../../creative/typebehaviors.js";
 import { gestureById } from "../../creative/gestures.js";
-import { recipeFor, toCanvas, type Rect, type SlotName } from "./recipes.js";
+import { recipeFor, toCanvas, photoFillsPage, type Rect, type SlotName } from "./recipes.js";
 import type { DesignSpec, SpecElement } from "../compose/spec.js";
 import { graphicsById } from "../../creative/graphics.js";
 import { artDirectionById } from "../../creative/artdirections.js";
@@ -194,6 +194,7 @@ export function solveLayout(
   const rng = new Rng(`layout:${spec.seed}`);
   const recipe = recipeFor(spec.lineage.topology);
   const typography = typographyById(spec.lineage.typography);
+  const graphics = graphicsById(spec.lineage.graphics);
   const warnings: string[] = [];
 
   const safe = {
@@ -223,20 +224,21 @@ export function solveLayout(
     const bleeds = recipe.bleed.includes(slot);
     elements.forEach((el, i) => {
       /**
-       * A photograph in a `photoGround` topology stops being an element in the
-       * column and becomes the page itself: it covers the whole canvas and the
-       * type is set over it. This is what separates a poster from a document,
-       * and it is the only change that moves ink coverage materially — adding
-       * ornament to reach the same number just produces clutter.
+       * A photograph in a `photoGround` topology is the visual field of that
+       * layout. If the evidence slot already covers the page, the photo becomes
+       * the plate. Otherwise it keeps the slot the recipe declared — a right
+       * column, a lower-right bleed, a middle band — so five photo topologies
+       * stay five architectures instead of collapsing into one caption-on-a-photo.
        */
       const isGroundPhoto =
         slot === "evidence" &&
         recipe.photoGround === true &&
         elements.length === 1 &&
         PHOTO_COMPONENTS.has(el.component);
-      const rect = isGroundPhoto
-        ? { x: -1, y: -1, w: spec.canvas.w + 2, h: spec.canvas.h + 2 }
-        : parts[i]!;
+      const rect =
+        isGroundPhoto && photoFillsPage(spec.lineage.topology)
+          ? { x: -1, y: -1, w: spec.canvas.w + 2, h: spec.canvas.h + 2 }
+          : parts[i]!;
       boxes[el.id] = { ...rect, zIndex: slot === "structure" ? 1 : bleeds || isGroundPhoto ? 2 : z };
       slotOf.set(el.id, slot);
       if (bleeds || isGroundPhoto) bleedIds.add(el.id);
@@ -247,6 +249,38 @@ export function solveLayout(
     if (align) {
       for (const el of elements) {
         boxes[el.id]!.propsOverride = { ...(boxes[el.id]!.propsOverride ?? {}), align };
+      }
+    }
+  }
+
+  /**
+   * Lineage already chose a graphic language and a type behaviour. If the
+   * author left the CTA and headline at their schema defaults, those choices
+   * never reached the PNG — every flyer got an underlined caption and plain
+   * type. Apply them here, before shrink, so intrinsic height sees the real
+   * treatment. An explicit author choice still wins.
+   *
+   * Only when the evidence is actually a photograph: painting a colour block
+   * onto a document or a chat thread is a different poster, and it is how
+   * every SaaS flyer started failing contrast.
+   */
+  const photographicEvidence = spec.elements.some((e) => PHOTOGRAPHIC.has(e.component));
+  if (photographicEvidence) {
+    for (const el of spec.elements) {
+      const box = boxes[el.id];
+      if (!box) continue;
+      if (el.component === "cta-button" && el.props?.style == null) {
+        box.propsOverride = { ...(box.propsOverride ?? {}), style: graphics.ctaStyle };
+      }
+      if (
+        el.component === "headline-block" &&
+        typography.headlineTreatment &&
+        (el.props?.treatment == null || el.props.treatment === "plain")
+      ) {
+        box.propsOverride = {
+          ...(box.propsOverride ?? {}),
+          treatment: typography.headlineTreatment,
+        };
       }
     }
   }
@@ -275,7 +309,7 @@ export function solveLayout(
       // into the top half and left the bottom 55% of the page empty, which is a
       // worse fault than the one it set out to fix.
       if (PHOTO_COMPONENTS.has(el.component)) continue;
-      const props = mod.props.parse(el.props ?? {});
+      const props = mod.props.parse({ ...(el.props ?? {}), ...(box.propsOverride ?? {}) });
       const natural = mod.intrinsicHeight(props, theme, box.w, spec.copy);
       if (natural > 0 && natural < box.h) {
         box.y += (box.h - natural) / 2;
@@ -283,7 +317,7 @@ export function solveLayout(
       }
       continue;
     }
-    const props = mod.props.parse(el.props ?? {});
+    const props = mod.props.parse({ ...(el.props ?? {}), ...(box.propsOverride ?? {}) });
     const wanted = mod.intrinsicHeight(props, theme, box.w, spec.copy);
     growCap.set(
       el.id,
@@ -538,7 +572,6 @@ export function solveLayout(
 
   // ── 8.4. The ground the composition sits on ───────────────────────────────
   // Must come before any ink decision below.
-  const graphics = graphicsById(spec.lineage.graphics);
   const ground = planGround(spec, theme, graphics, boxes);
 
   // ── 8.42. Depth ───────────────────────────────────────────────────────────
@@ -581,6 +614,27 @@ export function solveLayout(
       // A drawn ground: we know its colours. Its mid tone is the accent mixed
       // toward the page, which is how every scene builds its depth ramp.
       tone.paintFlat(box, mix(theme.palette.accent, "#ffffff", 0.3), 0.85);
+    }
+  }
+
+  /**
+   * A headline plate/band and a solid CTA are real fills sitting on top of
+   * whatever was painted above. Without them the field still sees the
+   * photograph, so the contrast gate tests white type against a mountain and
+   * fails a poster that is actually a colour block.
+   */
+  for (const el of spec.elements) {
+    const box = boxes[el.id];
+    if (!box) continue;
+    const props = { ...(el.props ?? {}), ...(box.propsOverride ?? {}) };
+    if (el.component === "headline-block") {
+      const treatment = props.treatment;
+      if (treatment === "plate" || treatment === "band") {
+        const block = ensureContrast(theme.palette.accent, theme.palette.bg, true);
+        tone.paintFlat(box, block, 1);
+      }
+    } else if (el.component === "cta-button" && props.style === "solid") {
+      tone.paintFlat(box, theme.palette.accent, 1);
     }
   }
 
@@ -791,8 +845,14 @@ export function solveLayout(
           mix(theme.palette.bg, "#000000", 0.35),
           0.68,
         );
-        // Ink is re-derived for the boxes the scrim just rescued.
-        for (const b of failing) {
+        // Ink is re-derived for every text box the scrim now sits under — not
+        // only the ones that triggered it. A footer that was fine on the light
+        // photograph becomes a dark-grey caption on the wash if we skip it.
+        const scrimRect = { x: plateBox.x, y: band.y, w: plateBox.w, h: band.h };
+        for (const el of spec.elements) {
+          if (el.role === "structure" || el.role === "evidence") continue;
+          const b = boxes[el.id];
+          if (!b || overlapArea(b, scrimRect) <= 0) continue;
           const after = tone.sample(b);
           b.ground = after.fill;
           b.onDark = after.luminance < 0.5;

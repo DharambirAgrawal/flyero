@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="wave,band,bottom,ocean,background,ornament,footer,landscape">
+  <title>Two overlapping wave bands for the bottom of a poster.</title>
+  <desc>
+    A decorative footer: two sine bands stacked, the travel / beach / spa ground treatment. Sit as a wash along the bottom edge. Front wave accent, back wave accent2, foam paper along the crest.
+  </desc>
+  <path data-tone="accent2" d="M 0 100 L 0 62.52 L 0 62.52 L 10 65.54 L 20 65.68 L 30 62.88 L 40 58.23 L 50 53.48 L 60 50.47 L 70 50.33 L 80 53.12 L 90 57.77 L 100 62.52 L 100 100 Z"/>
+  <path data-tone="accent" d="M 0 100 L 0 70 L 0 70 L 10 74.11 L 20 76.66 L 30 76.66 L 40 74.11 L 50 70 L 60 65.89 L 70 63.34 L 80 63.34 L 90 65.89 L 100 70 L 100 100 Z"/>
+  <path data-tone="paper" d="M 0 64 Q 25 54 50 64 Q 75 74 100 64 L 100 70 Q 75 80 50 70 Q 25 60 0 70 Z"/>
+</svg>

@@ -350,6 +350,12 @@ of brief. Without it you are drawing from the whole set and hoping — one real
 run burned 27 draws hunting for a metaphor that fitted a travel brief, which is
 fighting the sampler rather than using it.
 
+If the brief is a place, a dish, an object or a face — anything with a real
+photograph — also pass \`evidence: "photographic"\`. The sampler then prefers
+topologies where that picture *is* the page. Without the flag a trek and a SaaS
+landing page draw from the same pool, and the trek keeps coming back as a cream
+document with a postage-stamp photo.
+
 Also note the field is **runs**, not "count".
 
 ## Choosing among the sampled designers

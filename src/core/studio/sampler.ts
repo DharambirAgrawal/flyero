@@ -8,12 +8,13 @@ import { TYPOGRAPHY } from "../../creative/typebehaviors.js";
 import { MATERIALS } from "../../creative/materials.js";
 import { COLOR_LOGIC } from "../../creative/colorlogic.js";
 import { GESTURES } from "../../creative/gestures.js";
-import { GRAPHICS } from "../../creative/graphics.js";
+import { GRAPHICS, isSilentGraphics } from "../../creative/graphics.js";
 import { ART_DIRECTIONS } from "../../creative/artdirections.js";
 import { pairsFor } from "../../creative/fontpairs.js";
 import { vetoFor } from "../../creative/compatibility.js";
 import type { Lineage } from "../compose/spec.js";
-import type { CampaignArchetype } from "../../creative/types.js";
+import type { CampaignArchetype, TopologyId } from "../../creative/types.js";
+import { isPhotoGround } from "../layout/recipes.js";
 
 /**
  * The Studio Sampler (ARCHITECTURE.md §4).
@@ -29,6 +30,20 @@ export type SampleOptions = {
   count: number;
   risk: Risk;
   campaignArchetype?: CampaignArchetype;
+  /**
+   * What the evidence actually is.
+   *
+   * `photographic` — there is a real picture of the thing (a place, a dish,
+   * an object, a face). The sampler then prefers topologies where that
+   * photograph *is* the page, because the alternative — type-poster /
+   * framed-evidence with a postage-stamp inset on cream — is exactly the
+   * document-not-poster look the product keeps shipping. Not a history
+   * lookup: the same seed + same flag still produces the same designers.
+   *
+   * Omit when unknown; every topology stays equally reachable, which is
+   * what the diversity tests measure.
+   */
+  evidence?: "photographic" | "drawn";
 };
 
 export type SampleResult = {
@@ -70,6 +85,7 @@ export function sampleLineages({
   count,
   risk,
   campaignArchetype,
+  evidence,
 }: SampleOptions): SampleResult {
   const seed = jobSeed ?? newJobSeed();
   const rng = new Rng(`studio:${seed}`);
@@ -89,7 +105,12 @@ export function sampleLineages({
   if (directionAllowed.length === 0) {
     throw new Error(`No art direction supports ${campaignArchetype ?? risk}`);
   }
-  const directions = rng.shuffle(directionAllowed);
+  const photographicDirections = directionAllowed.filter((d) => d.topologies.some(isPhotoGround));
+  const directionPool =
+    evidence === "photographic" && photographicDirections.length > 0
+      ? photographicDirections
+      : directionAllowed;
+  const directions = rng.shuffle(directionPool);
   const lineages: Lineage[] = [];
   const usedMetaphors = new Set<string>();
 
@@ -108,20 +129,30 @@ export function sampleLineages({
     const metaphor = lineageRng.pick(unusedMetaphors.length > 0 ? unusedMetaphors : metaphorPool).id;
     usedMetaphors.add(metaphor);
     const topologyPool = inside(topologyAllowed, direction.topologies);
+    const groundPool = topologyPool.filter((t) => isPhotoGround(t.id as TopologyId));
     const typographyPool = inside(typographyAllowed, direction.typography);
     const materialPool = inside(materialAllowed, direction.materials);
     const colorPool = inside(colorAllowed, direction.colorLogic);
     const gesturePool = inside(gestureAllowed, direction.gestures);
     const graphicsPool = inside(graphicsAllowed, direction.graphics);
+    const markedGraphics = graphicsPool.filter((g) => {
+      const full = GRAPHICS.find((item) => item.id === g.id);
+      return full ? !isSilentGraphics(full) : true;
+    });
+    const graphicsPick =
+      evidence === "photographic" && markedGraphics.length > 0 ? markedGraphics : graphicsPool;
 
     let sampled: Lineage | null = null;
     for (let attempt = 0; attempt < MAX_REROLLS; attempt++) {
-      const topology = lineageRng.pick(topologyPool).id;
+      const topology =
+        evidence === "photographic" && groundPool.length > 0
+          ? lineageRng.pick(groundPool).id
+          : lineageRng.pick(topologyPool).id;
       const typography = lineageRng.pick(typographyPool).id;
       const material = lineageRng.pick(materialPool).id;
       const colorLogic = lineageRng.pick(colorPool).id;
       const gesture = lineageRng.pick(gesturePool).id;
-      const graphics = lineageRng.pick(graphicsPool).id;
+      const graphics = lineageRng.pick(graphicsPick).id;
 
       if (vetoFor({ topology, typography, metaphor, material, graphics })) continue;
 

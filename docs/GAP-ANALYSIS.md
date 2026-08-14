@@ -120,6 +120,62 @@ a cluttered mess and calling it density.
 
 ## Progress log
 
+### 2026-08-14 — sameness: five topologies, one page
+
+The Nepal contact sheet was not only cream-or-fog. Every flyer was a
+left-aligned caption stack with an underlined CTA. The recipes on paper are
+different; three flatteners made them identical on the PNG:
+
+1. **Full-canvas photo expand on every `photoGround` topology.** Off-center
+   hero, diagonal progression and banded masthead all became "type on a
+   picture." Only `layered-depth-stack` (evidence slot already the page) still
+   promotes the photo to the whole canvas. The others keep their slot.
+2. **Schema defaults ate the lineage.** CTA `style` defaulted to `underlined`
+   and headline `treatment` to `plain`, so graphic language and type behaviour
+   never showed. Solver now applies them when the author did not choose.
+3. **Silent graphics on photographic briefs.** `editorial-restraint` and
+   swiss-grid were equally likely on a trek, which is cream graph paper. The
+   photographic flag now prefers languages that actually paint marks.
+
+The photo-led example no longer *is* the safe stack (plate type, solid CTA, no
+body paragraph). Agents were copying the thing we told them to refuse.
+
+### 2026-08-14 — item 2 was not actually closed (sharp plate + sampler bias)
+
+Growing the motif library to 200+ did not change the flyers. Five real Nepal
+travel renders (`output/nepal5/`) were still cream documents or foggy
+wallpaper: `type-poster` with a postage-stamp arch, `framed-evidence` with a
+circular inset, `section-stack` with three small photos, and two full-bleed
+mountains that had been Gaussian-blurred into atmosphere.
+
+Two engine bugs, not a missing icon:
+
+1. **`depthForRole` parked every bleeding element at 0.12**, including the
+   photograph that *is* the poster. Combined with `flyer.tsx` applying DoF only
+   to elements with assets, a full-bleed travel photo took ~6px of blur plus
+   haze. Evidence now always sits on `FOCAL_DEPTH` (sharp). Structure that
+   bleeds stays back. A box covering ≥92% of the canvas also forces blur and
+   haze to zero, so a plate cannot fog even if a future depth assignment
+   puts it off the focal plane.
+2. **The sampler still treated a trek like a SaaS page.** Art directions such
+   as `editorial-impact` and `cinematic-minimal` mix `type-poster` /
+   `framed-evidence` with photo-ground topologies, so a photographic brief
+   kept rolling cream documents. `sampleLineages({ evidence: "photographic" })`
+   now prefers directions that *have* a photo-ground topology and picks from
+   that subset. Omit the flag and every topology stays reachable (DR-1). The
+   in-house pipeline passes the flag when the job has uploaded assets; the
+   agent path must pass it from the *brief* (`request_designers`), because
+   images are searched after the assignment.
+
+Also: the photo-led composition example now puts the headline overlapping the
+hero; assignments with `photoGround` topologies expose `topology.photoIsThePage`
+plus an instruction that a cream inset is the wrong reading.
+
+**Still open:** in-house `POST /v1/flyers` jobs with no uploaded photo still
+sample the full topology pool (the composer searches no stock). Agents that
+ignore the flag still get document layouts. CTA-on-dark-photo and photo-aware
+contrast remain the older open notes below.
+
 ### 2026-07-31 — item 2 (photo-as-ground) landed
 
 `TopologyRecipe.photoGround` added and set on four of ten topologies
@@ -555,6 +611,27 @@ supplied full-colour image via `POST /v1/assets`), which embeds as-is and is
 not theme-recoloured. Know which one you're adding before you add it.
 See `src/creative/motifs/README.md`.
 
+### 2026-08-13 — craft pass: shading on layers, ornament vocabulary, redrawn marks
+
+The 210-count library closed "nothing to pick"; it did not close "looks like
+clipart." Two engine gaps and one drawing gap:
+
+1. `composed-figure` skipped `shaded` on every multi-layer file, which was
+   almost the whole library — cakes and balloons were flat stickers even when
+   the author asked for an object. Sheen now follows the flyer's one light on
+   body tones; paper/ink stay flat.
+2. Decoration painted layers by mixing one `decorInk` toward black/white, so
+   a festive balloon-bunch did not match the flyer palette. Planner now bakes
+   `tonesFromPalette` (alpha-matched) onto the motif node.
+3. High-use marks were ellipses and 1px folds. Redrew those, and added an
+   `ornament/` folder (wreaths, corner flourishes, sunbursts, botanical
+   sprays) wired into graphic-language slots so they can sit in the
+   background or a corner. Still original geometry — no stock packs.
+
+Photo-as-ground is the larger flyer-quality gap (working order item 2). More
+icons will not close a sparse poster. The 2026-08-14 pass below is the engine
+fix this library growth was standing in for.
+
 ### 2026-08-05 — checked two free asset sources; decided against both, for now
 
 The user pointed at real templates' illustrated stickers (a sketched
@@ -599,9 +676,15 @@ automated against a site whose terms forbid it — and it lands as an *asset*
    that would catch a flyer like the "Pulse Cycle" real-world test prompt: a
    flat background, a headline, a CTA pill and two small motifs, correctly
    read as visibly empty.
-2. **Photo-as-ground.** A photographic evidence element should be able to *be*
-   the ground, with type over it and a legibility scrim — the single biggest
-   visual change.
+2. **Photo-as-ground.** **Closed (2026-08-14) for the two bugs that kept
+   shipping cream documents and foggy wallpaper** — bleeding evidence is no
+   longer parked at depth 0.12 (so the plate stays sharp), and
+   `evidence: "photographic"` biases the sampler onto `photoGround` topologies.
+   The July 31 `photoGround` recipe flag was necessary but not sufficient: the
+   Nepal contact sheet still rolled `type-poster` / `framed-evidence` and
+   defocused the plates that did fill the page. Remaining: in-house jobs with
+   no uploaded asset still sample the full pool; agents must pass the flag;
+   CTA-on-dark-photo is the older open note under the July 31 log.
 3. **Commit the palette.** Make saturated grounds the common case for
    photo-led and campaign briefs, not a rare roll. The pastel-generator gap
    named here is **closed (2026-08-05)** — `soft-pastel-multi` in

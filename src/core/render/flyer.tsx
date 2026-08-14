@@ -83,19 +83,25 @@ export function Flyer({
      */
     const rawEffects = depthEffects(box.depth ?? FOCAL_DEPTH, theme.material.surface.elevation ? 1 : 0.6);
     /**
-     * Defocus is a *photographic* cue and only reads as one on a photograph.
+     * Defocus is a *photographic* cue and only reads as one on a photograph —
+     * and even then, only on a photograph that is *not* the poster.
      *
-     * A far-away photo plate going soft is depth; the eye accepts it instantly
-     * because that is what a lens does. The same blur on flat vector marks is
-     * not depth — it reads as a rendering fault, because a drawn shape has no
-     * focal plane to be outside of. A full-bleed composed figure came back with
-     * every circle and motif smeared, looking like a failed export rather than
-     * a background.
+     * A far-away inset going slightly soft can sell depth. The same blur on
+     * the full-bleed plate that *is* the flyer turns a mountain into fog:
+     * Gate G2 fails by eye (you cannot tell what the product is) and the
+     * page reads as a template overlaying type on wallpaper. Vector marks
+     * never take blur: a smeared circle looks like a failed export.
      *
-     * Haze still applies to everything: atmosphere between the viewer and a
-     * distant object is real whether that object is drawn or photographed.
+     * Haze still applies to distant non-plate objects. A plate that covers
+     * the page is in focus by definition, whatever its stored depth.
      */
-    const effects = elementAssets.length > 0 ? rawEffects : { ...rawEffects, blur: 0 };
+    const coversPage =
+      box.w >= spec.canvas.w * 0.92 && box.h >= spec.canvas.h * 0.92;
+    const effects = coversPage
+      ? { ...rawEffects, blur: 0, haze: 0 }
+      : elementAssets.length > 0
+        ? rawEffects
+        : { ...rawEffects, blur: 0 };
     const atmosphere = layout.ground.base;
 
     const occluders = occludersFor.get(el.id) ?? [];

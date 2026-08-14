@@ -202,7 +202,9 @@ export function buildMcpServer(): McpServer {
         "1. read_design_guide, then read_design_skill (composition + copywriting at minimum).",
         "2. request_designers — Studio Sampler designer assignment / lineage. Pass campaignArchetype",
         "   (event-invitation | product-promotion | awareness-education | editorial-announcement |",
-        "   offer-promotion). Pick the designer whose METAPHOR forces an unexpected visual thought.",
+        "   offer-promotion). If the brief is a place, dish, object or face, also pass",
+        "   evidence: \"photographic\" so the sampler prefers layouts where that picture is the page.",
+        "   Pick the designer whose METAPHOR forces an unexpected visual thought.",
         "   Read `constraints` and `direction.gesture.requiresComponent`.",
         "3. Imagery: user logo/photo → upload_asset (+ prepare_asset). Anything else → search_images",
         "   then import_image (photos, icons, illustrations, shapes, QR). A place/dish/object needs a",
@@ -630,7 +632,9 @@ export function buildMcpServer(): McpServer {
         "designers — each a bundle (metaphor, layout topology, typography, material, colour logic, " +
         "signature gesture, graphic language) you cannot edit. Pick the one whose METAPHOR forces a " +
         "fresh visual sentence for this brief. Pass campaignArchetype so the sampler only returns " +
-        "metaphors suited to that kind of brief; redrawing until one fits is fighting it.",
+        "metaphors suited to that kind of brief. Pass evidence: \"photographic\" when there is a real " +
+        "picture of the thing (a place, a dish, an object, a face) so layouts prefer the photograph " +
+        "as the page instead of a small inset on cream.",
       inputSchema: {
         runs: z.number().int().min(1).max(6).optional().describe("How many designers. Default 3."),
         campaignArchetype: z
@@ -643,6 +647,12 @@ export function buildMcpServer(): McpServer {
           ])
           .optional()
           .describe("What kind of flyer this is. Strongly recommended."),
+        evidence: z
+          .enum(["photographic", "drawn"])
+          .optional()
+          .describe(
+            "Pass photographic when the brief has a real picture of the thing (a place, a dish, an object, a face). The sampler then prefers layouts where that photo fills the page instead of sitting as a small inset on cream.",
+          ),
         risk: z.enum(["safe", "studio", "experimental"]).optional(),
         jobSeed: z.string().optional().describe("Reuse to get the same designers again."),
         format: z

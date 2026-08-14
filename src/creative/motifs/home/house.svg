@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="house,home,roof,real-estate,family,building">
-  <title>A simple house with a pitched roof, a door and two windows.</title>
-  <desc>A home. Real estate, family, 'come in'. Walls paper, roof accent, door ink, windows accent2.</desc>
-  <path data-tone="paper" d="M 20 42 H 80 A 2 2 0 0 1 82 44 V 88 A 2 2 0 0 1 80 90 H 20 A 2 2 0 0 1 18 88 V 44 A 2 2 0 0 1 20 42 Z"/>
-  <path data-tone="accent" d="M 10 46 L 50 12 L 90 46 Z"/>
-  <path data-tone="ink" d="M 44 62 H 56 A 2 2 0 0 1 58 64 V 88 A 2 2 0 0 1 56 90 H 44 A 2 2 0 0 1 42 88 V 64 A 2 2 0 0 1 44 62 Z"/>
-  <path data-tone="accent2" d="M 26 54 H 36 A 2 2 0 0 1 38 56 V 64 A 2 2 0 0 1 36 66 H 26 A 2 2 0 0 1 24 64 V 56 A 2 2 0 0 1 26 54 Z M 64 54 H 74 A 2 2 0 0 1 76 56 V 64 A 2 2 0 0 1 74 66 H 64 A 2 2 0 0 1 62 64 V 56 A 2 2 0 0 1 64 54 Z"/>
+  <title>A house with a pitched roof, chimney, door and two mullioned windows.</title>
+  <desc>
+    A home that reads as a building: overhanging roof, chimney, a door, two windows with crossbars thick enough to see at stamp size. Real estate, family, 'come in'. Walls paper, roof accent, chimney and door ink, window panes accent2, mullions muted.
+  </desc>
+  <path data-tone="paper" d="M 18 44 H 82 V 90 H 18 Z"/>
+  <path data-tone="accent" d="M 8 48 L 50 10 L 92 48 L 82 48 L 50 20 L 18 48 Z"/>
+  <path data-tone="ink" d="M 68 18 H 80 V 36 H 68 Z M 42 62 H 58 V 90 H 42 Z"/>
+  <path data-tone="accent2" d="M 24 54 H 36 V 68 H 24 Z M 64 54 H 76 V 68 H 64 Z"/>
+  <path data-tone="muted" d="M 29 54 H 31 V 68 H 29 Z M 24 60 H 36 V 62 H 24 Z M 69 54 H 71 V 68 H 69 Z M 64 60 H 76 V 62 H 64 Z"/>
 </svg>

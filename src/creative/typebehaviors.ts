@@ -11,6 +11,12 @@ export type TypographyValue = DimensionValue<TypographyId> & {
   headlineScale: number;
   tracking: number;
   lineHeight: number;
+  /**
+   * How the headline is drawn when the author left it at `plain`.
+   * Monumental type is the object; a colour block is what makes that read on
+   * a poster. Behaviours that participate by weaving or masking stay plain.
+   */
+  headlineTreatment?: "plate" | "band";
 };
 
 export const TYPOGRAPHY: readonly TypographyValue[] = [
@@ -21,6 +27,7 @@ export const TYPOGRAPHY: readonly TypographyValue[] = [
     headlineScale: 1.35,
     tracking: -0.03,
     lineHeight: 0.92,
+    headlineTreatment: "plate",
     adventurousness: 2,
   },
   {
@@ -57,6 +64,7 @@ export const TYPOGRAPHY: readonly TypographyValue[] = [
     headlineScale: 1.05,
     tracking: -0.02,
     lineHeight: 1.0,
+    headlineTreatment: "plate",
     adventurousness: 2,
   },
   {
@@ -66,6 +74,7 @@ export const TYPOGRAPHY: readonly TypographyValue[] = [
     headlineScale: 1.2,
     tracking: -0.025,
     lineHeight: 0.94,
+    headlineTreatment: "band",
     adventurousness: 2,
   },
   {
@@ -84,6 +93,7 @@ export const TYPOGRAPHY: readonly TypographyValue[] = [
     headlineScale: 1.1,
     tracking: -0.02,
     lineHeight: 0.97,
+    headlineTreatment: "plate",
     adventurousness: 3,
   },
 ] as const;

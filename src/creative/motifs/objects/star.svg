@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="star,award,rating,magic,featured,night">
-  <title>Five-point star with a smaller inner star cut as a highlight.</title>
-  <desc>A heraldic five-point star. Awards, ratings, magic, flags, 'featured'. Not the four-point sparkle. Outer accent, inner paper.</desc>
-  <path data-tone="accent" d="M 50 4 L 61.76 33.82 L 93.75 35.79 L 69.02 56.18 L 77.04 87.21 L 50 70 L 22.96 87.21 L 30.98 56.18 L 6.25 35.79 L 38.24 33.82 Z"/>
-  <path data-tone="paper" d="M 50 34 L 54.7 45.53 L 67.12 46.44 L 57.61 54.47 L 60.58 66.56 L 50 60 L 39.42 66.56 L 42.39 54.47 L 32.88 46.44 L 45.3 45.53 Z"/>
+  <title>Five-point star with a smaller inner star as a highlight.</title>
+  <desc>
+    A heraldic five-point star. Awards, ratings, magic, flags, 'featured'. Not the four-point sparkle. Outer accent, inner paper.
+  </desc>
+  <path data-tone="accent" d="M 50 4 L 60.58 35.44 L 93.75 35.78 L 67.12 55.56 L 77.04 87.22 L 50 68 L 22.96 87.22 L 32.88 55.56 L 6.25 35.78 L 39.42 35.44 Z"/>
+  <path data-tone="paper" d="M 50 28 L 54.7 43.53 L 70.92 43.2 L 57.61 52.47 L 62.93 67.8 L 50 58 L 37.07 67.8 L 42.39 52.47 L 29.08 43.2 L 45.3 43.53 Z"/>
 </svg>

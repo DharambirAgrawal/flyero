@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="gift,present,box,bow,birthday,holiday,launch,wrapped">
-  <title>Wrapped gift box with a lid, ribbon and a bow.</title>
-  <desc>A solid present: rounded box, a slightly larger lid, a vertical ribbon and a two-loop bow. Birthdays, holidays, launches, 'for you' offers. Not the sketched gift-outline. Box accent, lid accent2, ribbon ink, bow paper.</desc>
-  <path data-tone="accent" d="M 24 42 H 76 A 6 6 0 0 1 82 48 V 86 A 6 6 0 0 1 76 92 H 24 A 6 6 0 0 1 18 86 V 48 A 6 6 0 0 1 24 42 Z"/>
-  <path data-tone="accent2" d="M 19 34 H 81 A 5 5 0 0 1 86 39 V 45 A 5 5 0 0 1 81 50 H 19 A 5 5 0 0 1 14 45 V 39 A 5 5 0 0 1 19 34 Z"/>
-  <path data-tone="ink" d="M 48 34 H 52 A 2 2 0 0 1 54 36 V 90 A 2 2 0 0 1 52 92 H 48 A 2 2 0 0 1 46 90 V 36 A 2 2 0 0 1 48 34 Z"/>
-  <path data-tone="paper" d="M 24 28 A 14 10 0 1 1 52 28 A 14 10 0 1 1 24 28 Z M 48 28 A 14 10 0 1 1 76 28 A 14 10 0 1 1 48 28 Z M 44 30 L 56 30 L 50 42 Z"/>
+  <title>Wrapped gift box with a lid, a wide ribbon and a looped bow.</title>
+  <desc>
+    A solid present: rounded box, a slightly larger lid, a vertical ribbon thick enough to read at stamp size, and a two-loop bow with holes so the loops look like ribbon not blobs. Birthdays, holidays, launches. Box accent, lid accent2, ribbon ink, bow paper.
+  </desc>
+  <path data-tone="accent" d="M 18 46 H 82 A 6 6 0 0 1 88 52 V 88 A 6 6 0 0 1 82 94 H 18 A 6 6 0 0 1 12 88 V 52 A 6 6 0 0 1 18 46 Z"/>
+  <path data-tone="accent2" d="M 12 36 H 88 A 5 5 0 0 1 93 41 V 50 A 5 5 0 0 1 88 55 H 12 A 5 5 0 0 1 7 50 V 41 A 5 5 0 0 1 12 36 Z"/>
+  <path data-tone="ink" d="M 46 36 H 54 A 2 2 0 0 1 56 38 V 92 A 2 2 0 0 1 54 94 H 46 A 2 2 0 0 1 44 92 V 38 A 2 2 0 0 1 46 36 Z"/>
+  <path data-tone="paper" fill-rule="evenodd" d="M 28 22 C 28 10 46 10 50 22 C 54 10 72 10 72 22 C 72 32 58 36 50 42 C 42 36 28 32 28 22 Z M 44 24 A 6 8 0 1 0 44.01 24 Z M 56 24 A 6 8 0 1 1 56.01 24 Z"/>
 </svg>

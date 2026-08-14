@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="scallop,corner,lace,ornament,frame,vintage,stationery,fan">
+  <title>Quarter-circle of overlapping scallops for a corner.</title>
+  <desc>
+    A lace-like corner of stacked scallop lobes. Invitations, bakeries, vintage fashion. Rotate for other corners. Outer row accent, inner row accent2, origin paper.
+  </desc>
+  <path data-tone="accent" d="M 6 6 L 76 6 Q 90.94 19.45 72.57 27.63 Z M 6 6 L 72.57 27.63 Q 82.63 45.04 62.63 47.15 Z M 6 6 L 62.63 47.15 Q 66.81 66.81 47.15 62.63 Z M 6 6 L 47.15 62.63 Q 45.04 82.63 27.63 72.57 Z M 6 6 L 27.63 72.57 Q 19.45 90.94 6 76 Z"/>
+  <path data-tone="accent2" d="M 6 6 L 48 6 Q 57.36 14.14 45.94 18.98 Z M 6 6 L 45.94 18.98 Q 52.33 29.61 39.98 30.69 Z M 6 6 L 39.98 30.69 Q 42.77 42.77 30.69 39.98 Z M 6 6 L 30.69 39.98 Q 29.61 52.33 18.98 45.94 Z M 6 6 L 18.98 45.94 Q 14.14 57.36 6 48 Z"/>
+  <path data-tone="paper" d="M 0 10 A 10 10 0 1 1 20 10 A 10 10 0 1 1 0 10 Z"/>
+</svg>

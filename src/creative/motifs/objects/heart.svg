@@ -1,6 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="heart,love,romance,health,like,charity">
-  <title>Classic heart with a highlight on the left lobe.</title>
-  <desc>A love heart: two lobes and a point, plus a paper highlight. Romance, health, 'we heart X', charities. Not a medical cross. Body accent, highlight paper, point shade muted.</desc>
-  <path data-tone="accent" d="M 50 88 Q 12 56 20 32 Q 26 16 42 20 Q 50 24 50 32 Q 50 24 58 20 Q 74 16 80 32 Q 88 56 50 88 Z"/>
-  <path data-tone="paper" d="M 28 34 A 8 10 0 1 1 44 34 A 8 10 0 1 1 28 34 Z"/>
+  <title>Classic heart with two full lobes and a highlight on the left.</title>
+  <desc>
+    A love heart whose lobes are actually round, not a chevron, plus a paper highlight. Romance, health, 'we heart X', charities. Body accent, highlight paper, shade muted along the right lobe.
+  </desc>
+  <path data-tone="accent" d="M 50 88 C 18 64 8 42 22 26 C 32 14 46 18 50 30 C 54 18 68 14 78 26 C 92 42 82 64 50 88 Z"/>
+  <path data-tone="paper" d="M 26 34 A 8 11 0 1 1 42 34 A 8 11 0 1 1 26 34 Z"/>
+  <path data-tone="muted" d="M 62 36 C 74 40 72 58 56 72 L 60 36 Z"/>
 </svg>

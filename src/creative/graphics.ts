@@ -26,6 +26,12 @@ export type GraphicsValue = DimensionValue<GraphicsId> & {
   grounds: readonly GroundKind[];
   /** Ordered ornament requests. Later slots are dropped first when capped. */
   slots: readonly DecorSlot[];
+  /**
+   * How the action is drawn when the author did not pick a CTA style.
+   * Underline is the quiet default that made every flyer look like the same
+   * caption; loud languages get a solid plate, cartographic ones get brackets.
+   */
+  ctaStyle: "underlined" | "solid" | "bracketed";
 };
 
 export const GRAPHICS: readonly GraphicsValue[] = [
@@ -35,6 +41,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
       "No ornament at all. Structure, type and white space carry the whole composition — the magazine-page discipline.",
     grounds: ["flat"],
     slots: [],
+    ctaStyle: "underlined",
     adventurousness: 1,
   },
   {
@@ -43,6 +50,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
       "Rationalist: a faint measured grid, hard alignment, ornament reduced to the structure itself.",
     grounds: ["flat", "block-frame"],
     slots: [{ form: "grid-field", layer: "under", zone: "field", weight: "wash", scale: [1, 1] }],
+    ctaStyle: "underlined",
     adventurousness: 1,
   },
   {
@@ -53,18 +61,35 @@ export const GRAPHICS: readonly GraphicsValue[] = [
     slots: [
       { form: "blob", layer: "under", zone: "corner", weight: "tint", scale: [0.34, 0.6] },
       { form: "blob", layer: "under", zone: "edge", weight: "wash", scale: [0.26, 0.44] },
+      {
+        form: "motif",
+        layer: "under",
+        zone: "corner",
+        weight: "wash",
+        scale: [0.28, 0.48],
+        motifs: ["botanical-spray", "leafy-arch", "floral-corner", "palmette"],
+      },
     ],
+    ctaStyle: "solid",
     adventurousness: 2,
   },
   {
     id: "retro-stripes",
     brief:
-      "Seventies travel print: banded stripe fields and concentric arcs in warm flat colour.",
+      "Seventies travel print: concentric arcs and a poster sunburst or deco fan in a corner.",
     grounds: ["split-horizontal", "split-horizontal", "flat"],
     slots: [
       { form: "arc-bands", layer: "under", zone: "edge", weight: "tint", scale: [0.5, 0.85] },
-      { form: "stripe-field", layer: "under", zone: "corner", weight: "wash", scale: [0.3, 0.5] },
+      {
+        form: "motif",
+        layer: "under",
+        zone: "corner",
+        weight: "wash",
+        scale: [0.32, 0.55],
+        motifs: ["sunburst-rays", "art-deco-fan", "palmette"],
+      },
     ],
+    ctaStyle: "solid",
     adventurousness: 2,
   },
   {
@@ -76,6 +101,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
       { form: "halftone-field", layer: "under", zone: "field", weight: "wash", scale: [1, 1] },
       { form: "burst", layer: "under", zone: "corner", weight: "solid", scale: [0.2, 0.32] },
     ],
+    ctaStyle: "solid",
     adventurousness: 2,
   },
   {
@@ -86,8 +112,16 @@ export const GRAPHICS: readonly GraphicsValue[] = [
     slots: [
       { form: "torn-edge", layer: "under", zone: "edge", weight: "tint", scale: [0.7, 1] },
       { form: "tape", layer: "over", zone: "corner", weight: "solid", scale: [0.14, 0.22] },
-      { form: "blob", layer: "under", zone: "corner", weight: "wash", scale: [0.3, 0.5] },
+      {
+        form: "motif",
+        layer: "over",
+        zone: "corner",
+        weight: "tint",
+        scale: [0.12, 0.2],
+        motifs: ["frame-corner", "corner-flourish", "scallop-corner"],
+      },
     ],
+    ctaStyle: "bracketed",
     adventurousness: 2,
   },
   {
@@ -106,6 +140,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
         motifs: ["plane", "pin", "compass", "globe", "map"],
       },
     ],
+    ctaStyle: "bracketed",
     adventurousness: 2,
   },
   {
@@ -120,10 +155,29 @@ export const GRAPHICS: readonly GraphicsValue[] = [
         zone: "corner",
         weight: "tint",
         scale: [0.16, 0.28],
-        motifs: ["leaf", "fern", "vine", "rose", "maple-leaf", "sprout"],
+        motifs: [
+          "leaf",
+          "fern",
+          "vine",
+          "rose",
+          "maple-leaf",
+          "sprout",
+          "floral-corner",
+          "botanical-spray",
+          "corner-flourish",
+        ],
+      },
+      {
+        form: "motif",
+        layer: "under",
+        zone: "edge",
+        weight: "wash",
+        scale: [0.28, 0.5],
+        motifs: ["laurel-wreath", "leafy-arch", "sunburst-rays", "palmette"],
       },
       { form: "squiggle", layer: "over", zone: "gap", weight: "solid", scale: [0.2, 0.36] },
     ],
+    ctaStyle: "solid",
     adventurousness: 2,
   },
   {
@@ -134,9 +188,16 @@ export const GRAPHICS: readonly GraphicsValue[] = [
     slots: [
       { form: "ribbon", layer: "under", zone: "edge", weight: "solid", scale: [0.4, 0.7] },
       { form: "badge", layer: "over", zone: "corner", weight: "solid", scale: [0.1, 0.16] },
-      { form: "sparkle", layer: "over", zone: "gap", weight: "solid", scale: [0.06, 0.12] },
-      { form: "sparkle", layer: "over", zone: "corner", weight: "solid", scale: [0.05, 0.09] },
+      {
+        form: "motif",
+        layer: "over",
+        zone: "gap",
+        weight: "solid",
+        scale: [0.08, 0.14],
+        motifs: ["sparkle-cluster", "star", "ribbon-banner", "heart"],
+      },
     ],
+    ctaStyle: "solid",
     adventurousness: 3,
   },
   {
@@ -157,6 +218,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
         motifs: ["star", "lightning", "flower", "smiley", "dice", "puzzle"],
       },
     ],
+    ctaStyle: "solid",
     adventurousness: 3,
   },
   {
@@ -171,10 +233,11 @@ export const GRAPHICS: readonly GraphicsValue[] = [
         zone: "gap",
         weight: "tint",
         scale: [0.07, 0.13],
-        motifs: ["flower", "star", "heart", "rainbow", "smiley", "butterfly"],
+        motifs: ["flower", "star", "heart", "rainbow", "smiley", "butterfly", "sparkle-cluster"],
       },
       { form: "squiggle", layer: "over", zone: "gap", weight: "solid", scale: [0.14, 0.24] },
     ],
+    ctaStyle: "solid",
     adventurousness: 3,
   },
   {
@@ -198,7 +261,7 @@ export const GRAPHICS: readonly GraphicsValue[] = [
         zone: "gap",
         weight: "tint",
         scale: [0.05, 0.09],
-        motifs: ["confetti", "star", "sparkle-doodle", "streamer"],
+        motifs: ["confetti", "star", "sparkle-doodle", "streamer", "sparkle-cluster"],
       },
       { form: "tape", layer: "over", zone: "corner", weight: "solid", scale: [0.12, 0.2] },
       // A large, barely-there echo behind everything — the ghost balloon
@@ -212,9 +275,10 @@ export const GRAPHICS: readonly GraphicsValue[] = [
         zone: "corner",
         weight: "wash",
         scale: [0.4, 0.6],
-        motifs: ["balloon", "flower", "cupcake", "balloon-bunch"],
+        motifs: ["balloon", "flower", "cupcake", "balloon-bunch", "sunburst-rays", "sparkle-cluster"],
       },
     ],
+    ctaStyle: "solid",
     adventurousness: 3,
   },
 ] as const;
@@ -225,4 +289,13 @@ export function graphicsById(id: GraphicsId): GraphicsValue {
   const value = GRAPHICS.find((g) => g.id === id);
   if (!value) throw new Error(`Unknown graphic language ${id}`);
   return value;
+}
+
+/**
+ * Languages that leave the page looking like a document: no marks, or only a
+ * faint grid. Quiet output has to stay reachable — but a photographic brief
+ * that rolls these is how every Nepal flyer came back as cream graph paper.
+ */
+export function isSilentGraphics(graphics: { slots: readonly { form: string }[] }): boolean {
+  return graphics.slots.length === 0 || graphics.slots.every((s) => s.form === "grid-field");
 }

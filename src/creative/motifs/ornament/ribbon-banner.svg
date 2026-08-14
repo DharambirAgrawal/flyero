@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="ribbon,banner,swallowtail,flag,ornament,sale,label,headline">
+  <title>Swallowtail ribbon banner with a folded centre.</title>
+  <desc>
+    A filled banner with notched ends and a fold, for a short word or as a sticker. Sales, events, 'new in'. Body accent, fold muted, ends accent2.
+  </desc>
+  <path data-tone="accent" d="M 4 38 L 88 38 L 78 50 L 88 62 L 4 62 L 14 50 Z"/>
+  <path data-tone="muted" d="M 14 50 L 4 38 L 4 62 Z"/>
+  <path data-tone="accent2" d="M 88 38 L 96 38 L 86 50 L 96 62 L 88 62 L 78 50 Z"/>
+</svg>

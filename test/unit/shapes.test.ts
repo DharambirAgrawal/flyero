@@ -550,6 +550,12 @@ describe("motif search", () => {
     expect(results.map((r) => r.id)).toContain("cake");
   });
 
+  it("finds background ornaments by the words an agent would actually type", () => {
+    expect(searchMotifs("wreath").map((r) => r.id)).toContain("laurel-wreath");
+    expect(searchMotifs("sunburst").map((r) => r.id)).toContain("sunburst-rays");
+    expect(searchMotifs("flourish").some((r) => r.category === "ornament")).toBe(true);
+  });
+
   it("respects the limit", () => {
     // A broad, real category word — every "celebration" motif is a hit —
     // so the limit is what actually truncates the result, not the query.

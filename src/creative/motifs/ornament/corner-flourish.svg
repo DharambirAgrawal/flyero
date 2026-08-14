@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="corner,flourish,scroll,baroque,frame,ornament,vintage,stationery">
+  <title>Baroque scroll flourish designed for a top-left corner.</title>
+  <desc>
+    Printer's-ornament corner: a thick scroll along the top edge, another down the left, a leaf at the inner join. Rotate it for the other three corners. Wedding stationery, wine, theatre, vintage posters. Main scroll accent, inner curl accent2, leaf paper.
+  </desc>
+  <path data-tone="accent" d="M 4 62 C 4 28 28 4 64 4 L 64 12 C 34 12 12 32 12 62 Z M 4 4 H 36 C 20 4 10 10 8 28 L 4 28 Z"/>
+  <path data-tone="accent2" d="M 16 16 C 16 8 28 8 32 16 C 28 12 20 14 20 22 C 20 30 32 32 36 24 L 40 28 C 32 40 12 36 12 22 C 12 12 20 10 16 16 Z"/>
+  <path data-tone="paper" d="M 40 28 Q 42.76 38.15 53.79 39.57 Q 50.48 28.96 40 28 Z"/>
+</svg>

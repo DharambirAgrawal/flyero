@@ -3,6 +3,7 @@ import { BUSY_VARIANCE, ToneField } from "../../src/core/canvas/tone.js";
 import { computeToneMap } from "../../src/store/assets.js";
 import { planLight, shadowFor } from "../../src/core/canvas/light.js";
 import { depthEffects, depthForRole, FOCAL_DEPTH } from "../../src/core/canvas/depth.js";
+import { renderSpec } from "../../src/core/render/index.js";
 import { Rng } from "../../src/lib/rng.js";
 import { fixtureLineages, fixtureSpec } from "../fixtures.js";
 import { solveLayout } from "../../src/core/layout/solver.js";
@@ -204,9 +205,38 @@ describe("depth is one number, everything else follows", () => {
   });
 
   it("puts grounds behind, subject on the focal plane, type in front", () => {
-    expect(depthForRole("evidence", true)).toBeLessThan(depthForRole("evidence", false));
+    // A bleeding photograph is the poster, not the far wall — putting it at
+    // 0.12 used to derive a ~6px Gaussian blur, which is why full-bleed travel
+    // flyers came back as fog. Structure that bleeds (a frame, a wash) stays
+    // back; evidence stays sharp whether or not it bleeds; type sits in front.
+    expect(depthForRole("evidence", true)).toBe(FOCAL_DEPTH);
+    expect(depthForRole("evidence", false)).toBe(FOCAL_DEPTH);
+    expect(depthForRole("structure", true)).toBeLessThan(depthForRole("evidence", true));
     expect(depthForRole("evidence", false)).toBeLessThan(depthForRole("message", false));
     expect(depthForRole("structure", false)).toBeLessThan(depthForRole("cta", false));
+  });
+
+  it("does not defocus a photograph that is the page", () => {
+    const lineage = {
+      ...fixtureLineages("PLATE-1", 1)[0]!,
+      topology: "layered-depth-stack" as const,
+    };
+    const spec = fixtureSpec(lineage);
+    const evidence = spec.elements.find((e) => e.role === "evidence")!;
+    evidence.component = "photo-hero";
+    evidence.assets = ["plate"];
+    const { svg, layout } = renderSpec(spec, [
+      {
+        assetId: "plate",
+        href: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        width: 1,
+        height: 1,
+      },
+    ]);
+    const box = layout.boxes[evidence.id]!;
+    expect(box.w).toBeGreaterThanOrEqual(spec.canvas.w * 0.92);
+    expect(box.h).toBeGreaterThanOrEqual(spec.canvas.h * 0.92);
+    expect(svg).not.toMatch(new RegExp(`id="dof-${evidence.id}"`));
   });
 
   it("is assigned to every element by the solver", () => {

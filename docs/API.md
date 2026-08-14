@@ -199,10 +199,12 @@ No server model key needed: a connected agent samples its own lineage, authors t
 ### `POST /v1/studio/assignments`
 
 ```json
-{ "runs": 3, "campaignArchetype": "event-invitation", "brandColors": [], "format": "portrait-4x5" }
+{ "runs": 3, "campaignArchetype": "event-invitation", "evidence": "photographic", "brandColors": [], "format": "portrait-4x5" }
 ```
 
-Returns `jobSeed`, `canvas`, the resolved `componentLibrary` (all 36 manifests — id, category, roles, purpose, asset slots, text limits, author-safe `propsSchema` — sent **once**, not per assignment), and `assignments[]`: one per sampled lineage, each with `lineage` (opaque, echo back unchanged), `direction` (metaphor/topology/typography/material/colorLogic/gesture/graphics briefs), `resolved` (palette + fonts, informational only), `constraints` (element budget, required roles) and `componentsExcluded` — the few `componentLibrary` ids (usually none) that don't fit this lineage's topology.
+`evidence` is optional. Pass `"photographic"` when the brief has a real picture of the thing (a place, a dish, an object, a face) — the sampler then prefers topologies where that photograph fills the page. Omit it (or pass `"drawn"`) when the page is assembled from type and marks.
+
+Returns `jobSeed`, `canvas`, the resolved `componentLibrary` (all 36 manifests — id, category, roles, purpose, asset slots, text limits, author-safe `propsSchema` — sent **once**, not per assignment), and `assignments[]`: one per sampled lineage, each with `lineage` (opaque, echo back unchanged), `direction` (metaphor/topology/typography/material/colorLogic/gesture/graphics briefs; `topology.photoIsThePage` when the photograph is the full canvas, `topology.photoIsTheField` when it is a large bleed in its slot), `resolved` (palette + fonts, informational only), `constraints` (element budget, required roles) and `componentsExcluded` — the few `componentLibrary` ids (usually none) that don't fit this lineage's topology.
 
 ### `GET /v1/schema/composition` — three complete, valid composition JSON objects (`examples[]`: `photo-led`, `assembled`, `exchange-led`) plus `elementBudgets` and rule notes not obvious from the shape. Shapes to copy field names from — never flyers to remix; see `COMPOSITION_NOTES` in `src/api/agent.ts`.
 

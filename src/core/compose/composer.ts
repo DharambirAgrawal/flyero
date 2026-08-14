@@ -6,6 +6,7 @@ import { TOPOLOGIES } from "../../creative/topologies.js";
 import { gestureById } from "../../creative/gestures.js";
 import { graphicsById } from "../../creative/graphics.js";
 import { artDirectionById, elementBudgetForDensity } from "../../creative/artdirections.js";
+import { isPhotoGround, photoFillsPage } from "../layout/recipes.js";
 import { typographyById } from "../../creative/typebehaviors.js";
 import { DEFAULT_FORMAT, formatById, type FormatId } from "../../creative/formats.js";
 import { paletteFor } from "../render/theme.js";
@@ -217,6 +218,12 @@ function composePrompt(input: ComposeInput): string {
     ? `\nPreferred evidence component(s) for this art direction: ${artDirection.preferredComponents.join(", ")} — reach for one of these over a plainer alternative when an evidence slot fits it.`
     : "";
 
+  const photoPage = isPhotoGround(lineage.topology)
+    ? photoFillsPage(lineage.topology)
+      ? `\nThis topology makes the photograph the canvas. Evidence MUST be a photograph component (photo-hero, masked-image, torn-photo, polaroid-stack, photo-grid) — not a document-card or a tiny motif. Put the headline overlapping it (relationship kind overlap, headline in front). Prefer treatment plate or band and a solid CTA. Do not add a body paragraph just to fill space; the picture carries the message. A cream page with a small inset is the wrong reading of this assignment.`
+      : `\nThe photograph is this layout's visual field — large in the evidence slot this topology declared, not a postage-stamp inset. Evidence MUST be a photograph component. Prefer headline treatment plate or band. Do not add a body paragraph to fill cream space.`
+    : "";
+
   return `THE IDEA (this is what the flyer shows — everything serves it)
 ${idea.idea}
 
@@ -237,7 +244,7 @@ CREATIVE POSITION
   Density: ${artDirection.density}; use ${elementBudget.min}-${elementBudget.max} content elements.
   This is one coherent campaign world, not seven independent style requests.
 - Metaphor: ${metaphor.id} — ${metaphor.brief}
-- Composition: ${topology.id} — ${topology.brief}
+- Composition: ${topology.id} — ${topology.brief}${photoPage}
 - Typography behaviour: ${typography.id} — ${typography.brief}
 - Signature gesture: ${gesture.id} — ${gesture.brief}${requirement}
 - Graphic language: ${graphics.id} — ${graphics.brief}

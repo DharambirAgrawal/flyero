@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="frame,corner,bracket,ornate,border,ornament,editorial,photo">
+  <title>Ornate L-bracket corner with a palmette at the join.</title>
+  <desc>
+    A picture-frame corner: thick L with a small fan at the inner join. Photo corners, certificates, editorial plates. Rotate for a full frame. Arms accent, inner step muted, palmette paper.
+  </desc>
+  <path data-tone="accent" d="M 4 4 H 72 V 16 H 16 V 72 H 4 Z"/>
+  <path data-tone="muted" d="M 16 16 H 56 V 24 H 24 V 56 H 16 Z"/>
+  <path data-tone="paper" d="M 24 24 L 40 16 L 48 24 L 40 32 Z"/>
+</svg>

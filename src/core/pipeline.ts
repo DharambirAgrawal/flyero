@@ -199,6 +199,7 @@ export async function runJob(jobId: string): Promise<void> {
       count: config.lineagesPerRun,
       risk: job.risk as Risk,
       campaignArchetype: brief.archetype,
+      evidence: assets.length > 0 ? "photographic" : undefined,
     });
 
     const budget = new VisionBudget(config.maxVisionCallsPerJob);
@@ -244,6 +245,7 @@ export async function runJob(jobId: string): Promise<void> {
         count: config.lineagesPerRun,
         risk: job.risk as Risk,
         campaignArchetype: brief.archetype,
+        evidence: assets.length > 0 ? "photographic" : undefined,
       });
       // Restart candidates skip the exploratory vision-critic pass. Their
       // remaining allowance is spent on final gate evidence, not polish loops.

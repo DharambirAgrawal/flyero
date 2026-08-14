@@ -8,18 +8,20 @@ export type Hsl = { h: number; s: number; l: number };
 
 export function hexToRgb(hex: string): Rgb {
   const clean = hex.replace("#", "").trim();
-  const full =
+  const rgb =
     clean.length === 3
       ? clean
           .split("")
           .map((c) => c + c)
           .join("")
-      : clean;
-  if (!/^[0-9a-fA-F]{6}$/.test(full)) throw new Error(`Invalid hex colour ${JSON.stringify(hex)}`);
+      : clean.length >= 6
+        ? clean.slice(0, 6)
+        : clean;
+  if (!/^[0-9a-fA-F]{6}$/.test(rgb)) throw new Error(`Invalid hex colour ${JSON.stringify(hex)}`);
   return {
-    r: parseInt(full.slice(0, 2), 16),
-    g: parseInt(full.slice(2, 4), 16),
-    b: parseInt(full.slice(4, 6), 16),
+    r: parseInt(rgb.slice(0, 2), 16),
+    g: parseInt(rgb.slice(2, 4), 16),
+    b: parseInt(rgb.slice(4, 6), 16),
   };
 }
 

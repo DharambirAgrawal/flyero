@@ -1012,12 +1012,50 @@ export function motifTransform(x: number, y: number, size: number, rotate = 0): 
 }
 
 /**
- * Resolved fills for every theme slot, derived from a single ink colour —
- * what decoration uses, because ornament is planned against one `decorInk`
- * rather than the full palette. Paper goes light, ink goes dark, accent2
- * sits between; the mark still reads as multi-region instead of a flat
- * silhouette, without inventing a second palette.
+ * Resolved fills from the flyer's actual palette, not a mix of one ink.
+ * Decoration uses this so a balloon-bunch in the corner is the same two
+ * accents as the rest of the page, instead of one hue lightened and darkened.
  */
+export function tonesFromPalette(palette: {
+  fg: string;
+  bg: string;
+  accent: string;
+  accent2: string;
+  muted: string;
+}): Record<MotifTone, string> {
+  return {
+    ink: palette.fg,
+    accent: palette.accent,
+    accent2: palette.accent2,
+    muted: palette.muted,
+    paper: palette.bg,
+    ground: mix(palette.bg, palette.accent, 0.3),
+  };
+}
+
+/** Reattach a 2-digit hex alpha (from `withAlpha` ink) onto every slot. */
+export function tonesWithAlpha(
+  tones: Record<MotifTone, string>,
+  ink: string,
+): Record<MotifTone, string> {
+  const raw = ink.replace("#", "");
+  const alpha = raw.length === 8 ? raw.slice(6) : "";
+  if (!alpha) return tones;
+  const withA = (hex: string) => {
+    const h = hex.replace("#", "");
+    const opaque = h.length === 8 ? h.slice(0, 6) : h;
+    return `#${opaque}${alpha}`;
+  };
+  return {
+    ink: withA(tones.ink),
+    accent: withA(tones.accent),
+    accent2: withA(tones.accent2),
+    muted: withA(tones.muted),
+    paper: withA(tones.paper),
+    ground: withA(tones.ground),
+  };
+}
+
 export function tonesFromInk(ink: string): Record<MotifTone, string> {
   // Decor ink is often `withAlpha(...)` — 8-digit hex. `mix` only accepts
   // 6-digit, so peel the alpha, mix the opaque colour, then put the same

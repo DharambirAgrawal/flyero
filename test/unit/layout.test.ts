@@ -288,6 +288,52 @@ describe("topology recipes are structurally distinct", () => {
   });
 });
 
+describe("photographic evidence keeps topology architecture", () => {
+  it("only promotes a photo to the full canvas when the evidence slot is already the page", () => {
+    expect(recipeFor("layered-depth-stack").photoGround).toBe(true);
+    const full = fixtureSpec({
+      ...fixtureLineages("ARCH-FULL", 1)[0]!,
+      topology: "layered-depth-stack",
+    });
+    const split = fixtureSpec({
+      ...fixtureLineages("ARCH-SPLIT", 1)[0]!,
+      topology: "off-center-hero",
+    });
+    const band = fixtureSpec({
+      ...fixtureLineages("ARCH-BAND", 1)[0]!,
+      topology: "banded-masthead",
+    });
+    for (const spec of [full, split, band]) {
+      spec.elements.find((e) => e.role === "evidence")!.component = "photo-hero";
+    }
+    const fullBox = solveLayout(full, themeFromSpec(full)).boxes[
+      full.elements.find((e) => e.role === "evidence")!.id
+    ]!;
+    const splitBox = solveLayout(split, themeFromSpec(split)).boxes[
+      split.elements.find((e) => e.role === "evidence")!.id
+    ]!;
+    const bandBox = solveLayout(band, themeFromSpec(band)).boxes[
+      band.elements.find((e) => e.role === "evidence")!.id
+    ]!;
+    expect(fullBox.w).toBeGreaterThanOrEqual(full.canvas.w * 0.92);
+    expect(fullBox.h).toBeGreaterThanOrEqual(full.canvas.h * 0.92);
+    expect(splitBox.w).toBeLessThan(split.canvas.w * 0.85);
+    expect(bandBox.h).toBeLessThan(band.canvas.h * 0.85);
+  });
+
+  it("applies the graphic language's CTA style when the author left it default", () => {
+    const spec = fixtureSpec({
+      ...fixtureLineages("CTA-STYLE", 1)[0]!,
+      graphics: "organic-blobs",
+    });
+    spec.elements.find((e) => e.role === "evidence")!.component = "photo-hero";
+    const cta = spec.elements.find((e) => e.component === "cta-button")!;
+    expect(cta.props?.style).toBeUndefined();
+    const layout = solveLayout(spec, themeFromSpec(spec));
+    expect(layout.boxes[cta.id]!.propsOverride?.style).toBe("solid");
+  });
+});
+
 /**
  * Recipe bands are hand-written, and a pair that overlaps vertically while also
  * sharing a column produces a collision the solver then has to fight — usually

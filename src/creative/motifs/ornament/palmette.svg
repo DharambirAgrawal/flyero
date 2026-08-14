@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="palmette,fan,deco,ornament,classical,corner,background,leaf">
+  <title>Classical palmette: seven leaf-fronds fanning from a base.</title>
+  <desc>
+    An art-deco / Greek palmette — a fan of leaves from a small base, used as a corner or a centred crest. Theatre, museums, wine, editorial. Fronds accent, inner fronds accent2, base paper.
+  </desc>
+  <path data-tone="accent" d="M 50 82 Q 32.35 56.74 2.51 42.15 Q 22.06 69 50 82 Z M 50 82 Q 40.33 52.74 15.93 30.2 Q 26.96 61.53 50 82 Z M 50 82 Q 49.13 51.2 32.22 22.61 Q 33.8 55.79 50 82 Z M 50 82 Q 58 52.24 50 20 Q 42 52.24 50 82 Z M 50 82 Q 66.2 55.79 67.78 22.61 Q 50.87 51.2 50 82 Z M 50 82 Q 73.04 61.53 84.07 30.2 Q 59.67 52.74 50 82 Z M 50 82 Q 77.94 69 97.5 42.15 Q 67.66 56.74 50 82 Z"/>
+  <path data-tone="accent2" d="M 50 82 Q 56 64.72 50 46 Q 44 64.72 50 82 Z"/>
+  <path data-tone="paper" d="M 40 84 A 10 6 0 1 1 60 84 A 10 6 0 1 1 40 84 Z"/>
+</svg>

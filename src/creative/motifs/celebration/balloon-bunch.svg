@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="balloon,bunch,cluster,party,celebration,pair">
-  <title>Two overlapping balloons, each an independently recolourable region.</title>
-  <desc>A pair of helium balloons at different sizes, knots in ink. Use when one balloon feels sparse — a party invite, a sale, a kids' brand. Distinct from the single balloon motif. Left balloon accent, right balloon accent2, knots ink.</desc>
-  <path data-tone="accent" d="M 16 40 A 22 26 0 1 1 60 40 A 22 26 0 1 1 16 40 Z"/>
-  <path data-tone="accent2" d="M 48 48 A 18 22 0 1 1 84 48 A 18 22 0 1 1 48 48 Z"/>
-  <path data-tone="ink" d="M 32 66 L 44 66 L 38 76 Z M 60 70 L 72 70 L 66 80 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="balloon,bunch,cluster,party,celebration,pair,helium">
+  <title>Two overlapping pear balloons, each an independently recolourable region.</title>
+  <desc>
+    A pair of helium balloons at different sizes, each with a highlight and a knot. Use when one balloon feels sparse — a party invite, a sale, a kids' brand. Distinct from the single balloon motif. Left balloon accent, right balloon accent2, highlights paper, knots ink.
+  </desc>
+  <path data-tone="accent" d="M 34 10 C 54 10 64 24 64 42 C 64 56 52 64 38 67 L 34 70 L 30 67 C 16 64 6 56 6 42 C 6 24 14 10 34 10 Z"/>
+  <path data-tone="accent2" d="M 66 22 C 84 22 92 34 92 50 C 92 62 82 70 70 72 L 66 75 L 62 72 C 50 70 42 62 42 50 C 42 34 48 22 66 22 Z"/>
+  <path data-tone="paper" d="M 20 30 A 6 9 0 1 1 32 30 A 6 9 0 1 1 20 30 Z M 53 38 A 5 8 0 1 1 63 38 A 5 8 0 1 1 53 38 Z"/>
+  <path data-tone="ink" d="M 28 67 L 40 67 L 34 76 Z M 60 72 L 72 72 L 66 81 Z"/>
 </svg>

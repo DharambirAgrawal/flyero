@@ -2,7 +2,7 @@ import { z } from "zod";
 import { FittedLine, Group, inkFor, mutedInkFor } from "./primitives.js";
 import type { ComponentModule, RenderContext, Theme } from "./types.js";
 import { focalPreserveAspect } from "./assets.js";
-import { mix, withAlpha } from "../creative/color.js";
+import { mix } from "../creative/color.js";
 import { shadowFor, type LightSource } from "../core/canvas/light.js";
 import { resolveParts, type PartInput, type PlacedPart } from "../core/layout/anchors.js";
 import {
@@ -14,6 +14,7 @@ import {
   burstPath,
   ellipsePath,
   motifTransform,
+  paintMotif,
   polygonPath,
   ribbonPath,
   roundedRectPath,
@@ -25,6 +26,7 @@ import {
   tornEdgePath,
   wavePath,
   type MotifName,
+  type MotifTone,
 } from "./shapes.js";
 
 /**
@@ -277,6 +279,16 @@ function aspectOf(part: FigurePart): number {
   }
 }
 
+function motifTones(
+  theme: Theme,
+  box: { onDark?: boolean; ground?: string },
+): Record<MotifTone, string> {
+  return Object.fromEntries(MOTIF_TONES.map((t) => [t, colourFor(t, theme, box)])) as Record<
+    MotifTone,
+    string
+  >;
+}
+
 function colourFor(tone: FigurePart["tone"], theme: Theme, box: { onDark?: boolean; ground?: string }): string {
   switch (tone) {
     case "ink":
@@ -316,7 +328,7 @@ function sheenGradient(
   const shade = mix(base, "#000000", 0.28);
   return {
     node: (
-      <radialGradient id={id} cx={`${cx}%`} cy={`${cy}%`} r="85%">
+      <radialGradient key={id} id={id} cx={`${cx}%`} cy={`${cy}%`} r="85%">
         <stop offset="0%" stopColor={highlight} />
         <stop offset="45%" stopColor={core} />
         <stop offset="100%" stopColor={shade} />
@@ -386,72 +398,78 @@ function renderPart(
     case "motif": {
       const motif = MOTIFS[part.draw.motif];
       const size = Math.min(rect.w, rect.h);
-      // A multi-layer motif carries its own colour regions (data-tone per
-      // path — see shapes.ts) instead of the caller's single `fill`/`tone`.
-      // `part.tone` still matters for everything else the part touches
-      // (nothing here, but consistency with a single-colour motif of the
-      // same id is the point); `shaded` is intentionally not applied per
-      // layer in this pass — sheening every region independently is a real
-      // improvement worth doing later, not required for multi-colour to be
-      // useful today.
-      if (motif.layers) {
+      const xf = motifTransform(rect.x, rect.y, size, 0);
+      const painted = paintMotif(motif, fill, motifTones(theme, box));
+
+      // Line art has no fill to shade — a gradient sheen on a sketched cake
+      // would contradict the register it's drawn in, so `shaded` is ignored.
+      if (motif.stroke) {
         return (
           <g key={key} data-name={key} transform={spin}>
-            <g transform={motifTransform(rect.x, rect.y, size, 0)}>
-              {motif.layers.map((layer, i) => (
+            <g transform={xf}>
+              {painted.map((p, i) => (
                 <path
                   key={i}
-                  d={layer.d}
-                  fill={colourFor(layer.tone, theme, box)}
-                  fillRule={layer.fillRule}
+                  d={p.d}
+                  fill="none"
+                  stroke={p.stroke ?? fill}
+                  strokeWidth={p.strokeWidth ?? 2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               ))}
             </g>
           </g>
         );
       }
-      // Line art has no fill to shade — a gradient sheen on a sketched cake
-      // would contradict the register it's drawn in, so `shaded` is ignored.
-      if (motif.stroke) {
-        return (
-          <g key={key} data-name={key} transform={spin}>
-            <g transform={motifTransform(rect.x, rect.y, size, 0)}>
-              <path
-                d={motif.d}
-                fill="none"
-                stroke={fill}
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </g>
-          </g>
-        );
-      }
+
+      // Multi-layer marks used to skip `shaded` entirely, so almost every
+      // filled motif (cake, balloon, gift) rendered as a flat sticker even
+      // when the author asked for an object. Sheen the body tones against
+      // the flyer's one light; leave paper (already a highlight) and ink
+      // (already a drawn detail) flat so the gradient cannot wash them out.
       if (part.draw.shaded) {
-        const sheen = sheenGradient(`sheen-${key}`, fill, theme.light);
+        const body = (motif.layers ?? [{ d: motif.d, tone: "accent" as const }]).filter(
+          (layer) => layer.tone !== "paper" && layer.tone !== "ink",
+        );
+        const shadowD = (body.length > 0 ? body : [{ d: motif.d }]).map((l) => l.d).join(" ");
         const shadow = shadowFor(theme.light, size, 0.5);
+        const sheens = painted.map((p, i) => {
+          const tone = motif.layers?.[i]?.tone;
+          if (p.fill === "none" || tone === "paper" || tone === "ink") return null;
+          return sheenGradient(`sheen-${key}-${i}`, p.fill, theme.light);
+        });
         return (
           <g key={key} data-name={key} transform={spin}>
-            <defs>{sheen.node}</defs>
+            <defs>{sheens.map((s) => s?.node)}</defs>
             {/* The shadow's translate must sit outside the motif's own 0-100
                 scale group, or the offset — computed in canvas px — would be
                 scaled down with it. */}
             <g transform={`translate(${shadow.dx} ${shadow.dy})`}>
-              <g transform={motifTransform(rect.x, rect.y, size, 0)}>
-                <path d={motif.d} fill={shadow.fill} fillRule="evenodd" />
+              <g transform={xf}>
+                <path d={shadowD} fill={shadow.fill} fillRule="evenodd" />
               </g>
             </g>
-            <g transform={motifTransform(rect.x, rect.y, size, 0)}>
-              <path d={motif.d} fill={sheen.fill} fillRule="evenodd" />
+            <g transform={xf}>
+              {painted.map((p, i) => (
+                <path
+                  key={i}
+                  d={p.d}
+                  fill={sheens[i]?.fill ?? p.fill}
+                  fillRule={p.fillRule}
+                />
+              ))}
             </g>
           </g>
         );
       }
+
       return (
         <g key={key} data-name={key} transform={spin}>
-          <g transform={motifTransform(rect.x, rect.y, size, 0)}>
-            <path d={motif.d} fill={fill} fillRule="evenodd" />
+          <g transform={xf}>
+            {painted.map((p, i) => (
+              <path key={i} d={p.d} fill={p.fill} fillRule={p.fillRule} />
+            ))}
           </g>
         </g>
       );

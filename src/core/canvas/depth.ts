@@ -79,10 +79,14 @@ export function hazed(colour: string, atmosphere: string, effects: DepthEffects)
  * front of* the picture rather than printed on the same sheet.
  */
 export function depthForRole(role: string, bleeds: boolean): Depth {
-  if (bleeds) return 0.12;
+  // A bleeding photograph is the poster, not the far wall. Putting it at 0.12
+  // derived a ~6px Gaussian blur plus haze — which is why full-bleed travel
+  // flyers came back as foggy stock wallpaper with type on top. The picture
+  // that *is* the design sits on the focal plane so it stays sharp; type
+  // still comes forward of it. Structure that bleeds (a frame, a ground
+  // wash) is the one thing that belongs at the back.
+  if (role === "structure") return bleeds ? 0.12 : 0.2;
   switch (role) {
-    case "structure":
-      return 0.2;
     case "evidence":
       return FOCAL_DEPTH;
     case "message":

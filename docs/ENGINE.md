@@ -160,6 +160,12 @@ because a drawn shape has no focal plane to be outside of. Blur is now gated on
 the element actually carrying an image; haze still applies to everything, since
 atmosphere is real whether the far thing is drawn or photographed.
 
+That gate was not enough. `depthForRole` used to park *any* bleeding element at
+0.12 — including the photograph that *is* the poster — so a Nepal mountain
+came back as ~6px of fog with type on top. A plate that covers the page sits
+on the focal plane and takes no blur and no haze; an inset photo can still go
+slightly soft. Structure that bleeds (a frame, a wash) stays at the back.
+
 **A new drawing component reintroduced the exact bug the tone field exists to
 kill.** The field only knew about photographic components, so the first composed
 figure to run under a line of type put solid accent behind grey text and nothing

@@ -72,6 +72,14 @@ export const SYNONYMS: Record<string, string[]> = {
   coffee: ["coffee-cup"],
   flight: ["plane", "travel"],
   map: ["travel", "pin"],
+  ornament: ["flourish", "wreath", "corner"],
+  flourish: ["ornament", "scroll"],
+  wreath: ["laurel", "ornament"],
+  corner: ["flourish", "ornament"],
+  frame: ["ornament", "corner"],
+  sunburst: ["rays", "poster"],
+  background: ["sunburst", "wash", "ornament"],
+  botanical: ["leaf", "spray", "wreath"],
 };
 
 function tokenize(text: string): string[] {

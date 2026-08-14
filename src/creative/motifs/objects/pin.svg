@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="pin,map,location,drop,place,store,gps">
   <title>Map pin with the hole punched through and a glossy highlight.</title>
-  <desc>Location drop: teardrop body, circular hole (evenodd), small highlight. Maps, stores, 'find us', travel. Body accent, hole is negative, highlight paper, tip ink.</desc>
-  <path data-tone="accent" fill-rule="evenodd" d="M 50 98 C 50 98 86 56 86 36 A 36 36 0 1 0 14 36 C 14 56 50 98 50 98 Z M 66 36 A 16 16 0 1 1 34 36 A 16 16 0 1 1 66 36 Z"/>
-  <path data-tone="paper" d="M 32 26 A 6 8 0 1 1 44 26 A 6 8 0 1 1 32 26 Z"/>
+  <desc>
+    Location drop: teardrop body, circular hole (evenodd), a highlight large enough to read at stamp size. Maps, stores, 'find us', travel. Body accent, hole is negative, highlight paper.
+  </desc>
+  <path data-tone="accent" fill-rule="evenodd" d="M 50 98 C 50 98 86 58 86 36 A 36 36 0 1 0 14 36 C 14 58 50 98 50 98 Z M 66 36 A 16 16 0 1 1 34 36 A 16 16 0 1 1 66 36 Z"/>
+  <path data-tone="paper" d="M 31 26 A 7 9 0 1 1 45 26 A 7 9 0 1 1 31 26 Z"/>
 </svg>

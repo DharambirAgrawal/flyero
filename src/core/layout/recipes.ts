@@ -42,14 +42,15 @@ export type TopologyRecipe = {
   /** Slots exempt from the safe-margin clamp, so they can run off the canvas. */
   bleed: SlotName[];
   /**
-   * When true, a *photographic* evidence element becomes the ground: it covers
-   * the whole canvas and the type is set over it.
+   * When true, a *photographic* evidence element is this topology's visual
+   * field: it occupies the evidence slot at the size the recipe declared
+   * (usually a large bleed), and type shares the page with it.
    *
-   * This is the single biggest lever on how designed a flyer looks. Measured
-   * ink coverage across the ten topologies averaged 25.6% against 55-80% for
-   * comparable Canva templates — and the only two that came close were the two
-   * where a photograph already covered the page. Coverage comes from the image
-   * being the ground, not from adding ornament.
+   * It does NOT mean "expand every photograph to the full canvas." Doing that
+   * collapsed five distinct poster architectures into one left-aligned caption
+   * on a picture — which is why Nepal contact sheets kept looking like the
+   * same flyer. Only topologies whose evidence slot already covers the page
+   * (`photoFillsPage`) promote the photo to a full-bleed plate.
    *
    * Deliberately NOT set on every topology. A poster where type floats over a
    * photograph is one good idea; ten of them is the sameness this dimension
@@ -369,6 +370,21 @@ export function recipeFor(topology: TopologyId): TopologyRecipe {
   const recipe = TOPOLOGY_RECIPES[topology];
   if (!recipe) throw new Error(`No layout recipe for topology ${topology}`);
   return recipe;
+}
+
+/** Topologies where a photograph becomes the visual field, not an inset. */
+export function isPhotoGround(topology: TopologyId): boolean {
+  return recipeFor(topology).photoGround === true;
+}
+
+/**
+ * The evidence slot already *is* the page (full-bleed plate). Only then does
+ * the solver promote a photograph to the whole canvas — otherwise each
+ * photoGround topology keeps the architecture its slots describe.
+ */
+export function photoFillsPage(topology: TopologyId): boolean {
+  const slot = recipeFor(topology).slots.evidence;
+  return slot.w >= 0.95 && slot.h >= 0.95;
 }
 
 /** Projects a normalised recipe rect onto the canvas safe rectangle. */

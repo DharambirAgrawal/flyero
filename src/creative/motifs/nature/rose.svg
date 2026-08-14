@@ -1,8 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" data-tags="rose,flower,romance,valentine,florist,love">
-  <title>Rose bloom of nested spirals on a thorny stem.</title>
-  <desc>A rose head with a short stem. Romance, florists, Valentine, condolence. Outer petals accent, inner accent2, heart paper, stem ink.</desc>
-  <path data-tone="accent" d="M 22 38 A 28 28 0 1 1 78 38 A 28 28 0 1 1 22 38 Z"/>
-  <path data-tone="accent2" d="M 32 38 A 18 18 0 1 1 68 38 A 18 18 0 1 1 32 38 Z"/>
-  <path data-tone="paper" d="M 42 38 A 8 8 0 1 1 58 38 A 8 8 0 1 1 42 38 Z"/>
-  <path data-tone="ink" d="M 48 62 H 52 A 1 1 0 0 1 53 63 V 91 A 1 1 0 0 1 52 92 H 48 A 1 1 0 0 1 47 91 V 63 A 1 1 0 0 1 48 62 Z M 52 74 L 68 66 L 64 78 Z"/>
+  <title>Rose bloom of overlapping pointed petals on a short leafy stem.</title>
+  <desc>
+    A rose head made of overlapping petals, not nested circles, with a short stem and a leaf. Romance, florists, Valentine. Outer petals accent, inner accent2, heart paper, stem and leaf ink.
+  </desc>
+  <path data-tone="accent" d="M 50 40 Q 61 26.56 50 12 Q 39 26.56 50 40 Z M 50 40 Q 66.18 46.31 76.63 31.35 Q 59.38 25.39 50 40 Z M 50 40 Q 49 57.34 66.46 62.65 Q 66.8 44.41 50 40 Z M 50 40 Q 33.2 44.41 33.54 62.65 Q 51 57.34 50 40 Z M 50 40 Q 40.62 25.39 23.37 31.35 Q 33.82 46.31 50 40 Z"/>
+  <path data-tone="accent2" d="M 50 40 Q 60.18 37.9 59.41 27.06 Q 48.85 29.67 50 40 Z M 50 40 Q 55.14 49.03 65.22 44.94 Q 59.47 35.72 50 40 Z M 50 40 Q 43 47.68 50 56 Q 57 47.68 50 40 Z M 50 40 Q 40.53 35.72 34.78 44.94 Q 44.86 49.03 50 40 Z M 50 40 Q 51.15 29.67 40.6 27.06 Q 39.82 37.9 50 40 Z"/>
+  <path data-tone="paper" d="M 44 40 A 6 6 0 1 1 56 40 A 6 6 0 1 1 44 40 Z"/>
+  <path data-tone="ink" d="M 48 54 H 52 V 92 H 48 Z M 52 70 Q 58.19 81.71 71.94 79.3 Q 64.95 67.21 52 70 Z"/>
 </svg>

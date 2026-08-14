@@ -564,6 +564,24 @@ describe("design skills", () => {
     expect(filtered.json().hint, "no nagging once it is supplied").toBeUndefined();
   });
 
+  it("prefers photo-as-ground assignments when the caller says the evidence is a photograph", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/studio/assignments",
+      headers: auth,
+      payload: { runs: 3, campaignArchetype: "product-promotion", evidence: "photographic" },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().evidence).toBe("photographic");
+    for (const assignment of res.json().assignments) {
+      const topology = assignment.direction.topology;
+      expect(
+        topology.photoIsThePage === true || topology.photoIsTheField === true,
+        topology.id,
+      ).toBe(true);
+    }
+  });
+
   it("reports what is available when a skill is unknown", async () => {
     const res = await app.inject({ method: "GET", url: "/v1/skills/color-palette", headers: auth });
     expect(res.statusCode).toBe(404);

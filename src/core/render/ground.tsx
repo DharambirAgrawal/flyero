@@ -113,7 +113,7 @@ function Node({ node, index }: { node: DecorNode; index: number }): ReactElement
       );
     case "motif": {
       const motif = MOTIFS[node.name];
-      const painted = paintMotif(motif, node.fill, tonesFromInk(node.fill));
+      const painted = paintMotif(motif, node.fill, node.tones ?? tonesFromInk(node.fill));
       return (
         <g key={index} transform={motifTransform(node.x, node.y, node.size, node.rotate)}>
           {painted.map((p, i) => (
