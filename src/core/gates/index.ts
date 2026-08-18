@@ -6,6 +6,7 @@ import { themeFromSpec } from "../render/theme.js";
 import { BUSY_VARIANCE } from "../canvas/tone.js";
 import { measureCoverage, MIN_COVERAGE } from "../canvas/coverage.js";
 import { detailClusterRowHeight } from "../../components/photo.js";
+import { figureInk } from "../../components/figure.js";
 import { detectBanned, type BannedHit } from "../../creative/banned.js";
 import { typographyById } from "../../creative/typebehaviors.js";
 import { recipeFor } from "../layout/recipes.js";
@@ -346,8 +347,36 @@ export async function runGates(input: GateInput, ctx: CallContext): Promise<Gate
       );
     }
   }
-  const componentGeometry = detailClusterFailures.length === 0;
-  if (!componentGeometry) notes.push(...detailClusterFailures.map((f) => `geometry: ${f}`));
+  // `composed-figure` sizes each part as a fraction of its OWN box's short
+  // side (src/core/layout/anchors.ts SIZES) — correct for a figure with room
+  // to breathe, but silent when the assigned role's slot is thin (the
+  // `brand` footer sliver is ~60px tall on the default canvas) and the
+  // author stacked a wordmark inside it: the text is present in the SVG but
+  // renders at a font size nobody can read. A live flyer shipped exactly
+  // this — a "MERIDIAN / COFFEE ROASTERS" badge whose words computed to a
+  // ~5px and ~1px font height — and passed every gate, because nothing
+  // checked the ONE thing that was actually wrong: `figureInk` already
+  // computes each part's real placed rect, so this is deterministic,
+  // code-only, no vision call needed.
+  const MIN_LEGIBLE_WORD_HEIGHT = 16;
+  const figureLegibilityFailures: string[] = [];
+  for (const el of spec.elements) {
+    if (el.component !== "composed-figure") continue;
+    const box = layout.boxes[el.id];
+    if (!box) continue;
+    for (const mark of figureInk(el.props ?? {}, box, spec.brand.colors)) {
+      if (mark.kind !== "word" || mark.rect.h >= MIN_LEGIBLE_WORD_HEIGHT) continue;
+      figureLegibilityFailures.push(
+        `${el.id}: a word part renders ${mark.rect.h.toFixed(1)}px tall — illegible (needs ` +
+          `${MIN_LEGIBLE_WORD_HEIGHT}px+) — this box is too small for everything stacked inside it`,
+      );
+    }
+  }
+  const componentGeometry = detailClusterFailures.length === 0 && figureLegibilityFailures.length === 0;
+  if (!componentGeometry) {
+    notes.push(...detailClusterFailures.map((f) => `geometry: ${f}`));
+    notes.push(...figureLegibilityFailures.map((f) => `geometry: ${f}`));
+  }
 
   const usedAssets = new Set(spec.elements.flatMap((e) => e.assets ?? []));
   const unusedAssets = input.requestedAssetIds.filter((id) => !usedAssets.has(id));

@@ -211,7 +211,7 @@ export function figureInk(
   rawProps: unknown,
   box: { x: number; y: number; w: number; h: number },
   palette: { bg: string; fg: string; accent: string; muted: string },
-): { rect: { x: number; y: number; w: number; h: number }; fill: string }[] {
+): { rect: { x: number; y: number; w: number; h: number }; fill: string; kind: FigurePart["draw"]["kind"] }[] {
   const parsed = figureProps.safeParse(rawProps);
   if (!parsed.success) return [];
 
@@ -247,7 +247,7 @@ export function figureInk(
             : part.tone === "paper"
               ? palette.bg
               : mix(palette.bg, palette.accent, 0.3);
-    return [{ rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h }, fill }];
+    return [{ rect: { x: rect.x, y: rect.y, w: rect.w, h: rect.h }, fill, kind: part.draw.kind }];
   });
 }
 

@@ -7,7 +7,7 @@ import { detectBanned } from "../../src/creative/banned.js";
 import { solveLayout } from "../../src/core/layout/solver.js";
 import { rasterizeForCritique, renderSpec } from "../../src/core/render/index.js";
 import { themeFromSpec } from "../../src/core/render/theme.js";
-import { contrastRatio, ensureContrast, hueFamily, meetsAA } from "../../src/creative/color.js";
+import { contrastRatio, ensureContrast, hueFamily, meetsAA, toHsl } from "../../src/creative/color.js";
 import { COLOR_LOGIC } from "../../src/creative/colorlogic.js";
 import { Rng } from "../../src/lib/rng.js";
 import type { DesignSpec } from "../../src/core/compose/spec.js";
@@ -27,6 +27,28 @@ describe("colour logic", () => {
         expect(meetsAA(palette.fg, palette.bg), `${logic.id} failed at seed ${i}`).toBe(true);
       }
     }
+  });
+
+  /**
+   * A live flyer (Meridian Coffee Roasters) landed on saturated-field, hue
+   * 57° (yellow-green), lightness 0.20 — a dark khaki that read as muddy,
+   * not "vibrant." Yellow/yellow-green hues carry much higher relative
+   * luminance than the rest of the wheel at the same HSL lightness, so the
+   * uniform 0.13-0.22 ceiling every hue shared was needlessly dark for this
+   * band specifically. Confirms the raised ceiling is both reachable and
+   * still AA-safe — not just present in the source.
+   */
+  it("saturated-field's yellow-green band reaches past the old 0.22 lightness ceiling, and stays AA-safe", () => {
+    const logic = COLOR_LOGIC.find((l) => l.id === "saturated-field")!;
+    let sawRaisedLightness = false;
+    for (let i = 0; i < 400; i++) {
+      const palette = logic.generate(new Rng(`saturated-field-yellow-${i}`), []);
+      const parsed = toHsl(palette.bg);
+      if (parsed.h < 45 || parsed.h > 95) continue;
+      expect(meetsAA(palette.fg, palette.bg), `hue ${parsed.h.toFixed(0)} L ${parsed.l.toFixed(2)}`).toBe(true);
+      if (parsed.l > 0.22) sawRaisedLightness = true;
+    }
+    expect(sawRaisedLightness, "never sampled a yellow-band lightness above the old 0.22 ceiling in 400 tries").toBe(true);
   });
 
   it("avoids the banned navy-plus-cyan combination", () => {
@@ -96,6 +118,64 @@ describe("banned-list detector", () => {
 
   it("fails only at two or more signals", () => {
     expect(detectBanned(spec, layoutFor(spec).boxes).clear).toBe(true);
+  });
+});
+
+/**
+ * A live flyer (Meridian Coffee Roasters) shipped `status: done`, all six
+ * gates green, with a "MERIDIAN / COFFEE ROASTERS" brand badge whose word
+ * parts rendered at ~4px and ~1px tall — present in the SVG, invisible in
+ * practice. Root cause: `composed-figure` sizes each part as a fraction of
+ * its OWN box's short side (src/core/layout/anchors.ts SIZES), and nothing
+ * checked whether that box — here the `brand` role's ~60px-tall footer slot
+ * — actually had room for a cup icon plus two stacked lines of text. This is
+ * the exact spec structure that shipped, reduced to what matters.
+ */
+describe("componentGeometry — composed-figure legibility", () => {
+  const base = fixtureSpec(fixtureLineages("figure-legibility", 1)[0]!);
+
+  function withBadge(parts: unknown[]): DesignSpec {
+    const spec: DesignSpec = JSON.parse(JSON.stringify(base));
+    const brand = spec.elements.find((e) => e.role === "brand")!;
+    brand.component = "composed-figure";
+    (brand as { props?: Record<string, unknown> }).props = { parts };
+    return spec;
+  }
+
+  it("fails geometry when a wordmark is stacked into a slot too thin to hold it", async () => {
+    const spec = withBadge([
+      { id: "cup", at: { at: "center" }, draw: { kind: "motif", motif: "coffee-cup", shaded: true }, size: "large", tone: "accent" },
+      { id: "leaf", at: { of: "cup", side: "top-left-of", gap: "far" }, draw: { kind: "motif", motif: "leaf", shaded: true }, size: "small", tone: "accent2", rotate: -12 },
+      { id: "name", at: { of: "cup", side: "below", gap: "tight" }, draw: { kind: "word", text: "MERIDIAN" }, size: "medium", tone: "paper" },
+      { id: "sub", at: { of: "name", side: "below", gap: "tight" }, draw: { kind: "word", text: "COFFEE ROASTERS" }, size: "small", tone: "muted" },
+    ]);
+    const result = await runGates({ spec, layout: layoutFor(spec), requestedAssetIds: [] }, ctx);
+    expect(result.mechanical.componentGeometry).toBe(false);
+    expect(result.notes.some((n) => n.includes("illegible"))).toBe(true);
+  });
+
+  it("passes geometry for a single short word that actually fits the slot", async () => {
+    const spec = withBadge([
+      { id: "cup", at: { at: "center" }, draw: { kind: "motif", motif: "coffee-cup", shaded: true }, size: "medium", tone: "accent" },
+      { id: "name", at: { of: "cup", side: "right-of", gap: "near" }, draw: { kind: "word", text: "MC" }, size: "large", tone: "paper" },
+    ]);
+    const result = await runGates({ spec, layout: layoutFor(spec), requestedAssetIds: [] }, ctx);
+    expect(result.mechanical.componentGeometry).toBe(true);
+  });
+
+  it("ignores motif/shape parts — the legibility floor only applies to words", async () => {
+    // Small decorative marks are fine by design; only text needs to be readable.
+    // Same thin footer slot as the failing case above (confirmed < 100px tall)
+    // — no word parts at all, so geometry passes despite the tiny box.
+    const spec = withBadge([
+      { id: "cup", at: { at: "center" }, draw: { kind: "motif", motif: "coffee-cup", shaded: true }, size: "large", tone: "accent" },
+      { id: "leaf", at: { of: "cup", side: "top-left-of", gap: "far" }, draw: { kind: "motif", motif: "leaf", shaded: true }, size: "small", tone: "accent2" },
+    ]);
+    const layout = layoutFor(spec);
+    const box = layout.boxes[spec.elements.find((e) => e.role === "brand")!.id]!;
+    expect(box.h).toBeLessThan(100);
+    const result = await runGates({ spec, layout, requestedAssetIds: [] }, ctx);
+    expect(result.mechanical.componentGeometry).toBe(true);
   });
 });
 

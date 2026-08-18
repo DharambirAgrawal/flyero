@@ -270,8 +270,21 @@ export const COLOR_LOGIC: readonly ColorLogicValue[] = [
        * measured worst case, white fell to 3.07:1 against its own ground and
        * every element the solver set in white came out unreadable. A saturated
        * field only works as a *dark* field.
+       *
+       * That worst case lives outside this one band. Yellow/yellow-green hues
+       * (~45-95°) carry much higher relative luminance than the rest of the
+       * wheel at the same HSL lightness, so the same 0.13-0.22 ceiling that
+       * reads as a rich jewel-tone field for blue or magenta reads as muddy
+       * khaki here — a live flyer landed exactly there (hue 57°, L 0.20,
+       * "#5a540e") and the shop's own colour read as dishwater, not vibrant.
+       * A sweep of contrastRatio("#ffffff", hsl(h,s,L)) across this band at
+       * full saturation stays AA-safe (>=4.5:1) up to L=0.26 — narrower than
+       * the 0.24-0.36 range that failed elsewhere, but real headroom this
+       * band was never given.
        */
-      const bg = hsl(h, clamp((p?.s ?? 0.7) * 1.05, 0.44, 0.78), rng.range(0.13, 0.22));
+      const muddyYellowBand = h >= 45 && h <= 95;
+      const lightnessCeiling = muddyYellowBand ? 0.26 : 0.22;
+      const bg = hsl(h, clamp((p?.s ?? 0.7) * 1.05, 0.44, 0.78), rng.range(0.13, lightnessCeiling));
       const fg = "#ffffff";
       const s2 = p ? brandSecondary(brand, p) : null;
       // The accent has to sing against a saturated ground, so it is lifted well
