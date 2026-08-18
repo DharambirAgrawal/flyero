@@ -15,7 +15,7 @@
  * circular, slow, and fatal to byte-identical output.
  */
 
-import { hexToRgb, relativeLuminance } from "../../creative/color.js";
+import { hexToRgb, mix, relativeLuminance } from "../../creative/color.js";
 
 export type Rect = { x: number; y: number; w: number; h: number };
 
@@ -156,13 +156,12 @@ export class ToneField {
    * partially rather than replacing what is beneath it.
    */
   paintFlat(rect: Rect, fill: string, alpha = 1): void {
-    const lum = relativeLuminance(fill);
     for (const i of this.indicesFor(rect)) {
       const cell = this.cells[i]!;
-      cell.lum = cell.lum * (1 - alpha) + lum * alpha;
+      cell.fill = alpha >= 0.99 ? fill : mix(cell.fill, fill, alpha);
+      cell.lum = relativeLuminance(cell.fill);
       // A flat fill calms whatever was beneath it in proportion to its opacity.
       cell.varr *= 1 - alpha;
-      if (alpha >= 0.5) cell.fill = fill;
     }
   }
 
@@ -204,36 +203,42 @@ export class ToneField {
     }
   }
 
-  /** What is under this rect? */
   sample(rect: Rect): ToneSample {
     const idx = this.indicesFor(rect);
     if (idx.length === 0) return { luminance: 0.5, variance: 1, fill: "#808080" };
-    let sum = 0;
-    let sumSq = 0;
-    let busiest = 0;
+    let sumLum = 0;
     let varrSum = 0;
+    let totalWeight = 0;
     const fills = new Map<string, number>();
+
+    const rectArea = Math.max(1, rect.w * rect.h);
     for (const i of idx) {
+      const c = i % this.cols;
+      const r = Math.floor(i / this.cols);
+      const cellX = c * this.cellW;
+      const cellY = r * this.cellH;
+      const ix0 = Math.max(rect.x, cellX);
+      const ix1 = Math.min(rect.x + rect.w, cellX + this.cellW);
+      const iy0 = Math.max(rect.y, cellY);
+      const iy1 = Math.min(rect.y + rect.h, cellY + this.cellH);
+      const interArea = Math.max(0, ix1 - ix0) * Math.max(0, iy1 - iy0);
+      const weight = interArea / rectArea;
+      if (weight <= 0) continue;
+
       const cell = this.cells[i]!;
-      sum += cell.lum;
-      sumSq += cell.lum * cell.lum;
-      busiest = Math.max(busiest, cell.varr);
-      varrSum += cell.varr;
-      fills.set(cell.fill, (fills.get(cell.fill) ?? 0) + 1);
+      sumLum += cell.lum * weight;
+      varrSum += cell.varr * weight;
+      totalWeight += weight;
+      fills.set(cell.fill, (fills.get(cell.fill) ?? 0) + weight);
     }
-    const mean = sum / idx.length;
-    // Cross-cell luminance spread: this catches rects that straddle a tonal
-    // seam (photo/ground boundary). However, the `legibleFor` busy check is
-    // designed for *photographic texture* (fine type over leaves is unreadable
-    // at any ratio), not for tonal seams — seams are a contrast problem the
-    // ratio check below already handles. Weighting spread by mean cell `varr`
-    // ensures that only photographic texture (high per-cell variance) drives
-    // the busy verdict; two adjacent flat zones produce spread but near-zero
-    // cell variance, so they no longer falsely trigger the photo-texture path.
-    const meanVarr = varrSum / idx.length;
-    const spread = Math.max(0, sumSq / idx.length - mean * mean);
-    const fill = [...fills.entries()].sort((a, b) => b[1] - a[1])[0]![0];
-    return { luminance: mean, variance: Math.max(spread * (meanVarr / PHOTO_VARIANCE_FLOOR), busiest * 0.12), fill };
+
+    if (totalWeight <= 0) return { luminance: 0.5, variance: 1, fill: "#808080" };
+    const mean = sumLum / totalWeight;
+    const meanVarr = varrSum / totalWeight;
+    const sortedFills = [...fills.entries()].sort((a, b) => b[1] - a[1]);
+    const rawFill = sortedFills.length ? sortedFills[0]![0] : "#808080";
+    const fill = greyForLuminance(mean);
+    return { luminance: mean, variance: meanVarr, fill };
   }
 
   /**

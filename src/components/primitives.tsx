@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from "react";
 import { fitText, measureText, metricsFor, wrapText } from "../core/render/fonts.js";
 import type { Theme } from "./types.js";
-import { ensureContrast, mix, withAlpha } from "../creative/color.js";
+import { ensureContrast, mix, relativeLuminance, withAlpha } from "../creative/color.js";
 import { shadowFor, type LightSource } from "../core/canvas/light.js";
 
 /**
@@ -22,15 +22,13 @@ export function inkFor(
   fallback?: string,
 ): string {
   const large = (box.fontSize ?? 0) >= 32;
+  const plate = box.ground ?? (box.onDark ? mix(theme.palette.fg, "#000000", 0.5) : theme.palette.bg);
   if (!box.onDark) {
     const base = fallback ?? theme.palette.fg;
     return box.ground ? ensureContrast(base, box.ground, large) : base;
   }
-  // When the solver knows the exact ground fill, hold contrast against that.
-  // The mixed-down foreground is only a stand-in for a photograph, whose real
-  // colour we cannot know at this point.
-  const plate = box.ground ?? mix(theme.palette.fg, "#000000", 0.5);
-  return ensureContrast("#ffffff", plate, large);
+  const base = relativeLuminance(plate) < 0.183 ? "#ffffff" : "#000000";
+  return ensureContrast(base, plate, large);
 }
 
 /** Muted ink, same rule. */

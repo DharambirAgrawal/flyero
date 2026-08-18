@@ -1,5 +1,6 @@
 import { hueFamily, toHsl } from "./color.js";
 import { materialById } from "./materials.js";
+import { graphicsById, isSilentGraphics } from "./graphics.js";
 import type { Box } from "../components/types.js";
 import type { DesignSpec } from "../core/compose/spec.js";
 
@@ -118,9 +119,10 @@ export function detectBanned(
     .filter((e) => e.role !== "structure")
     .map((e) => boxes[e.id])
     .filter((b): b is Box => Boolean(b));
+  let inCentre = false;
   if (content.length > 0) {
     const { w, h } = spec.canvas;
-    const inCentre = content.every(
+    inCentre = content.every(
       (b) =>
         b.x >= w * 0.3 && b.x + b.w <= w * 0.7 && b.y >= h * 0.3 && b.y + b.h <= h * 0.7,
     );
@@ -183,6 +185,38 @@ export function detectBanned(
     hits.push({
       signal: "cta-only-event",
       detail: "the call to action is the only thing carrying the accent, with no evidence element",
+    });
+  }
+
+  // 8 — the generic slide: no photograph, no marks, everything centred. The
+  // design review that prompted this signal put it precisely: "the shortest
+  // legal path today is gradient + text" — a flat/gradient field, a centred
+  // headline-subline-button stack, nothing else. Composition-shape gates
+  // (G2's cover test, coverage) already catch this from other angles, but
+  // this is the one signal that names the actual failure so it costs a
+  // banned-list point on its own rather than relying on those to line up.
+  // Requires the centring signal above, not just no-photo-plus-no-marks — a
+  // legitimate left- or top-anchored software flyer with quiet graphics is
+  // common and fine; a centred one with neither a photograph nor a mark to
+  // its name is the specific shape that reads as generated.
+  const PHOTO_EVIDENCE = new Set([
+    "photo-hero",
+    "masked-image",
+    "torn-photo",
+    "polaroid-stack",
+    "photo-grid",
+    "photo-cluster",
+  ]);
+  const evidenceEl = spec.elements.find((e) => e.role === "evidence");
+  const evidenceIsPhoto = evidenceEl ? PHOTO_EVIDENCE.has(evidenceEl.component) : false;
+  const silentMarks = isSilentGraphics(graphicsById(spec.lineage.graphics));
+  if (inCentre && !evidenceIsPhoto && silentMarks) {
+    hits.push({
+      signal: "generic-slide",
+      detail:
+        `evidence (${evidenceEl?.component ?? "none"}) is not a photograph, graphics language ` +
+        `${spec.lineage.graphics} places no marks, and everything sits in the middle 40% of the ` +
+        `canvas — a flat field with a centred stack, not a poster`,
     });
   }
 

@@ -8,10 +8,11 @@ import { graphicsById } from "../../creative/graphics.js";
 import { artDirectionById, elementBudgetForDensity } from "../../creative/artdirections.js";
 import { isPhotoGround, photoFillsPage } from "../layout/recipes.js";
 import { typographyById } from "../../creative/typebehaviors.js";
+import { deriveSpecies, SPECIES_LABEL } from "../studio/species.js";
 import { DEFAULT_FORMAT, formatById, type FormatId } from "../../creative/formats.js";
-import { paletteFor } from "../render/theme.js";
-import { fontPairById } from "../../creative/fontpairs.js";
-import { safeParseSpec, type DesignSpec, type Lineage } from "./spec.js";
+import { assembleSpec } from "./assemble.js";
+import { compileRecipe, type RecipeFill, type SlotFill } from "./recipe.js";
+import type { DesignSpec, Lineage } from "./spec.js";
 import type { IdeaResult } from "../idea/index.js";
 import type { Brief } from "../brief/index.js";
 
@@ -98,30 +99,56 @@ const propsSchema = z.object({
   kind: z.enum(["origin", "waypoint", "destination"]).nullable(),
 });
 
-const composedSchema = z.object({
-  elements: z
-    .array(
-      z.object({
-        id: z
-          .string()
-          .max(40)
-          .describe("lowercase kebab-case, unique within the flyer, e.g. 'hero' or 'proof-note'"),
-        component: z.string().describe("must be one of the component ids in the catalogue"),
-        role: z.enum(["evidence", "message", "support", "cta", "brand", "structure"]),
-        whyHere: z
-          .string()
-          .max(200)
-          .describe("What breaks if this element is deleted? Answer concretely."),
-        useAssets: z
-          .array(z.string())
-          .max(6)
-          .nullable()
-          .describe("assetIds to place inside this component, if any"),
-        props: propsSchema,
-      }),
-    )
-    .min(4)
-    .max(7),
+const slotSchema = z.object({
+  component: z.string().describe("must be one of the component ids in the catalogue"),
+  whyHere: z
+    .string()
+    .max(200)
+    .describe("What breaks if this element is deleted? Answer concretely."),
+  useAssets: z
+    .array(z.string())
+    .max(6)
+    .nullable()
+    .describe("assetIds to place inside this component, if any"),
+  props: propsSchema,
+});
+
+/**
+ * Recipe-shaped, not a free elements/relationships graph (plan item R4): four
+ * named slots the engine already knows how to place, plus which asset is the
+ * subject. `compileRecipe` (`./recipe.js`) derives the headline's structural
+ * relationship and the gesture's required element — this stage decides
+ * content, not structure, the same split the agent-native `compose_recipe`
+ * surface uses, so the two paths can't drift apart.
+ */
+const composeRecipeSchema = z.object({
+  groundAsset: z
+    .string()
+    .nullable()
+    .describe("The uploaded assetId that IS the subject, when there is a real photo of it. Null otherwise."),
+  extraAssets: z.array(z.string()).max(5).nullable(),
+  slots: z.object({
+    evidence: slotSchema,
+    message: slotSchema,
+    support: slotSchema,
+    cta: slotSchema,
+    brand: slotSchema.nullable().describe("A logo/footer element, only when the art direction's density needs it."),
+  }),
+  extras: z
+    .array(slotSchema.extend({ role: z.enum(["support", "structure"]) }))
+    .max(3)
+    .nullable()
+    .describe("Extra content beyond the four named slots, only for a 'balanced'/'rich' density budget."),
+  extraOverlap: z
+    .object({
+      kind: z.enum(["overlap", "weave", "annotate", "connect", "frame"]),
+      front: z.enum(["message", "support", "cta", "brand"]),
+      behind: z.enum(["evidence", "message", "support", "brand"]),
+      overlap: z.number().min(0).max(0.4),
+      purpose: z.string().max(200),
+    })
+    .nullable()
+    .describe("One optional relationship beyond the message↔evidence one the engine already derives."),
   /**
    * Small labelled facts — date, place, price, phone, handle.
    *
@@ -139,17 +166,6 @@ const composedSchema = z.object({
     )
     .max(6)
     .describe("Only facts the brief actually states. Empty when there are none."),
-  relationships: z
-    .array(
-      z.object({
-        kind: z.enum(["overlap", "weave", "annotate", "connect", "frame"]),
-        front: z.string(),
-        behind: z.string(),
-        overlap: z.number().min(0).max(0.4),
-        purpose: z.string().max(200),
-      }),
-    )
-    .max(3),
   gesturePurpose: z.string().max(200),
   qr: z.boolean().describe("Should the CTA carry a scannable QR code? True whenever a URL exists."),
 });
@@ -163,30 +179,36 @@ export type ComposeInput = {
   format?: FormatId;
 };
 
-const SYSTEM = `You are the composer for a flyer studio. You translate an idea into a structure:
-which components carry it, what role each plays, and how they relate in depth.
+const SYSTEM = `You are the composer for a flyer studio. You translate an idea into content: which
+component fills each of four named slots, which asset is the subject, and the short strings
+inside components. The engine derives structure from that — the headline's relationship to the
+evidence, and the signature gesture — so you never author a relationships graph by hand.
 
-WHAT YOU DECIDE: components, roles, relationships, and the short strings inside components.
-WHAT YOU NEVER DECIDE: coordinates, sizes, fonts, colours, alignment, spacing. A deterministic
-layout engine owns all of that. Do not describe positions in whyHere or purpose.
+WHAT YOU DECIDE: which component fills evidence/message/support/cta (and brand, when the density
+budget needs a fifth element), groundAsset, and the short strings inside components.
+WHAT YOU NEVER DECIDE: coordinates, sizes, fonts, colours, alignment, spacing, or the
+relationship graph. A deterministic layout engine owns all of that. Do not describe positions in
+whyHere.
 
 HARD RULES:
 
-1. Four to seven elements. Not eight. Every element must answer "what breaks if you remove me?"
-   in whyHere, concretely. "Adds visual interest" is a deletion, not an answer.
-2. Exactly one element with role "evidence" is required, and it is the most important choice
-   you make — it is what lets someone identify the product with the logo and headline covered.
-   Pick the component that shows the product's subject matter, not a generic frame.
-3. Exactly one element with role "cta" and one with role "message".
-4. Relationships express meaning, not decoration. Choose a kind: overlap (shared space),
-   weave (one form visibly masks another), annotate (one element explains another), connect
-   (a reading path links beats), or frame (one element defines another's boundary). If you
-   cannot say what it achieves for the reader, do not create it. Zero is valid.
-5. Structure components (grids, halftone fields, rules, letterforms) are decoration unless
+1. Four named slots (evidence/message/support/cta) are required; add \`brand\` and, only for a
+   "balanced"/"rich" density budget, up to 3 \`extras\` to reach the element count the art
+   direction requires. Every slot must answer "what breaks if you remove me?" in whyHere,
+   concretely. "Adds visual interest" is a deletion, not an answer.
+2. \`slots.evidence\` is the most important choice you make — it is what lets someone identify
+   the product with the logo and headline covered. Pick the component that shows the product's
+   subject matter, not a generic frame. When there is a real photo of the thing, set
+   \`groundAsset\` to its assetId — never leave it null just because a component could draw an
+   abstraction instead.
+3. \`extraOverlap\` is optional and rare — the engine already gives the headline a structural
+   relationship to the evidence. Only set it for a second, specific relationship you can name a
+   real purpose for (weave, annotate, connect, frame). Null is the normal answer.
+4. Structure-role extras (grids, halftone fields, rules, letterforms) are decoration unless
    something registers against them. Include one only when it does real work — a bare
    decorative grid is auto-rejected by the quality gates.
-6. Use the exact component ids from the catalogue. Nothing else exists.
-7. Fill props only where the component needs words. Anything you leave null gets a sensible
+5. Use the exact component ids from the catalogue. Nothing else exists.
+6. Fill props only where the component needs words. Anything you leave null gets a sensible
    default. Never invent statistics for big-numeral or score-ring — use them only when the
    brief supplies a real figure.`;
 
@@ -199,6 +221,7 @@ function composePrompt(input: ComposeInput): string {
   const graphics = graphicsById(lineage.graphics);
   const artDirection = artDirectionById(lineage.artDirection);
   const elementBudget = elementBudgetForDensity(artDirection.density);
+  const species = deriveSpecies(lineage);
 
   const assetLines = brief.assets.length
     ? brief.assets
@@ -245,6 +268,7 @@ CREATIVE POSITION
   This is one coherent campaign world, not seven independent style requests.
 - Metaphor: ${metaphor.id} — ${metaphor.brief}
 - Composition: ${topology.id} — ${topology.brief}${photoPage}
+- Poster species: ${species} — ${SPECIES_LABEL[species]}
 - Typography behaviour: ${typography.id} — ${typography.brief}
 - Signature gesture: ${gesture.id} — ${gesture.brief}${requirement}
 - Graphic language: ${graphics.id} — ${graphics.brief}
@@ -266,14 +290,27 @@ export type ComposeResult = { spec: DesignSpec; attempts: number };
  * Composes and validates, retrying with the validator's own complaints fed back.
  * A spec that will not validate is never allowed downstream.
  */
+/** LLM output props carry nulls for unset fields; a slot never should. */
+function slotFill(el: { component: string; whyHere: string; useAssets: string[] | null; props: Record<string, unknown> }, loudWord: string | null): SlotFill {
+  return {
+    component: el.component,
+    whyHere: el.whyHere,
+    ...(el.useAssets && el.useAssets.length > 0 ? { assets: el.useAssets } : {}),
+    props: stripNulls({
+      ...el.props,
+      // The headline block needs to know which word the typography singles out.
+      ...(el.component === "headline-block" ? { loudWord } : {}),
+    }),
+  };
+}
+
 export async function compose(
   input: ComposeInput,
   ctx: CallContext,
   maxAttempts = 3,
 ): Promise<ComposeResult> {
-  const palette = paletteFor(input.lineage, input.brief.assets.flatMap((a) => a.palette));
-  const fonts = fontPairById(input.lineage.fontPair);
-  const { w, h, safe } = formatById(input.format ?? DEFAULT_FORMAT);
+  const brandColors = input.brief.assets.flatMap((a) => a.palette);
+  const canvas = formatById(input.format ?? DEFAULT_FORMAT);
   let errors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -281,7 +318,7 @@ export async function compose(
       errors.length > 0
         ? `${composePrompt(input)}
 
-YOUR PREVIOUS ATTEMPT WAS REJECTED BY THE SCHEMA VALIDATOR:
+YOUR PREVIOUS ATTEMPT WAS REJECTED:
 ${errors.map((e) => `- ${e}`).join("\n")}
 
 Fix exactly these problems and return the whole structure again.`
@@ -292,38 +329,37 @@ Fix exactly these problems and return the whole structure again.`
         role: "planner",
         system: SYSTEM,
         prompt,
-        schema: composedSchema,
+        schema: composeRecipeSchema,
         schemaName: "design_composition",
         maxTokens: 8000,
         effort: "high",
       },
       ctx,
     );
-    const direction = artDirectionById(input.lineage.artDirection);
-    const budget = elementBudgetForDensity(direction.density);
-    if (composed.elements.length < budget.min || composed.elements.length > budget.max) {
-      errors = [
-        `${direction.id} is a ${direction.density} art direction and requires ${budget.min}-${budget.max} content elements; received ${composed.elements.length}`,
-      ];
+
+    // Unknown component ids are the most common failure; name them explicitly
+    // ahead of `compileRecipe`'s own check, so the retry prompt is specific.
+    const allComponents = [
+      composed.slots.evidence,
+      composed.slots.message,
+      composed.slots.support,
+      composed.slots.cta,
+      ...(composed.slots.brand ? [composed.slots.brand] : []),
+      ...(composed.extras ?? []),
+    ];
+    const unknown = allComponents.filter((el) => !hasComponent(el.component));
+    if (unknown.length > 0) {
+      errors = unknown.map((el) => `component "${el.component}" does not exist — use only catalogue ids`);
       continue;
     }
 
-    const candidate = {
-      specVersion: "1.0" as const,
-      seed: input.lineage.candidateSeed,
-      lineage: input.lineage,
+    const loudWord = input.idea.loudWord;
+    const recipeFill: RecipeFill = {
       productName: input.brief.product.name,
       campaignArchetype: input.brief.archetype,
+      sourceStatements: input.brief.statements.filter((s) => s.source === "user").map((s) => s.text),
       idea: input.idea.idea,
       story: input.idea.story,
-      canvas: { w, h, safe },
-      brand: {
-        colors: palette,
-        fonts: { display: fonts.display, body: fonts.body, mono: fonts.mono ?? null },
-      },
-      provenance: {
-        userStatements: input.brief.statements.filter((s) => s.source === "user").map((s) => s.text),
-      },
       copy: {
         eyebrow: input.idea.eyebrow,
         headline: input.idea.headline,
@@ -335,32 +371,40 @@ Fix exactly these problems and return the whole structure again.`
         },
         details: composed.details ?? [],
       },
-      elements: composed.elements.map((el) => ({
-        id: el.id,
-        component: el.component,
-        role: el.role,
-        whyHere: el.whyHere,
-        ...(el.useAssets && el.useAssets.length > 0 ? { assets: el.useAssets } : {}),
-        props: stripNulls({
-          ...el.props,
-          // The headline block needs to know which word the typography singles out.
-          ...(el.component === "headline-block" ? { loudWord: input.idea.loudWord } : {}),
-        }),
-      })),
-      relationships: composed.relationships,
-      gesture: { type: input.lineage.gesture, purpose: composed.gesturePurpose },
+      groundAsset: composed.groundAsset ?? undefined,
+      extraAssets: composed.extraAssets ?? undefined,
+      slots: {
+        evidence: slotFill(composed.slots.evidence, loudWord),
+        message: slotFill(composed.slots.message, loudWord),
+        support: slotFill(composed.slots.support, loudWord),
+        cta: slotFill(composed.slots.cta, loudWord),
+        ...(composed.slots.brand ? { brand: slotFill(composed.slots.brand, loudWord) } : {}),
+      },
+      extras: (composed.extras ?? []).map((el) => ({ ...slotFill(el, loudWord), role: el.role })),
+      extraOverlap: composed.extraOverlap ?? undefined,
+      gesturePurpose: composed.gesturePurpose,
     };
 
-    const result = safeParseSpec(candidate);
+    const compiled = compileRecipe(input.lineage, recipeFill);
+    if (!compiled.ok) {
+      errors = compiled.errors;
+      continue;
+    }
+
+    const direction = artDirectionById(input.lineage.artDirection);
+    const budget = elementBudgetForDensity(direction.density);
+    const count = compiled.authored.elements.length;
+    if (count < budget.min || count > budget.max) {
+      errors = [
+        `${direction.id} is a ${direction.density} art direction and requires ${budget.min}-${budget.max} content elements; the filled recipe produced ${count} — add or drop a \`brand\` slot or an \`extras\` entry.`,
+      ];
+      continue;
+    }
+
+    const result = assembleSpec(input.lineage, compiled.authored, brandColors, canvas);
     if (result.ok) return { spec: result.spec, attempts: attempt };
 
     errors = result.errors;
-    // Unknown component ids are the most common failure; name them explicitly.
-    for (const el of composed.elements) {
-      if (!hasComponent(el.component)) {
-        errors.push(`component "${el.component}" does not exist — use only catalogue ids`);
-      }
-    }
   }
 
   throw new Error(

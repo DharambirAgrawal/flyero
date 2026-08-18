@@ -594,7 +594,6 @@ export function solveLayout(
     if (region.excludeFromCoverage) continue;
     tone.paintFlat(region.bbox, region.fill, region.d ? 0.9 : 0.75);
   }
-  if (ground.gradient) tone.paintFlat({ x: 0, y: 0, ...spec.canvas }, ground.gradient.from, 0.5);
   // Ground-covering plates contribute their measured brightness, not a guess.
   for (const el of spec.elements) {
     const box = boxes[el.id];
@@ -742,8 +741,6 @@ export function solveLayout(
      * came out unreadable while the headline was fine. Ink is only correct if
      * every consumer can see the same truth.
      */
-    const differs = Math.abs(sample.luminance - baseLum) > 0.08 || sample.variance > 0.02;
-    if (!differs) continue;
     box.ground = sample.fill;
     box.onDark = sample.luminance < 0.5;
   }
@@ -858,10 +855,23 @@ export function solveLayout(
           b.onDark = after.luminance < 0.5;
         }
       } else {
+        const dir = textBelow >= textAbove ? "bottom" : "top";
         plateBox.propsOverride = {
           ...(plateBox.propsOverride ?? {}),
-          scrim: textBelow >= textAbove ? "bottom" : "top",
+          scrim: dir,
         };
+        const scrimH = Math.min(plateBox.h * 0.48, 520);
+        const scrimY = dir === "bottom" ? plateBox.y + plateBox.h - scrimH : plateBox.y;
+        const scrimRect = { x: plateBox.x, y: scrimY, w: plateBox.w, h: scrimH };
+        tone.paintFlat(scrimRect, mix(theme.palette.bg, "#000000", 0.35), 0.72);
+        for (const el of spec.elements) {
+          if (el.role === "structure" || el.role === "evidence") continue;
+          const b = boxes[el.id];
+          if (!b || overlapArea(b, scrimRect) <= 0) continue;
+          const after = tone.sample(b);
+          b.ground = after.fill;
+          b.onDark = after.luminance < 0.5;
+        }
       }
     }
   }
@@ -1281,7 +1291,7 @@ function applyGesture(
       // — never the label itself — is what actually goes under the hero.
       const maxIntrusion = textOcclusionLimit(eb, true);
       eb.y = box.y - eb.h + maxIntrusion;
-      eb.x = box.x + 26;
+      eb.x = Math.max(safe.x, box.x + 26);
       return { type: gesture.apply, elementId: eyebrow.id, bleeds: false };
     }
     case "headline-behind": {

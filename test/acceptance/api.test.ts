@@ -612,6 +612,39 @@ describe("motif search", () => {
   });
 });
 
+describe("on-demand component props (R5 — the library stays light by default)", () => {
+  it("serves one component's full props schema", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/schema/component/photo-hero", headers: auth });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.id).toBe("photo-hero");
+    expect(body.propsSchema).toBeTruthy();
+    expect(Array.isArray(body.engineOwnedProps)).toBe(true);
+  });
+
+  it("404s on an unknown component instead of a generic error", async () => {
+    const res = await app.inject({ method: "GET", url: "/v1/schema/component/not-a-real-component", headers: auth });
+    expect(res.statusCode).toBe(404);
+    expect(res.json().error?.code).toBe("not_found");
+  });
+
+  it("keeps componentLibrary (inside request_designers) free of the full props schema", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/studio/assignments",
+      headers: auth,
+      payload: { brief: "A neighbourhood bakery flyer", runs: 3 },
+    });
+    expect(res.statusCode).toBe(200);
+    for (const component of res.json().componentLibrary) {
+      expect(component).not.toHaveProperty("propsSchema");
+      expect(component).not.toHaveProperty("engineOwnedProps");
+      expect(component.id).toBeTruthy();
+      expect(component.purpose).toBeTruthy();
+    }
+  });
+});
+
 describe("remote MCP", () => {
   it("serves the same tools over HTTP that the stdio server does", async () => {
     // A hosted connector cannot spawn a process, so stdio alone makes Flyero

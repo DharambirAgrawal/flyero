@@ -46,6 +46,15 @@ export const briefSchema = z.object({
       }),
     )
     .max(10),
+  /**
+   * A short, documentary photo-search query for this brief's subject — a
+   * place, dish, object or face — when a real photograph of it would let
+   * Gate G2's cover test pass. Null for software/services/abstract topics,
+   * where a photograph would be a generic stand-in rather than real evidence.
+   * Only consulted when the caller uploaded no assets of their own
+   * (`pipeline.ts`) — never overrides a real upload.
+   */
+  photographableSubject: z.string().max(80).nullable(),
 });
 
 export type Brief = z.infer<typeof briefSchema> & {
@@ -86,7 +95,14 @@ Write the CTA label as something a person would actually click or do ("Join the 
 "Book a demo"), not a slogan. If the prompt contains a URL, use it verbatim.
 
 knownBenefits are concrete outcomes for the user, in plain words — not feature names and not
-adjectives. "Rewrites your résumé the way recruiters read it" is a benefit. "AI-powered" is not.`;
+adjectives. "Rewrites your résumé the way recruiters read it" is a benefit. "AI-powered" is not.
+
+photographableSubject: is this flyer for something a camera could point at — a place, a dish, an
+object, a face? If so, write a short, documentary search query for it (e.g. "sourdough bread
+wooden table", "small neighbourhood bakery storefront") — specific and literal, never "vector",
+"clipart", "illustration", or "template". If the subject is software, a service, or something
+abstract with nothing to photograph, this is null — do not force a photo search where a diagram
+or icon is the honest answer instead.`;
 
 export async function buildBrief(
   input: {

@@ -26,7 +26,7 @@ import {
   type Tile,
 } from "../../components/shapes.js";
 import type { Box, Theme } from "../../components/types.js";
-import { contrastRatio, mix, withAlpha } from "../../creative/color.js";
+import { contrastRatio, meetsAA, mix, withAlpha } from "../../creative/color.js";
 import type { GraphicsValue } from "../../creative/graphics.js";
 import { Rng } from "../../lib/rng.js";
 import type { DesignSpec } from "../compose/spec.js";
@@ -224,10 +224,13 @@ export function planGround(
     let t = 0.62;
     let from = mix(theme.palette.accent, base, t);
     while (
-      t < 0.94 &&
-      (contrastRatio(theme.palette.accent, from) < 3 || contrastRatio(theme.palette.muted, from) < 3)
+      t < 0.98 &&
+      (!meetsAA(theme.palette.fg, mix(base, from, 0.75)) ||
+        !meetsAA(theme.palette.fg, from) ||
+        contrastRatio(theme.palette.accent, from) < 3 ||
+        contrastRatio(theme.palette.muted, from) < 3)
     ) {
-      t += 0.08;
+      t += 0.04;
       from = mix(theme.palette.accent, base, t);
     }
     plan.gradient = {

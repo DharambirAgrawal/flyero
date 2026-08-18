@@ -91,8 +91,9 @@ Use these. Descriptions are written so tool-search finds them; call them by name
 | Designer assignment / lineage from the Studio Sampler | \`request_designers\` |
 | Find photos, icons, illustrations, shapes, QR | \`search_images\` then \`import_image\` |
 | Find a motif for composed-figure by keyword | \`search_motifs\` |
-| Valid composition JSON shape (not a flyer to remix) | \`get_composition_example\` |
-| Submit your authored flyer | \`compose_flyer\` |
+| A component's full props schema, right before you fill it | \`get_component_props\` |
+| Submit your flyer — fill 4 named slots, engine derives the rest (default) | \`compose_recipe\` |
+| Valid full composition JSON shape (power path, rarely needed) | \`get_composition_example\` then \`compose_flyer\` |
 | Edit after looking | \`revise_composition\` |
 | Verdict after you looked at the PNG | \`review_flyer\` |
 | Hand the user links | \`export_composed_flyer\` |

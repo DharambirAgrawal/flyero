@@ -20,7 +20,9 @@ import { graphicsById } from "../creative/graphics.js";
 import { artDirectionById, elementBudgetForDensity } from "../creative/artdirections.js";
 import { DEFAULT_FORMAT, FORMAT_IDS, formatById, type FormatId } from "../creative/formats.js";
 import { recipeFor, photoFillsPage } from "../core/layout/recipes.js";
-import { componentPropsSchema, engineOwnedPropsFor, COMPONENTS } from "../components/registry.js";
+import { deriveSpecies, SPECIES_LABEL } from "../core/studio/species.js";
+import { compileRecipe } from "../core/compose/recipe.js";
+import { componentPropsSchema, engineOwnedPropsFor, COMPONENTS, hasComponent } from "../components/registry.js";
 import { searchMotifs } from "../components/shapes.js";
 import { runGates, failedGateIds, visionVerdictSchema } from "../core/gates/index.js";
 import { ruleCritic, describeFix } from "../core/critic/index.js";
@@ -447,6 +449,67 @@ const authoredSchema = z.object({
   prompt: z.string().max(2000).optional(),
 });
 
+const slotFillSchema = z.object({
+  component: z.string(),
+  whyHere: z.string().min(8).max(200),
+  assets: z.array(z.string()).optional(),
+  props: z.record(z.unknown()).optional(),
+});
+
+/**
+ * The recipe-bound compose surface (R3): four named slots instead of a free
+ * elements/relationships graph. `compileRecipe` (`src/core/compose/recipe.ts`)
+ * turns this into the same `AuthoredSpec` shape `compose_flyer` builds by
+ * hand — the gesture and the headline's structural relationship are derived,
+ * not authored.
+ */
+const recipeSchema = z.object({
+  lineage: lineageSchema,
+  format: z.enum(FORMAT_IDS as [FormatId, ...FormatId[]]).optional(),
+  productName: z.string().min(1).max(60),
+  campaignArchetype: z
+    .enum([
+      "product-promotion",
+      "event-invitation",
+      "awareness-education",
+      "editorial-announcement",
+      "offer-promotion",
+    ])
+    .default("product-promotion"),
+  sourceStatements: z.array(z.string().min(1).max(300)).max(40).default([]),
+  idea: z.string().min(10).max(140),
+  story: z.tuple([z.string(), z.string(), z.string(), z.string()]),
+  copy: copySchema,
+  /** Which uploaded asset is the subject — required when the lineage's topology makes the photograph the page. */
+  groundAsset: z.string().optional(),
+  extraAssets: z.array(z.string()).max(5).optional(),
+  slots: z.object({
+    evidence: slotFillSchema,
+    message: slotFillSchema,
+    support: slotFillSchema,
+    cta: slotFillSchema,
+    brand: slotFillSchema.optional(),
+  }),
+  /** Rare — only for a "rich" density lineage that needs more than the four named slots. */
+  extras: z
+    .array(slotFillSchema.extend({ role: z.enum(["support", "structure"]).optional() }))
+    .max(3)
+    .optional(),
+  extraOverlap: z
+    .object({
+      kind: z.enum(["overlap", "weave", "annotate", "connect", "frame"]).optional(),
+      front: z.enum(["message", "support", "cta", "brand"]),
+      behind: z.enum(["evidence", "message", "support", "brand"]),
+      overlap: z.number().min(0).max(0.4).optional(),
+      purpose: z.string().min(8).max(200),
+    })
+    .optional(),
+  gesturePurpose: z.string().min(8).max(200),
+  assetIds: z.array(z.string()).max(6).default([]),
+  brandColors: z.array(z.string()).max(5).default([]),
+  flyerId: z.string().optional(),
+  prompt: z.string().max(2000).optional(),
+});
 
 const elementEditSchema = z.object({
   id: z.string(),
@@ -557,6 +620,15 @@ function fail(reply: FastifyReply, status: number, code: string, message: string
  * times over for a handful of bytes of real per-lineage difference. Computed
  * once per request instead; see `describeAssignment` for what varies.
  */
+/**
+ * Enough to pick a component — never its full props JSON Schema. That field
+ * alone was ~60% of this list's bytes (measured: 25.5KB with it, 10KB
+ * without, across ~40 components) and most of it is never used: an author
+ * fills 4-7 slots, not forty. `GET /v1/schema/component/:id` /
+ * `get_component_props` fetch one component's schema on demand, right
+ * before it's actually needed (R5 — the envelope should cost what an author
+ * is about to use, not the whole library every time a lineage is sampled).
+ */
 function componentLibrary() {
   return COMPONENTS.map((c) => ({
     id: c.manifest.id,
@@ -565,8 +637,6 @@ function componentLibrary() {
     purpose: c.manifest.purpose,
     assetSlots: c.manifest.assetSlots,
     textLimits: c.manifest.textLimits ?? null,
-    propsSchema: componentPropsSchema(c.manifest.id),
-    engineOwnedProps: engineOwnedPropsFor(c.manifest.id),
   }));
 }
 
@@ -583,6 +653,7 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
   const elementBudget = elementBudgetForDensity(artDirection.density);
   const recipe = recipeFor(lineage.topology);
   const pair = fontPairById(lineage.fontPair);
+  const species = deriveSpecies(lineage);
 
   // Almost every component fits every topology; only a handful declare a
   // narrower list. Naming the few that DON'T fit this lineage is much
@@ -593,6 +664,10 @@ function describeAssignment(lineage: Lineage, brandColors: string[]) {
 
   return {
     lineage,
+    // The sticky, one-letter version of `direction.topology.photoIsThePage` /
+    // `photoIsTheField` below — decide the page's species once, here, instead
+    // of re-deriving "is this a photo flyer" from prose on every read.
+    species: { id: species, label: SPECIES_LABEL[species] },
     direction: {
       artDirection: {
         id: artDirection.id,
@@ -851,10 +926,12 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       campaignArchetype: campaignArchetype ?? null,
       // Once, not per assignment — see componentLibrary()'s comment. Almost
       // every id here fits every assignment; check an assignment's own
-      // `componentsExcluded` for the rare few that don't.
+      // `componentsExcluded` for the rare few that don't. Ids and purpose
+      // only, not each component's props schema — fetch one component's
+      // schema with get_component_props right before you fill its `props`.
       componentLibrary: componentLibrary(),
       assignments: lineages.map((l) => describeAssignment(l, brandColors)),
-      next: "Write the idea, then POST /v1/flyers/compose with the lineage returned here.",
+      next: "Write the idea, then compose_recipe with the lineage returned here.",
     };
   });
 
@@ -910,6 +987,24 @@ export function registerAgentRoutes(app: FastifyInstance): void {
   }));
 
   /**
+   * One component's full props JSON Schema, on demand — the field
+   * `componentLibrary()` (inside `request_designers`) deliberately omits.
+   * Fetch this right before filling that component's `props`, not for every
+   * component up front.
+   */
+  app.get<{ Params: { id: string } }>("/v1/schema/component/:id", async (request, reply) => {
+    const { id } = request.params;
+    if (!hasComponent(id)) {
+      return fail(reply, 404, "not_found", `No component "${id}" — see componentLibrary in request_designers for valid ids`);
+    }
+    return {
+      id,
+      propsSchema: componentPropsSchema(id),
+      engineOwnedProps: engineOwnedPropsFor(id),
+    };
+  });
+
+  /**
    * Search the motif library instead of reading every id.
    *
    * `read_design_guide` no longer lists every mark — the library is 200+
@@ -925,28 +1020,20 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     return { query: q, results: searchMotifs(q, limit) };
   });
 
-  app.post("/v1/flyers/compose", async (request, reply) => {
-    const parsed = authoredSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return fail(reply, 400, "invalid_request", "Invalid composition", parsed.error.issues);
-    }
-    const body = parsed.data;
-    const direction = artDirectionById(body.lineage.artDirection);
-    const elementBudget = elementBudgetForDensity(direction.density);
-    if (body.elements.length < elementBudget.min || body.elements.length > elementBudget.max) {
-      return fail(
-        reply,
-        422,
-        "invalid_spec",
-        `${direction.id} requires ${elementBudget.min}-${elementBudget.max} content elements; received ${body.elements.length}`,
-      );
-    }
-
-    // An element naming an asset *is* the request to use it. Requiring the id to
-    // be repeated in a top-level list only creates a silent failure mode where
-    // the element renders a placeholder and the gates report nothing wrong.
-    const referenced = body.elements.flatMap((el) => el.assets ?? []);
-    const assetIds = Array.from(new Set([...body.assetIds, ...referenced]));
+  /**
+   * Shared by `/v1/flyers/compose` (full authoring) and `/v1/flyers/compose-recipe`
+   * (slot-bound authoring, R3) so the two surfaces can never record or reply
+   * differently once an `AuthoredSpec` exists — everything before this point is
+   * how that spec got built; everything after is identical.
+   */
+  async function finishComposition(
+    request: { apiKey: string },
+    reply: FastifyReply,
+    meta: { lineage: Lineage; format?: FormatId; flyerId?: string; brandColors: string[]; prompt?: string; assetIds: string[] },
+    authored: AuthoredSpec,
+  ) {
+    const referenced = authored.elements.flatMap((el) => el.assets ?? []);
+    const assetIds = Array.from(new Set([...meta.assetIds, ...referenced]));
     const missing = assetIds.filter((id) => !getAsset(id));
     if (missing.length > 0) {
       return fail(
@@ -961,32 +1048,17 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     // existing flyer without one keeps its current canvas rather than
     // silently resetting to the default portrait; a brand-new flyer with
     // neither gets the default.
-    let canvas: { w: number; h: number; safe: number } | undefined = body.format
-      ? formatById(body.format)
+    let canvas: { w: number; h: number; safe: number } | undefined = meta.format
+      ? formatById(meta.format)
       : undefined;
-    if (!canvas && body.flyerId) {
-      const existingJob = await getJob(body.flyerId);
+    if (!canvas && meta.flyerId) {
+      const existingJob = await getJob(meta.flyerId);
       const prevRevision = existingJob ? await getRevision(existingJob.id, existingJob.revision) : null;
       if (prevRevision) canvas = (JSON.parse(prevRevision.spec) as DesignSpec).canvas;
     }
     canvas ??= formatById(DEFAULT_FORMAT);
 
-    const assembled = assembleSpec(
-      body.lineage,
-      {
-        productName: body.productName,
-        campaignArchetype: body.campaignArchetype,
-        sourceStatements: body.sourceStatements,
-        idea: body.idea,
-        story: body.story,
-        copy: body.copy,
-        elements: body.elements,
-        relationships: body.relationships,
-        gesturePurpose: body.gesturePurpose,
-      } as AuthoredSpec,
-      body.brandColors,
-      canvas,
-    );
+    const assembled = assembleSpec(meta.lineage, authored, meta.brandColors, canvas);
 
     if (!assembled.ok) {
       // The validator's complaints are the whole point: they tell the author
@@ -1004,7 +1076,7 @@ export function registerAgentRoutes(app: FastifyInstance): void {
     const spec = assembled.spec;
 
     // Existing flyer → this becomes its next revision.
-    let flyerId = body.flyerId ?? null;
+    let flyerId = meta.flyerId ?? null;
     let revision = 0;
     if (flyerId) {
       const existing = await getJob(flyerId);
@@ -1015,11 +1087,11 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       await createJob({
         id: flyerId,
         apiKey: request.apiKey,
-        prompt: body.prompt ?? body.idea,
-        risk: body.lineage.risk,
-        jobSeed: body.lineage.jobSeed,
+        prompt: meta.prompt ?? authored.idea,
+        risk: meta.lineage.risk,
+        jobSeed: meta.lineage.jobSeed,
         assetIds,
-        brand: body.brandColors.length ? { colors: body.brandColors } : null,
+        brand: meta.brandColors.length ? { colors: meta.brandColors } : null,
         callbackUrl: null,
         batchId: null,
       });
@@ -1040,6 +1112,110 @@ export function registerAgentRoutes(app: FastifyInstance): void {
       const message = error instanceof Error ? error.message : String(error);
       return fail(reply, errorCode === "not_found" ? 404 : 500, errorCode === "not_found" ? "not_found" : "generation_failed", message);
     }
+  }
+
+  app.post("/v1/flyers/compose", async (request, reply) => {
+    const parsed = authoredSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return fail(reply, 400, "invalid_request", "Invalid composition", parsed.error.issues);
+    }
+    const body = parsed.data;
+    const direction = artDirectionById(body.lineage.artDirection);
+    const elementBudget = elementBudgetForDensity(direction.density);
+    if (body.elements.length < elementBudget.min || body.elements.length > elementBudget.max) {
+      return fail(
+        reply,
+        422,
+        "invalid_spec",
+        `${direction.id} requires ${elementBudget.min}-${elementBudget.max} content elements; received ${body.elements.length}`,
+      );
+    }
+
+    return finishComposition(
+      request,
+      reply,
+      {
+        lineage: body.lineage,
+        format: body.format,
+        flyerId: body.flyerId,
+        brandColors: body.brandColors,
+        prompt: body.prompt,
+        assetIds: body.assetIds,
+      },
+      {
+        productName: body.productName,
+        campaignArchetype: body.campaignArchetype,
+        sourceStatements: body.sourceStatements,
+        idea: body.idea,
+        story: body.story,
+        copy: body.copy,
+        elements: body.elements,
+        relationships: body.relationships,
+        gesturePurpose: body.gesturePurpose,
+      } as AuthoredSpec,
+    );
+  });
+
+  // ── 2c. Compose from a recipe: four named slots, not a free spec (R3) ────
+  app.post("/v1/flyers/compose-recipe", async (request, reply) => {
+    const parsed = recipeSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return fail(reply, 400, "invalid_request", "Invalid recipe fill", parsed.error.issues);
+    }
+    const body = parsed.data;
+
+    const compiled = compileRecipe(body.lineage, {
+      productName: body.productName,
+      campaignArchetype: body.campaignArchetype,
+      sourceStatements: body.sourceStatements,
+      idea: body.idea,
+      story: body.story,
+      copy: body.copy,
+      groundAsset: body.groundAsset,
+      extraAssets: body.extraAssets,
+      slots: body.slots,
+      extras: body.extras,
+      extraOverlap: body.extraOverlap,
+      gesturePurpose: body.gesturePurpose,
+    });
+    if (!compiled.ok) {
+      return reply.status(422).send({
+        error: {
+          code: "invalid_recipe",
+          message: "The recipe fill could not be compiled into a spec",
+          details: { problems: compiled.errors },
+        },
+        hint: "Fix these and POST again — this endpoint only needs the four named slots (evidence/message/support/cta), not a full elements/relationships graph.",
+      });
+    }
+
+    const direction = artDirectionById(body.lineage.artDirection);
+    const elementBudget = elementBudgetForDensity(direction.density);
+    if (
+      compiled.authored.elements.length < elementBudget.min ||
+      compiled.authored.elements.length > elementBudget.max
+    ) {
+      return fail(
+        reply,
+        422,
+        "invalid_spec",
+        `${direction.id} requires ${elementBudget.min}-${elementBudget.max} content elements; the filled recipe produced ${compiled.authored.elements.length}. Add or drop an \`extras\` entry.`,
+      );
+    }
+
+    return finishComposition(
+      request,
+      reply,
+      {
+        lineage: body.lineage,
+        format: body.format,
+        flyerId: body.flyerId,
+        brandColors: body.brandColors,
+        prompt: body.prompt,
+        assetIds: body.assetIds,
+      },
+      compiled.authored,
+    );
   });
 
   // ── 2b. Patch: change part of a flyer without resending the whole spec ───

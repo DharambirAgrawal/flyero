@@ -12,6 +12,7 @@ import { COLOR_LOGIC } from "../../src/creative/colorlogic.js";
 import { Rng } from "../../src/lib/rng.js";
 import type { DesignSpec } from "../../src/core/compose/spec.js";
 
+import { inkFor } from "../../src/components/primitives.js";
 const ctx = { jobId: null, apiKey: "test", stage: "gates" };
 
 function layoutFor(spec: DesignSpec) {
@@ -108,7 +109,7 @@ describe("gates", () => {
       expect(result.detail.G3, `${lineage.topology} G3`).toBe(true);
       expect(result.detail.G5, `${lineage.topology} G5`).toBe(true);
       expect(result.detail.G6, `${lineage.topology} G6`).toBe(true);
-      expect(result.mechanical.contrast, `${lineage.topology} contrast`).toBe(true);
+      expect(result.mechanical.contrast, `${lineage.topology} contrast: ${result.notes.join("; ")}`).toBe(true);
       expect(result.mechanical.ctaPresent).toBe(true);
       expect(result.mechanical.bannedListClear).toBe(true);
       expect(result.mechanical.overflow, result.notes.join("; ")).toBe(true);
@@ -347,6 +348,71 @@ describe("banned list — the generated-design clichés", () => {
       const result = detectBanned(spec, solveLayout(spec, themeFromSpec(spec)).boxes);
       expect(result.clear, `${lineage.colorLogic}/${lineage.material}: ${result.hits.map((h) => h.signal).join(", ")}`).toBe(true);
     }
+  });
+
+  /**
+   * The composite signal 8 names precisely: "the shortest legal path today is
+   * gradient + text" — a design review's phrase for a flat/quiet field, a
+   * centred stack, no photograph, no marks. Coverage/G2 catch this from other
+   * angles, but nothing named it directly before this signal existed.
+   */
+  it("catches a centred flyer with no photograph and no marks — the generic slide", () => {
+    const evidenceEl = base.elements.find((e) => e.role === "evidence")!;
+    const spec = {
+      ...base,
+      lineage: { ...base.lineage, graphics: "editorial-restraint" as const },
+      elements: base.elements.map((e) =>
+        e.id === evidenceEl.id ? { ...e, component: "document-card" } : e,
+      ),
+    };
+    const centredBoxes = Object.fromEntries(
+      Object.entries(boxes).map(([id, box]) => [
+        id,
+        { ...box, x: spec.canvas.w * 0.35, y: spec.canvas.h * 0.35, w: 40, h: 40 },
+      ]),
+    );
+    const result = detectBanned(spec as typeof base, centredBoxes);
+    expect(result.hits.map((h) => h.signal)).toContain("generic-slide");
+    expect(result.hits.map((h) => h.signal)).toContain("centred-single-cluster");
+    expect(result.clear).toBe(false);
+  });
+
+  it("does not fire the generic-slide signal when the evidence is a real photograph", () => {
+    const evidenceEl = base.elements.find((e) => e.role === "evidence")!;
+    const spec = {
+      ...base,
+      lineage: { ...base.lineage, graphics: "editorial-restraint" as const },
+      elements: base.elements.map((e) =>
+        e.id === evidenceEl.id ? { ...e, component: "photo-hero" } : e,
+      ),
+    };
+    const centredBoxes = Object.fromEntries(
+      Object.entries(boxes).map(([id, box]) => [
+        id,
+        { ...box, x: spec.canvas.w * 0.35, y: spec.canvas.h * 0.35, w: 40, h: 40 },
+      ]),
+    );
+    const result = detectBanned(spec as typeof base, centredBoxes);
+    expect(result.hits.map((h) => h.signal)).not.toContain("generic-slide");
+  });
+
+  it("does not fire the generic-slide signal on an off-centre layout, even with no photo and no marks", () => {
+    const evidenceEl = base.elements.find((e) => e.role === "evidence")!;
+    const spec = {
+      ...base,
+      lineage: { ...base.lineage, graphics: "editorial-restraint" as const },
+      elements: base.elements.map((e) =>
+        e.id === evidenceEl.id ? { ...e, component: "document-card" } : e,
+      ),
+    };
+    // Deliberately NOT the centring fixture above — pinned to the left edge,
+    // outside the middle-40% band `inCentre` checks, so this test can't pass
+    // by accident of whichever topology the fixture seed happened to roll.
+    const offCentreBoxes = Object.fromEntries(
+      Object.entries(boxes).map(([id, box]) => [id, { ...box, x: 0, y: 0, w: 40, h: 40 }]),
+    );
+    const result = detectBanned(spec as typeof base, offCentreBoxes);
+    expect(result.hits.map((h) => h.signal)).not.toContain("generic-slide");
   });
 });
 

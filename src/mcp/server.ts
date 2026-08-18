@@ -209,11 +209,14 @@ export function buildMcpServer(): McpServer {
         "3. Imagery: user logo/photo → upload_asset (+ prepare_asset). Anything else → search_images",
         "   then import_image (photos, icons, illustrations, shapes, QR). A place/dish/object needs a",
         "   real picture for G2; otherwise scene-illustration / motif-collage / chat-exchange.",
-        "4. get_composition_example BEFORE compose_flyer — for schema shape only, then invent.",
-        "   Refuse the safe stack (headline + photo-hero + body + CTA + footer) unless metaphor+brief",
-        "   both demand it. Prefer unfamiliar evidence: polaroid-stack, photo-cluster, torn-photo,",
-        "   chat-exchange, before-after-stack, detail-cluster, composed-figure, …",
-        "5. compose_flyer with your authored composition. Fix precise rejection fields; do not guess.",
+        "4. Compose with compose_recipe — fill evidence/message/support/cta, name the groundAsset if",
+        "   there is one; the engine derives the relationship graph and gesture. Refuse the safe stack",
+        "   (headline + photo-hero + body + CTA + footer) unless metaphor+brief both demand it. Prefer",
+        "   unfamiliar evidence: polaroid-stack, photo-cluster, torn-photo, chat-exchange, before-after-",
+        "   stack, detail-cluster, composed-figure, … Only reach for get_composition_example +",
+        "   compose_flyer (the full elements/relationships graph) when a composition genuinely needs",
+        "   more structure than four slots can express.",
+        "5. Fix precise rejection fields; do not guess.",
         "6. LOOK at the image, then review_flyer (G1 idea / G2 cover / G4 type). Reject generic work.",
         "7. Tweaks → revise_composition. Then export_composed_flyer and SHOW the user the export links.",
         "",
@@ -768,6 +771,23 @@ export function buildMcpServer(): McpServer {
   );
 
   server.registerTool(
+    "get_component_props",
+    {
+      title: "Get one component's full props schema",
+      description:
+        "The componentLibrary in request_designers deliberately omits each component's full props " +
+        "JSON Schema — most of a session's token cost used to be forty schemas an author only ever " +
+        "fills four to seven of. Fetch this right before you fill that component's `props`.",
+      inputSchema: {
+        id: z.string().describe("A component id from componentLibrary, e.g. 'photo-hero'."),
+      },
+    },
+    async ({ id }) => ({
+      content: [{ type: "text", text: JSON.stringify(await api(`/v1/schema/component/${id}`), null, 2) }],
+    }),
+  );
+
+  server.registerTool(
     "search_motifs",
     {
       title: "Search the motif library",
@@ -821,6 +841,52 @@ export function buildMcpServer(): McpServer {
       const out = await api("/v1/flyers/compose", {
         method: "POST",
         body: JSON.stringify(composition),
+      });
+      const preview = out.flyerId ? await previewContent(out.flyerId) : [];
+      const links = out.flyerId
+        ? [
+            {
+              type: "text" as const,
+              text:
+                `SHOW THESE TO THE USER — the preview above is for your eyes only:\n` +
+                `PNG: ${shareUrl(out.flyerId, "png")}\n` +
+                `SVG: ${shareUrl(out.flyerId, "svg")}`,
+            },
+          ]
+        : [];
+      return {
+        content: [{ type: "text", text: JSON.stringify(out, null, 2) }, ...preview, ...links],
+      };
+    },
+  );
+
+  server.registerTool(
+    "compose_recipe",
+    {
+      title: "Compose a flyer by filling four named slots (recommended default)",
+      description:
+        "The smaller way to compose — fill evidence/message/support/cta (named slots the sampled " +
+        "lineage already defines), write the copy, name which uploaded asset is the subject " +
+        "(groundAsset) when there is one. The engine derives the headline's structural relationship " +
+        "and inserts anything the lineage's signature gesture needs — you never invent element ids, " +
+        "a relationships graph, or a gesture. Prefer this over compose_flyer unless you have a " +
+        "specific reason to hand-author the full elements/relationships graph yourself.",
+      inputSchema: {
+        recipe: z
+          .record(z.any())
+          .describe(
+            "lineage (from request_designers, unchanged), productName, idea, story, copy, " +
+              "groundAsset (an uploaded assetId — required when the lineage's topology makes the " +
+              "photograph the page), slots: { evidence, message, support, cta, brand? } each " +
+              "{ component, whyHere }, gesturePurpose. A rejection lists exactly which slot or field " +
+              "is wrong.",
+          ),
+      },
+    },
+    async ({ recipe }) => {
+      const out = await api("/v1/flyers/compose-recipe", {
+        method: "POST",
+        body: JSON.stringify(recipe),
       });
       const preview = out.flyerId ? await previewContent(out.flyerId) : [];
       const links = out.flyerId

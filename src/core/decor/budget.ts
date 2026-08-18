@@ -27,11 +27,11 @@ export const DECOR_BUDGET = {
   /** Fixed attempt budget per slot, so placement can never loop unbounded. */
   ATTEMPTS_PER_SLOT: 24,
   /** Keep-out inflation around a text box, in px. */
-  PAD_TEXT: 28,
+  PAD_TEXT: 18,
   /** Keep-out inflation around the evidence element. */
-  PAD_EVIDENCE: 24,
+  PAD_EVIDENCE: 16,
   /** Keep-out inflation around everything else. */
-  PAD_NON_TEXT: 16,
+  PAD_NON_TEXT: 12,
 } as const;
 
 /**

@@ -4,6 +4,9 @@ import { parseSpec, type DesignSpec, type Lineage } from "../src/core/compose/sp
 import { fontPairById } from "../src/creative/fontpairs.js";
 import { gestureById } from "../src/creative/gestures.js";
 import { CANVAS } from "../src/config.js";
+import { manifestsFor } from "../src/components/registry.js";
+import { artDirectionById } from "../src/creative/artdirections.js";
+import { Rng } from "../src/lib/rng.js";
 
 /**
  * Hand-written specs for tests that must not depend on a model being reachable.
@@ -79,7 +82,47 @@ export function fixtureSpec(lineage: Lineage): DesignSpec {
     },
     {
       id: "hero",
-      component: "before-after-stack",
+      component: (() => {
+        // Pick a deterministic evidence component for this lineage so the
+        // sheet reflects the available component diversity rather than one
+        // hard-coded example. Prefer components listed by the art direction
+        // when available.
+        try {
+          const rng = new Rng(lineage.candidateSeed);
+          const art = artDirectionById(lineage.artDirection);
+          const prefs = art.preferredComponents ?? [];
+          const catalog = manifestsFor(lineage.topology)
+            .filter((m: any) => m.roles.includes("evidence"))
+            // Prefer components that accept image assets so the fixture can
+            // display photos without needing extra props.
+            .filter((m: any) => (m.assetSlots ?? 0) > 0)
+            .map((m: any) => m.id);
+          // Whitelist safe evidence components that work well in fixtures
+          const SAFE_EVIDENCE = [
+            "photo-hero",
+            "polaroid-stack",
+            "photo-cluster",
+            "photo-grid",
+            "torn-photo",
+            "motif-collage",
+            "browser-frame",
+            "phone-frame",
+            "document-card",
+            "masked-image",
+          ];
+          const preferredPool = prefs.length ? prefs.filter((p) => catalog.includes(p)) : [];
+          const poolSource = preferredPool.length ? preferredPool : catalog;
+          const pool = poolSource.filter((id) => SAFE_EVIDENCE.includes(id));
+          if (pool.length === 0) {
+            // fallback: use any catalog item if whitelist missed; parser will
+            // then validate and the sheet run may throw, but this is rare.
+            pool.push(...poolSource);
+          }
+          return pool[rng.int(0, pool.length - 1)];
+        } catch (e) {
+          return "before-after-stack";
+        }
+      })(),
       role: "evidence",
       whyHere: "shows the résumé actually changing — without it the flyer only claims",
     },

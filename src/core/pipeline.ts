@@ -10,7 +10,8 @@ import { reviseSpec } from "./revise/index.js";
 import { failedGateIds, runGates, type GateResult } from "./gates/index.js";
 import { checkEditability, exportFlyer } from "./export/index.js";
 import { selectPassingCandidate, type SelectionDecision } from "./select/index.js";
-import { assetDataUri, getAssets, type AssetRecord } from "../store/assets.js";
+import { assetDataUri, createAsset, getAssets, type AssetRecord } from "../store/assets.js";
+import { imageProvider, fetchCandidate } from "./images/search.js";
 import {
   getJob,
   getRevision,
@@ -61,6 +62,38 @@ export type CandidateOutcome = {
   composerAttempts: number;
   error?: string;
 };
+
+/**
+ * Image-first (plan R4b). A brief for a real photographable subject with
+ * nothing uploaded used to leave every downstream stage blind — the Idea
+ * Engine and Composer only ever reasoned about assets the caller happened to
+ * supply. One bounded, best-effort search before the sampler runs, so the
+ * rest of the pipeline sees the same photograph a human designer would have
+ * reached for first, instead of inventing an abstraction because nothing was
+ * there to reach for. Never retried; a failure here must never fail the job.
+ */
+async function autoSearchAsset(query: string, apiKey: string): Promise<AssetRecord | null> {
+  try {
+    const results = await imageProvider.search({ query, type: "photo", perPage: 3, orientation: "portrait" });
+    const candidate = results[0];
+    if (!candidate) return null;
+    const { buffer, mime } = await fetchCandidate({ downloadUrl: candidate.downloadUrl });
+    return await createAsset({
+      buffer,
+      mime,
+      kind: "reference",
+      apiKey,
+      provenance: {
+        source: candidate.provider,
+        sourceUrl: candidate.sourceUrl,
+        author: candidate.author,
+        downloadUrl: candidate.downloadUrl,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
 
 async function assetRefs(assets: AssetRecord[]): Promise<AssetRef[]> {
   return Promise.all(assets.map(async (a) => ({
@@ -183,7 +216,7 @@ export async function runJob(jobId: string): Promise<void> {
       throw new Error("ANTHROPIC_API_KEY is not configured — generation cannot run");
     }
 
-    const assets = await getAssets(JSON.parse(job.asset_ids) as string[]);
+    let assets = await getAssets(JSON.parse(job.asset_ids) as string[]);
     const brand = job.brand ? (JSON.parse(job.brand) as { colors?: string[]; tone?: string[] }) : null;
     const jobFormat = (FORMAT_IDS as string[]).includes(job.format)
       ? (job.format as FormatId)
@@ -192,6 +225,14 @@ export async function runJob(jobId: string): Promise<void> {
     await setStage(jobId, "brief");
     const brief = await buildBrief({ prompt: job.prompt, assets, brand }, ctx);
     await updateJob(jobId, { product_name: brief.product.name });
+
+    if (assets.length === 0 && brief.photographableSubject) {
+      const found = await autoSearchAsset(brief.photographableSubject, job.api_key);
+      if (found) {
+        assets = [...assets, found];
+        await updateJob(jobId, { asset_ids: JSON.stringify(assets.map((a) => a.id)) });
+      }
+    }
 
     await setStage(jobId, "sample");
     const initial = sampleLineages({

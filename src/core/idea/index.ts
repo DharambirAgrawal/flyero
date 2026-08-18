@@ -6,6 +6,7 @@ import { typographyById } from "../../creative/typebehaviors.js";
 import { materialById } from "../../creative/materials.js";
 import { gestureById } from "../../creative/gestures.js";
 import { graphicsById } from "../../creative/graphics.js";
+import { deriveSpecies, SPECIES_LABEL } from "../studio/species.js";
 import type { Lineage } from "../compose/spec.js";
 import type { Brief } from "../brief/index.js";
 
@@ -49,6 +50,13 @@ WHAT MAKES AN IDEA GOOD (this is the entire job):
    guess what the product does, because the subject of the flyer IS the thing the product
    works on — a résumé, an invoice, a route, a inbox. Never abstract "technology" shapes.
 
+   If real photographs are listed below under AVAILABLE IMAGERY, your idea must be
+   expressible using one of them as the actual thing seen — not a generic restatement
+   ("a fun festive flyer that pops") that could be illustrated by any stock photo. Name
+   which photograph the idea depends on. If none are listed and the assigned poster species
+   is P or S (below), the idea should still describe a real, specific, photographable
+   subject — the composer will need to find or synthesize evidence for exactly that.
+
 3. It makes the benefit visible rather than stated. If your idea could be replaced by a
    sentence of ad copy, it is not an idea yet.
 
@@ -88,6 +96,18 @@ export async function generateIdea(
     .map((s) => `- [${s.source}] ${s.text}`)
     .join("\n");
 
+  const species = deriveSpecies(lineage);
+
+  // The stage that invents what the viewer SEES used to know nothing about
+  // what photographs actually exist — it could only write ideas an abstract
+  // illustration could satisfy. Mirrors the composer's own asset block
+  // (composer.ts) so both stages reason from the same facts.
+  const assetLines = brief.assets.length
+    ? brief.assets
+        .map((a) => `- ${a.assetId} (${a.kind}) suits: ${a.recommendedRoles.join(", ")}`)
+        .join("\n")
+    : "(none uploaded yet)";
+
   const prompt = `THE BRIEF
 
 Product: ${brief.product.name} — ${brief.product.category}
@@ -107,6 +127,7 @@ instincts, and your idea must live inside them:
 
 - Metaphor family — ${metaphor.id}: ${metaphor.brief}
 - Composition — ${topology.id}: ${topology.brief}
+- Poster species — ${species}: ${SPECIES_LABEL[species]}
 - Typography behaviour — ${typography.id}: ${typography.brief}
 - Material — ${material.id}: ${material.brief}
 - Signature gesture — ${gesture.id}: ${gesture.brief}
@@ -114,6 +135,9 @@ instincts, and your idea must live inside them:
 
 The metaphor family is the binding constraint. An idea that would work equally well under a
 different metaphor is not using this one. Push it until the metaphor is doing visible work.
+
+AVAILABLE IMAGERY
+${assetLines}
 
 Write the idea, the four story beats, and the copy.
 For this ${brief.archetype}, the four beats are: ${storyGrammar}.
